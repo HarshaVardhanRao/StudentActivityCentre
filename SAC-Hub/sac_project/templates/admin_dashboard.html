@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+	<h2 class="mb-4">SAC Coordinator / Co-Coordinator Dashboard</h2>
+	<div class="row mb-4">
+		<div class="col-md-4">
+			<div class="card text-bg-warning mb-3">
+				<div class="card-header">Event Proposals</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_event_proposals }}</h5>
+					<p class="card-text">Submitted events pending or approved by Club Advisors. <a href="#">Review Proposals</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-info mb-3">
+				<div class="card-header">Collaboration Requests</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_collaborations }}</h5>
+					<p class="card-text">Department collaboration requests pending approval. <a href="#">View Requests</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-primary mb-3">
+				<div class="card-header">Event Calendar</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ approved_events }}</h5>
+					<p class="card-text">All approved events. <a href="#">View Calendar</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-4">
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Notifications</div>
+				<div class="card-body">
+					<ul class="list-group">
+						{% for note in notifications %}
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							{{ note.message }}
+							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
+						</li>
+						{% empty %}
+						<li class="list-group-item">No urgent notifications.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Actions</div>
+				<div class="card-body">
+					<a href="#" class="btn btn-success me-2">Approve/Reject Events</a>
+					<a href="#" class="btn btn-primary me-2">Approve Collaborations</a>
+					<a href="#" class="btn btn-outline-secondary me-2">Communicate with Coordinators</a>
+					<a href="#" class="btn btn-outline-info">Contact Department Admins</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}

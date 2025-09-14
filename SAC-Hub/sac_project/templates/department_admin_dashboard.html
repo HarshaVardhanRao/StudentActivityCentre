@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+	<h2 class="mb-4">Department Admin / VP Dashboard</h2>
+	<div class="row mb-4">
+		<div class="col-md-4">
+			<div class="card text-bg-info mb-3">
+				<div class="card-header">Student Participation</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ department_students }}</h5>
+					<p class="card-text">List of students and their attendance/participation. <a href="#">View Details</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-warning mb-3">
+				<div class="card-header">Event Associations</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ ongoing_events }}</h5>
+					<p class="card-text">Ongoing/upcoming events and association status. <a href="#">View Events</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-primary mb-3">
+				<div class="card-header">Participation Requests</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_participation_requests }}</h5>
+					<p class="card-text">Requests to associate with club events. <a href="#">Review Requests</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-4">
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Notifications</div>
+				<div class="card-body">
+					<ul class="list-group">
+						{% for note in notifications %}
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							{{ note.message }}
+							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
+						</li>
+						{% empty %}
+						<li class="list-group-item">No urgent notifications.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Actions</div>
+				<div class="card-body">
+					<a href="#" class="btn btn-success me-2">Request Event Association</a>
+					<a href="#" class="btn btn-primary me-2">Update Attendance</a>
+					<a href="#" class="btn btn-outline-secondary me-2">Approve Participation</a>
+					<a href="#" class="btn btn-outline-info">Export Reports</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endblock %}
