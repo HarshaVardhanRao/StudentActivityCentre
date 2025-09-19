@@ -1,5 +1,65 @@
 {% extends 'base.html' %}
 {% block content %}
-<h2>Treasurer Dashboard</h2>
-<p>Welcome, Treasurer! Here you can manage club finances and budgets.</p>
+<div class="container">
+	<h2 class="mb-4">Treasurer Dashboard</h2>
+	<div class="row mb-4">
+		<div class="col-md-4">
+			<div class="card text-bg-info mb-3">
+				<div class="card-header">Budget Approvals</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_budgets }}</h5>
+					<p class="card-text">Event budgets pending approval. <a href="#">Review Budgets</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-warning mb-3">
+				<div class="card-header">Financial Reports</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_reports }}</h5>
+					<p class="card-text">Financial reports to be generated. <a href="#">Generate Reports</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-primary mb-3">
+				<div class="card-header">Pending Requisitions</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_requisitions }}</h5>
+					<p class="card-text">Funding requests awaiting action. <a href="#">Review Requests</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-4">
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Notifications</div>
+				<div class="card-body">
+					<ul class="list-group">
+						{% for note in notifications %}
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							{{ note.message }}
+							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
+						</li>
+						{% empty %}
+						<li class="list-group-item">No urgent notifications.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Treasurer Actions</div>
+				<div class="card-body">
+					<a href="#" class="btn btn-success me-2">Approve Budgets</a>
+					<a href="#" class="btn btn-primary me-2">Manage Finances</a>
+					<a href="#" class="btn btn-outline-secondary me-2">Generate Reports</a>
+					<a href="#" class="btn btn-outline-info">Track Expenses</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
 {% endblock %}

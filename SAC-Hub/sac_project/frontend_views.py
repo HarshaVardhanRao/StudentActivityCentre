@@ -119,7 +119,12 @@ def attendance_manage(request, event_id):
     if event.club:
         students = event.club.members.all()
     else:
-        students = User.objects.filter(roles__contains=['STUDENT'])
+        # Get all users and filter for students (SQLite compatible)
+        all_users = User.objects.all()
+        students = [user for user in all_users if 'STUDENT' in (user.roles or [])]
+        # Convert to queryset-like object for template compatibility
+        student_ids = [user.id for user in students]
+        students = User.objects.filter(id__in=student_ids)
     
     # Get existing attendance records
     attendances = Attendance.objects.filter(event=event)
@@ -247,10 +252,14 @@ def reports_dashboard(request):
         return redirect('student-dashboard')
     
     # This is a placeholder - you would implement actual reporting logic here
+    # Calculate total students (SQLite compatible)
+    all_users = User.objects.all()
+    total_students = len([user for user in all_users if 'STUDENT' in (user.roles or [])])
+    
     context = {
         'stats': {
             'total_events': Event.objects.count(),
-            'total_participants': User.objects.filter(roles__contains=['STUDENT']).count(),
+            'total_participants': total_students,
             'active_clubs': Club.objects.count(),
             'avg_attendance': 75.0,  # Placeholder
         }

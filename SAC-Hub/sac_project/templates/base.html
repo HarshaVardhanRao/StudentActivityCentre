@@ -114,7 +114,7 @@
                                 <li><hr class="dropdown-divider"></li>
                                 {% if user.roles %}
                                     {% for role in user.roles %}
-                                        <li><a class="dropdown-item" href="{% url 'dashboard' role %}">
+                                        <li><a class="dropdown-item" href="{% url 'student-dashboard' %}">
                                             <i class="bi bi-speedometer2"></i> {{ role|title }} Dashboard
                                         </a></li>
                                     {% endfor %}

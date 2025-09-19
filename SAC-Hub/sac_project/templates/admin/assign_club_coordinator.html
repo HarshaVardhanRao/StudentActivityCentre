@@ -27,12 +27,10 @@
                     <select name="student_id" id="student_id" class="form-select" required>
                         <option value="">Choose a student...</option>
                         {% for student in students %}
-                            {% if not student|has_role:"CLUB_COORDINATOR" %}
-                                <option value="{{ student.id }}">
-                                    {{ student.get_full_name }} 
-                                    {% if student.roll_no %}({{ student.roll_no }}){% endif %}
-                                </option>
-                            {% endif %}
+                            <option value="{{ student.id }}">
+                                {{ student.get_full_name }} 
+                                {% if student.roll_no %}({{ student.roll_no }}){% endif %}
+                            </option>
                         {% endfor %}
                     </select>
                 </div>

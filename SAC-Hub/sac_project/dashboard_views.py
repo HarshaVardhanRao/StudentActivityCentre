@@ -29,7 +29,21 @@ class SVPDashboardView(APIView):
             "attendance_reports": attendance_reports,
         })
 
-class SecretaryTreasurerDashboardView(APIView):
+class SecretaryDashboardView(APIView):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
+        events = Event.objects.all()
+        pending_reports = events.filter(status='APPROVED').count()
+        upcoming_events = events.filter(status='PENDING').count()
+        pending_attendance = Attendance.objects.filter(status='PENDING').count() if hasattr(Attendance, 'status') else 0
+        return Response({
+            "pending_reports": pending_reports,
+            "total_events": events.count(),
+            "upcoming_events": upcoming_events,
+            "pending_attendance": pending_attendance,
+        })
+
+class TreasurerDashboardView(APIView):
     permission_classes = [IsAuthenticated]
     def get(self, request):
         events = Event.objects.all()
@@ -37,6 +51,7 @@ class SecretaryTreasurerDashboardView(APIView):
         return Response({
             "pending_reports": pending_reports,
             "total_events": events.count(),
+            "pending_requisitions": 0,  # Add when requisition model is available
         })
 
 class ClubAdvisorDashboardView(APIView):

@@ -51,7 +51,9 @@ def assign_club_coordinator(request):
             messages.error(request, f'Error: {str(e)}')
     
     # Get all students and clubs for the form
-    students = User.objects.filter(roles__contains=['STUDENT']).order_by('first_name', 'last_name')
+    # Filter students with STUDENT role (SQLite-compatible)
+    all_users = User.objects.all().order_by('first_name', 'last_name')
+    students = [user for user in all_users if 'STUDENT' in (user.roles or [])]
     clubs = Club.objects.all().order_by('name')
     
     # Get current coordinator assignments
@@ -79,20 +81,21 @@ def get_students_ajax(request):
         return JsonResponse({'error': 'Permission denied'}, status=403)
     
     search_term = request.GET.get('q', '')
-    students = User.objects.filter(
-        roles__contains=['STUDENT']
-    ).exclude(
-        roles__contains=['CLUB_COORDINATOR']
-    )
+    # Filter students without club coordinator role (SQLite-compatible)
+    all_users = User.objects.all()
+    students = [
+        user for user in all_users 
+        if 'STUDENT' in (user.roles or []) and 'CLUB_COORDINATOR' not in (user.roles or [])
+    ]
     
     if search_term:
-        students = students.filter(
-            first_name__icontains=search_term
-        ) | students.filter(
-            last_name__icontains=search_term
-        ) | students.filter(
-            roll_no__icontains=search_term
-        )
+        # Apply search filter to the Python-filtered list
+        students = [
+            student for student in students
+            if (search_term.lower() in (student.first_name or '').lower() or
+                search_term.lower() in (student.last_name or '').lower() or
+                search_term.lower() in (student.roll_no or '').lower())
+        ]
     
     students_data = [
         {
