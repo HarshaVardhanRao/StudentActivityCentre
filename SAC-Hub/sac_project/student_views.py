@@ -25,22 +25,78 @@ def student_dashboard(request):
     if request.user.is_authenticated:
         user_roles = request.user.roles if isinstance(request.user.roles, list) else []
     dashboards = []
+    
+    # Check if user is a club coordinator
     if "CLUB_COORDINATOR" in user_roles:
-        dashboards.append({"name": "Club Coordinator Dashboard", "url": "/api/dashboard/club-coordinator/"})
+        coordinated_clubs = request.user.coordinated_clubs.all()
+        if coordinated_clubs.exists():
+            club_names = ", ".join([club.name for club in coordinated_clubs[:2]])
+            if coordinated_clubs.count() > 2:
+                club_names += f" and {coordinated_clubs.count() - 2} more"
+            dashboards.append({
+                "name": f"Club Coordinator Dashboard ({club_names})", 
+                "url": "/dashboard/club-coordinator/",
+                "icon": "bi bi-people",
+                "description": f"Manage {coordinated_clubs.count()} club(s)"
+            })
+    
     if "EVENT_ORGANIZER" in user_roles:
-        dashboards.append({"name": "Event Organizer Dashboard", "url": "/api/dashboard/club-coordinator/"})
+        dashboards.append({
+            "name": "Event Organizer Dashboard", 
+            "url": "/dashboard/event-organizer/",
+            "icon": "bi bi-calendar-event",
+            "description": "Manage events and activities"
+        })
+    
     if "SAC_COORDINATOR" in user_roles:
-        dashboards.append({"name": "SAC Dashboard", "url": "/api/dashboard/sac/"})
+        dashboards.append({
+            "name": "SAC Coordinator Dashboard", 
+            "url": "/dashboard/admin/",
+            "icon": "bi bi-gear",
+            "description": "Oversee all student activities"
+        })
+    
     if "DEPARTMENT_ADMIN" in user_roles:
-        dashboards.append({"name": "Department Admin Dashboard", "url": "/api/dashboard/department-admin/"})
+        dashboards.append({
+            "name": "Department Admin Dashboard", 
+            "url": "/dashboard/department-admin/",
+            "icon": "bi bi-building",
+            "description": "Manage department activities"
+        })
+    
     if "PRESIDENT" in user_roles:
-        dashboards.append({"name": "President Dashboard", "url": "/api/dashboard/president/"})
+        dashboards.append({
+            "name": "President Dashboard", 
+            "url": "/dashboard/president/",
+            "icon": "bi bi-award",
+            "description": "Executive oversight and decisions"
+        })
+    
     if "SVP" in user_roles:
-        dashboards.append({"name": "SVP Dashboard", "url": "/api/dashboard/svp/"})
+        dashboards.append({
+            "name": "SVP Dashboard", 
+            "url": "/dashboard/svp/",
+            "icon": "bi bi-star",
+            "description": "Strategic planning and review"
+        })
+    
     if "SECRETARY" in user_roles or "TREASURER" in user_roles:
-        dashboards.append({"name": "Secretary/Treasurer Dashboard", "url": "/api/dashboard/secretary-treasurer/"})
+        role_name = "Secretary" if "SECRETARY" in user_roles else "Treasurer"
+        dashboards.append({
+            "name": f"{role_name} Dashboard", 
+            "url": "/dashboard/secretary/" if "SECRETARY" in user_roles else "/dashboard/treasurer/",
+            "icon": "bi bi-journal-text" if "SECRETARY" in user_roles else "bi bi-calculator",
+            "description": "Administrative and financial management"
+        })
+    
     if "CLUB_ADVISOR" in user_roles:
-        dashboards.append({"name": "Club Advisor Dashboard", "url": "/api/dashboard/club-advisor/"})
+        advised_clubs = request.user.advised_clubs.all()
+        dashboards.append({
+            "name": "Club Advisor Dashboard", 
+            "url": "/dashboard/club-advisor/",
+            "icon": "bi bi-person-check",
+            "description": f"Advise {advised_clubs.count()} club(s)"
+        })
     return render(request, "student_dashboard.html", {
         "ongoing_events": ongoing_events,
         "finished_events": finished_events,

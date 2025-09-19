@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Events - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Events</h2>
+    {% if user.is_authenticated %}
+        <a href="{% url 'event_create' %}" class="btn btn-primary">Create New Event</a>
+    {% endif %}
+</div>
+
+<!-- Filter Controls -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label for="status" class="form-label">Status</label>
+                <select name="status" id="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="DRAFT" {% if request.GET.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                    <option value="PENDING" {% if request.GET.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="APPROVED" {% if request.GET.status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                    <option value="REJECTED" {% if request.GET.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    <option value="COMPLETED" {% if request.GET.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="club" class="form-label">Club</label>
+                <select name="club" id="club" class="form-select">
+                    <option value="">All Clubs</option>
+                    {% for club in clubs %}
+                        <option value="{{ club.id }}" {% if request.GET.club|stringformat:"s" == club.id|stringformat:"s" %}selected{% endif %}>{{ club.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="event_type" class="form-label">Event Type</label>
+                <input type="text" name="event_type" id="event_type" class="form-control" value="{{ request.GET.event_type }}" placeholder="Search event type...">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div>
+                    <button type="submit" class="btn btn-outline-primary">Filter</button>
+                    <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Events Grid -->
+<div class="row">
+    {% for event in events %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <small class="text-muted">{{ event.club.name }}</small>
+                    <span class="badge 
+                        {% if event.status == 'APPROVED' %}bg-success
+                        {% elif event.status == 'PENDING' %}bg-warning
+                        {% elif event.status == 'REJECTED' %}bg-danger
+                        {% elif event.status == 'COMPLETED' %}bg-info
+                        {% else %}bg-secondary{% endif %}">
+                        {{ event.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">{{ event.name }}</h5>
+                    <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+                    <div class="small text-muted mb-2">
+                        <i class="bi bi-calendar-event"></i> {{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}<br>
+                        <i class="bi bi-geo-alt"></i> {{ event.venue }}<br>
+                        <i class="bi bi-tag"></i> {{ event.event_type }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary btn-sm">View</a>
+                        {% if user.is_authenticated and event in user.organized_events.all or user in event.club.coordinators.all %}
+                            <a href="{% url 'event_edit' event.id %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <h4 class="text-muted">No events found</h4>
+                <p class="text-muted">{% if user.is_authenticated %}Create your first event to get started!{% else %}Please log in to view events.{% endif %}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if events.has_other_pages %}
+    <nav aria-label="Events pagination">
+        <ul class="pagination justify-content-center">
+            {% if events.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.club %}&club={{ request.GET.club }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for num in events.paginator.page_range %}
+                {% if events.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > events.number|add:'-3' and num < events.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.club %}&club={{ request.GET.club }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if events.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ events.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.club %}&club={{ request.GET.club }}{% endif %}{% if request.GET.event_type %}&event_type={{ request.GET.event_type }}{% endif %}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+
+{% endblock %}

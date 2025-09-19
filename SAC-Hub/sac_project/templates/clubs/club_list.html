@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Clubs - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Clubs</h2>
+    {% if user.is_authenticated and 'ADMIN' in user.roles %}
+        <a href="{% url 'club_create' %}" class="btn btn-primary">Create New Club</a>
+    {% endif %}
+</div>
+
+<!-- Clubs Grid -->
+<div class="row">
+    {% for club in clubs %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ club.name }}</h5>
+                    <p class="card-text">{{ club.description|truncatewords:20 }}</p>
+                    
+                    <div class="mb-3">
+                        <strong>Coordinator{% if club.coordinators.count > 1 %}s{% endif %}:</strong><br>
+                        {% for coordinator in club.coordinators.all %}
+                            <span class="badge bg-primary me-1">{{ coordinator.get_full_name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No coordinators assigned</span>
+                        {% endfor %}
+                    </div>
+
+                    {% if club.advisor %}
+                    <div class="mb-3">
+                        <strong>Advisor:</strong><br>
+                        <span class="badge bg-info">{{ club.advisor.get_full_name }}</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="small text-muted">
+                        <strong>Members:</strong> {{ club.members.count }}<br>
+                        <strong>Events:</strong> {{ club.events.count }}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'club_detail' club.id %}" class="btn btn-outline-primary btn-sm">View</a>
+                        {% if user.is_authenticated %}
+                            {% if user in club.coordinators.all or 'ADMIN' in user.roles %}
+                                <a href="{% url 'club_edit' club.id %}" class="btn btn-outline-secondary btn-sm">Edit</a>
+                            {% endif %}
+                            {% if user not in club.members.all %}
+                                <a href="{% url 'club_join' club.id %}" class="btn btn-outline-success btn-sm">Join</a>
+                            {% else %}
+                                <a href="{% url 'club_leave' club.id %}" class="btn btn-outline-warning btn-sm">Leave</a>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-12">
+            <div class="text-center py-5">
+                <h4 class="text-muted">No clubs found</h4>
+                <p class="text-muted">{% if user.is_authenticated and 'ADMIN' in user.roles %}Create the first club to get started!{% else %}Check back later for new clubs.{% endif %}</p>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if clubs.has_other_pages %}
+    <nav aria-label="Clubs pagination">
+        <ul class="pagination justify-content-center">
+            {% if clubs.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ clubs.previous_page_number }}">Previous</a>
+                </li>
+            {% endif %}
+
+            {% for num in clubs.paginator.page_range %}
+                {% if clubs.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                {% elif num > clubs.number|add:'-3' and num < clubs.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if clubs.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ clubs.next_page_number }}">Next</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+{% endif %}
+{% endblock %}
