@@ -44,7 +44,7 @@ from .frontend_views import (
     settings_view, reports_dashboard
 )
 from .admin_views import (
-    assign_club_coordinator, get_students_ajax
+    assign_club_coordinator, get_students_ajax, event_approval_list, event_approve_reject
 )
 
 urlpatterns = [
@@ -55,6 +55,8 @@ urlpatterns = [
     
     # Custom Admin functions (must come before admin.site.urls)
     path("admin/assign-coordinator/", assign_club_coordinator, name="assign_club_coordinator"),
+    path("admin/event-approvals/", event_approval_list, name="event_approval_list"),
+    path("admin/event-approve-reject/", event_approve_reject, name="event_approve_reject"),
     path("admin/ajax/students/", get_students_ajax, name="get_students_ajax"),
     
     # Django Admin (must come after custom admin URLs)

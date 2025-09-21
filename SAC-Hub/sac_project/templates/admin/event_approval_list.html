@@ -1,0 +1,274 @@
+{% extends 'base.html' %}
+
+{% block title %}Event Approvals - SAC Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Event Approval Management</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'student-dashboard' %}">Dashboard</a></li>
+                <li class="breadcrumb-item active">Event Approvals</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card text-bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Approvals</h5>
+                    <h2 class="card-text">{{ pending_events.count }}</h2>
+                    <p class="card-text">Events awaiting your approval</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Actions</h5>
+                    <h2 class="card-text">{{ recent_approvals.count }}</h2>
+                    <p class="card-text">Events processed recently</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Events -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Events Pending Approval</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_events %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Created By</th>
+                                <th>Club</th>
+                                <th>Date & Time</th>
+                                <th>Venue</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in pending_events %}
+                            <tr>
+                                <td>
+                                    <strong>{{ event.name }}</strong>
+                                    <br><small class="text-muted">{{ event.event_type }}</small>
+                                </td>
+                                <td>
+                                    {% if event.created_by %}
+                                        {{ event.created_by.get_full_name }}
+                                        <br><small class="text-muted">
+                                            {% if 'FACULTY' in event.created_by.roles %}
+                                                Faculty Advisor
+                                            {% elif 'CLUB_COORDINATOR' in event.created_by.roles %}
+                                                Club Coordinator
+                                            {% else %}
+                                                Administrator
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">Unknown</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ event.club.name }}</td>
+                                <td>{{ event.date_time|date:"M d, Y" }}<br><small>{{ event.date_time|time:"g:i A" }}</small></td>
+                                <td>{{ event.venue }}</td>
+                                <td>{{ event.created_at|timesince }} ago</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#eventModal{{ event.id }}">
+                                            View Details
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-success" 
+                                                onclick="approveEvent({{ event.id }}, '{{ event.name|escapejs }}')">
+                                            Approve
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger" 
+                                                onclick="rejectEvent({{ event.id }}, '{{ event.name|escapejs }}')">
+                                            Reject
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3">No Pending Approvals</h4>
+                    <p class="text-muted">All events have been processed. Great job!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Recent Approvals -->
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">Recent Approval Actions</h4>
+        </div>
+        <div class="card-body">
+            {% if recent_approvals %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Event Name</th>
+                                <th>Club</th>
+                                <th>Status</th>
+                                <th>Date Processed</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for event in recent_approvals %}
+                            <tr>
+                                <td>{{ event.name }}</td>
+                                <td>{{ event.club.name }}</td>
+                                <td>
+                                    {% if event.status == 'APPROVED' %}
+                                        <span class="badge bg-success">Approved</span>
+                                    {% elif event.status == 'REJECTED' %}
+                                        <span class="badge bg-danger">Rejected</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ event.updated_at|date:"M d, Y g:i A" }}</td>
+                                <td>{{ event.approval_notes|truncatewords:10|default:"No notes" }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="text-muted">No recent approval actions.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modals -->
+{% for event in pending_events %}
+<div class="modal fade" id="eventModal{{ event.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ event.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Event Type:</strong> {{ event.event_type }}<br>
+                        <strong>Date & Time:</strong> {{ event.date_time|date:"F d, Y g:i A" }}<br>
+                        <strong>Venue:</strong> {{ event.venue }}<br>
+                        <strong>Club:</strong> {{ event.club.name }}<br>
+                        {% if event.department %}
+                            <strong>Department:</strong> {{ event.department.name }}<br>
+                        {% endif %}
+                        <strong>Created By:</strong> 
+                        {% if event.created_by %}
+                            {{ event.created_by.get_full_name }}
+                        {% else %}
+                            Unknown
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Resources Needed:</strong><br>
+                        <p>{{ event.resources|default:"None specified" }}</p>
+                        
+                        <strong>Organizers:</strong><br>
+                        {% for organizer in event.organizers.all %}
+                            <span class="badge bg-secondary me-1">{{ organizer.get_full_name }}</span>
+                        {% empty %}
+                            <span class="text-muted">No organizers assigned</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <hr>
+                <strong>Description:</strong>
+                <p>{{ event.description|linebreaks|default:"No description provided" }}</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" 
+                        onclick="approveEvent({{ event.id }}, '{{ event.name|escapejs }}')">
+                    Approve Event
+                </button>
+                <button type="button" class="btn btn-danger" 
+                        onclick="rejectEvent({{ event.id }}, '{{ event.name|escapejs }}')">
+                    Reject Event
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Approval/Rejection Modal -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'event_approve_reject' %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="approvalModalTitle">Approve Event</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="eventId" name="event_id">
+                    <input type="hidden" id="action" name="action">
+                    
+                    <p id="approvalMessage">Are you sure you want to approve this event?</p>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes (Optional)</label>
+                        <textarea class="form-control" name="notes" id="notes" rows="3" 
+                                  placeholder="Add any notes or comments about this decision..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn" id="confirmButton">Confirm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function approveEvent(eventId, eventName) {
+    document.getElementById('eventId').value = eventId;
+    document.getElementById('action').value = 'approve';
+    document.getElementById('approvalModalTitle').textContent = 'Approve Event';
+    document.getElementById('approvalMessage').textContent = `Are you sure you want to approve "${eventName}"?`;
+    document.getElementById('confirmButton').className = 'btn btn-success';
+    document.getElementById('confirmButton').textContent = 'Approve';
+    document.getElementById('notes').placeholder = 'Add any approval notes or comments...';
+    new bootstrap.Modal(document.getElementById('approvalModal')).show();
+}
+
+function rejectEvent(eventId, eventName) {
+    document.getElementById('eventId').value = eventId;
+    document.getElementById('action').value = 'reject';
+    document.getElementById('approvalModalTitle').textContent = 'Reject Event';
+    document.getElementById('approvalMessage').textContent = `Are you sure you want to reject "${eventName}"?`;
+    document.getElementById('confirmButton').className = 'btn btn-danger';
+    document.getElementById('confirmButton').textContent = 'Reject';
+    document.getElementById('notes').placeholder = 'Please explain why this event is being rejected...';
+    new bootstrap.Modal(document.getElementById('approvalModal')).show();
+}
+</script>
+{% endblock %}

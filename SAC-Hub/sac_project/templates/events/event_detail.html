@@ -41,6 +41,49 @@
                     <div class="col-md-6">
                         <strong>Department:</strong> {{ event.department.name }}
                     </div>
+                    <div class="col-md-6">
+                        {% if event.created_by %}
+                            <strong>Created By:</strong> {{ event.created_by.get_full_name }}
+                            <small class="text-muted">
+                                ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        {% if event.created_by %}
+                            <strong>Created By:</strong> {{ event.created_by.get_full_name }}
+                            <small class="text-muted">
+                                ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Approval Status Information -->
+                {% if event.status == 'PENDING' %}
+                <div class="alert alert-warning">
+                    <i class="bi bi-clock"></i>
+                    <strong>Approval Pending:</strong> This event is waiting for administrator approval.
+                </div>
+                {% elif event.status == 'REJECTED' %}
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle"></i>
+                    <strong>Event Rejected:</strong> This event has been rejected by administrators.
+                    {% if event.approval_notes %}
+                        <br><strong>Reason:</strong> {{ event.approval_notes }}
+                    {% endif %}
+                </div>
+                {% elif event.status == 'APPROVED' %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i>
+                    <strong>Event Approved:</strong> This event has been approved and is ready to proceed.
+                    {% if event.approval_notes %}
+                        <br><strong>Notes:</strong> {{ event.approval_notes }}
+                    {% endif %}
                 </div>
                 {% endif %}
 

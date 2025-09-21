@@ -108,3 +108,62 @@ def get_students_ajax(request):
     ]
     
     return JsonResponse({'students': students_data})
+
+@login_required
+def event_approval_list(request):
+    """View for administrators to see events pending approval"""
+    # Check if user is admin or SAC coordinator
+    if 'ADMIN' not in (request.user.roles or []) and 'SAC_COORDINATOR' not in (request.user.roles or []):
+        messages.error(request, 'You do not have permission to view event approvals.')
+        return redirect('student-dashboard')
+    
+    from events.models import Event
+    
+    # Get events by status
+    pending_events = Event.objects.filter(status='PENDING').order_by('-created_at')
+    recent_approvals = Event.objects.filter(status__in=['APPROVED', 'REJECTED']).order_by('-updated_at')[:10]
+    
+    context = {
+        'pending_events': pending_events,
+        'recent_approvals': recent_approvals,
+    }
+    
+    return render(request, 'admin/event_approval_list.html', context)
+
+@login_required
+@require_http_methods(['POST'])
+def event_approve_reject(request):
+    """Approve or reject an event"""
+    # Check if user is admin or SAC coordinator
+    if 'ADMIN' not in (request.user.roles or []) and 'SAC_COORDINATOR' not in (request.user.roles or []):
+        messages.error(request, 'You do not have permission to approve events.')
+        return redirect('student-dashboard')
+    
+    from events.models import Event
+    
+    try:
+        event_id = request.POST.get('event_id')
+        action = request.POST.get('action')  # 'approve' or 'reject'
+        notes = request.POST.get('notes', '')
+        
+        event = get_object_or_404(Event, id=event_id)
+        
+        if action == 'approve':
+            event.status = 'APPROVED'
+            event.approval_notes = notes
+            event.save()
+            messages.success(request, f'Event "{event.name}" has been approved.')
+            
+        elif action == 'reject':
+            event.status = 'REJECTED'
+            event.approval_notes = notes
+            event.save()
+            messages.success(request, f'Event "{event.name}" has been rejected.')
+            
+        else:
+            messages.error(request, 'Invalid action.')
+            
+    except Exception as e:
+        messages.error(request, f'Error processing approval: {str(e)}')
+    
+    return redirect('event_approval_list')
