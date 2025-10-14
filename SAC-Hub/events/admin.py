@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Event, CollaborationRequest
+from .models import Event, CollaborationRequest, EventRegistration
 
 @admin.register(Event)
 class EventAdmin(admin.ModelAdmin):
@@ -11,3 +11,5 @@ class EventAdmin(admin.ModelAdmin):
 class CollaborationRequestAdmin(admin.ModelAdmin):
 	list_display = ("event", "requesting_department", "status")
 	list_filter = ("status",)
+
+admin.site.register(EventRegistration)
