@@ -66,9 +66,9 @@ def club_create(request):
         except Exception as e:
             messages.error(request, f'Error creating club: {str(e)}')
     
-    # Get users for coordinators and advisors
-    faculty_users = User.objects.filter(roles__contains=['FACULTY'])
+    # Get users for coordinators and advisors (SQLite compatible)
     all_users = User.objects.filter(is_active=True)
+    faculty_users = [user for user in all_users if 'FACULTY' in (user.roles or [])]
     
     context = {
         'faculty_users': faculty_users,
@@ -110,9 +110,9 @@ def club_edit(request, club_id):
         except Exception as e:
             messages.error(request, f'Error updating club: {str(e)}')
     
-    # Get users for coordinators and advisors
-    faculty_users = User.objects.filter(roles__contains=['FACULTY'])
+    # Get users for coordinators and advisors (SQLite compatible)
     all_users = User.objects.filter(is_active=True)
+    faculty_users = [user for user in all_users if 'FACULTY' in (user.roles or [])]
     
     context = {
         'club': club,

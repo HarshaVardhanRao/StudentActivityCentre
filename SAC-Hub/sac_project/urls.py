@@ -21,7 +21,7 @@ from django.urls import path, include
 from users.admin_bulk_upload import bulk_upload_view
 from .dashboard_views import (
     SACDashboardView, ClubCoordinatorDashboardView, DepartmentAdminDashboardView,
-    PresidentDashboardView, SVPDashboardView, SecretaryTreasurerDashboardView, ClubAdvisorDashboardView
+    PresidentDashboardView, SVPDashboardView, SecretaryDashboardView, TreasurerDashboardView, ClubAdvisorDashboardView
 )
 from .student_views import student_dashboard
 from .home_views import home
@@ -45,7 +45,7 @@ from .frontend_views import (
     settings_view, reports_dashboard
 )
 from .admin_views import (
-    assign_club_coordinator, get_students_ajax
+    assign_club_coordinator, get_students_ajax, event_approval_list, event_approve_reject
 )
 
 urlpatterns = [
@@ -53,6 +53,14 @@ urlpatterns = [
     path("logout/", logout_view, name="logout"),
     path("", home, name="home"),
     path("dashboard/", student_dashboard, name="student-dashboard"),
+    
+    # Custom Admin functions (must come before admin.site.urls)
+    path("admin/assign-coordinator/", assign_club_coordinator, name="assign_club_coordinator"),
+    path("admin/event-approvals/", event_approval_list, name="event_approval_list"),
+    path("admin/event-approve-reject/", event_approve_reject, name="event_approve_reject"),
+    path("admin/ajax/students/", get_students_ajax, name="get_students_ajax"),
+    
+    # Django Admin (must come after custom admin URLs)
     path("admin/", admin.site.urls),
     path("bulk-upload/", bulk_upload_view, name="bulk-upload"),
     
@@ -68,7 +76,8 @@ urlpatterns = [
     path("api/dashboard/department-admin/", DepartmentAdminDashboardView.as_view(), name="department-admin-dashboard"),
     path("api/dashboard/president/", PresidentDashboardView.as_view(), name="president-dashboard"),
     path("api/dashboard/svp/", SVPDashboardView.as_view(), name="svp-dashboard"),
-    path("api/dashboard/secretary-treasurer/", SecretaryTreasurerDashboardView.as_view(), name="secretary-treasurer-dashboard"),
+    path("api/dashboard/secretary/", SecretaryDashboardView.as_view(), name="secretary-dashboard"),
+    path("api/dashboard/treasurer/", TreasurerDashboardView.as_view(), name="treasurer-dashboard"),
     path("api/dashboard/club-advisor/", ClubAdvisorDashboardView.as_view(), name="club-advisor-dashboard"),
 
     # Role-based dashboard template views
@@ -112,8 +121,4 @@ urlpatterns = [
     # Reports
     path("reports/", reports_dashboard, name="reports_dashboard"),
     path("bulk-upload/", bulk_upload_view, name="user_bulk_upload"),
-    
-    # Admin functions
-    path("admin/assign-coordinator/", assign_club_coordinator, name="assign_club_coordinator"),
-    path("admin/ajax/students/", get_students_ajax, name="get_students_ajax"),
 ]

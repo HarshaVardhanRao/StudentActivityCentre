@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block title %}{{ club.name }} - SAC Hub{% endblock %}
 
@@ -131,10 +132,18 @@
             </div>
             <div class="card-body">
                 <div class="d-grid gap-2">
-                    {% if user.is_authenticated and user in club.coordinators.all %}
-                        <a href="{% url 'event_create' %}?club={{ club.id }}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Create Event
-                        </a>
+                    {% comment %}
+                    Show Create Event button for:
+                    - Club Coordinators
+                    - Faculty Advisors (if they advise this club)
+                    - Administrators
+                    {% endcomment %}
+                    {% if user.is_authenticated %}
+                        {% if user in club.coordinators.all or club.advisor == user or user|has_role:"ADMIN" or user|has_role:"SAC_COORDINATOR" %}
+                            <a href="{% url 'event_create' %}?club={{ club.id }}" class="btn btn-primary">
+                                <i class="bi bi-plus-circle"></i> Create Event
+                            </a>
+                        {% endif %}
                     {% endif %}
                     <a href="{% url 'event_list' %}?club={{ club.id }}" class="btn btn-outline-primary">
                         <i class="bi bi-calendar-event"></i> View Events
