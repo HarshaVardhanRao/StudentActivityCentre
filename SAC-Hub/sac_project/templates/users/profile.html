@@ -51,6 +51,20 @@
                     </div>
                 {% endif %}
                 
+                {% if 'STUDENT' in user.roles %}
+                    {% if user.year_of_study or user.section %}
+                    <div class="mb-3">
+                        <strong>Academic Info:</strong><br>
+                        {% if user.year_of_study %}
+                            <span class="badge bg-secondary me-1">{{ user.year_of_study }}</span>
+                        {% endif %}
+                        {% if user.section %}
+                            <span class="badge bg-secondary">Section {{ user.section }}</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+                
                 <div>
                     <strong>Club Memberships:</strong><br>
                     {% if user.clubs.all %}
@@ -106,6 +120,35 @@
                         <input type="text" name="roll_no" id="roll_no" class="form-control" 
                                value="{{ user.roll_no }}" readonly>
                         <small class="form-text text-muted">Contact admin to change roll number</small>
+                    </div>
+                    {% endif %}
+
+                    <!-- Academic Information for Students -->
+                    {% if 'STUDENT' in user.roles %}
+                    <h6 class="mb-3 mt-4">Academic Information</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="year_of_study" class="form-label">Year of Study</label>
+                            <select name="year_of_study" id="year_of_study" class="form-select">
+                                <option value="">Select Year</option>
+                                <option value="1st Year" {% if user.year_of_study == '1st Year' %}selected{% endif %}>1st Year</option>
+                                <option value="2nd Year" {% if user.year_of_study == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                                <option value="3rd Year" {% if user.year_of_study == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                                <option value="4th Year" {% if user.year_of_study == '4th Year' %}selected{% endif %}>4th Year</option>
+                                <option value="5th Year" {% if user.year_of_study == '5th Year' %}selected{% endif %}>5th Year</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="section" class="form-label">Section</label>
+                            <select name="section" id="section" class="form-select">
+                                <option value="">Select Section</option>
+                                <option value="A" {% if user.section == 'A' %}selected{% endif %}>A</option>
+                                <option value="B" {% if user.section == 'B' %}selected{% endif %}>B</option>
+                                <option value="C" {% if user.section == 'C' %}selected{% endif %}>C</option>
+                                <option value="D" {% if user.section == 'D' %}selected{% endif %}>D</option>
+                                <option value="E" {% if user.section == 'E' %}selected{% endif %}>E</option>
+                            </select>
+                        </div>
                     </div>
                     {% endif %}
 

@@ -110,6 +110,12 @@
                         <i class="bi bi-calendar-event"></i> {{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}<br>
                         <i class="bi bi-geo-alt"></i> {{ event.venue }}<br>
                         <i class="bi bi-tag"></i> {{ event.event_type }}
+                        {% if event.status == 'APPROVED' and user.is_authenticated %}
+                            <br><i class="bi bi-people"></i> {{ event.registration_count|default:0 }} registered
+                            {% if event.user_registered %}
+                                <span class="badge bg-success ms-1">You're registered</span>
+                            {% endif %}
+                        {% endif %}
                     </div>
                 </div>
                 <div class="card-footer">

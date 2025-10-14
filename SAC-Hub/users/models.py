@@ -44,7 +44,11 @@ class User(AbstractUser):
 	roles = models.JSONField(default=list, help_text='List of roles for the user')
 	department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
 	clubs = models.ManyToManyField(Club, blank=True, related_name='members')
-
+	
+	# Academic information for students
+	year_of_study = models.CharField(max_length=20, blank=True, null=True, help_text='Year of study (e.g., 1st Year, 2nd Year, 3rd Year, 4th Year)')
+	section = models.CharField(max_length=10, blank=True, null=True, help_text='Section (e.g., A, B, C)')
+	
 	USERNAME_FIELD = 'username'
 	REQUIRED_FIELDS = ['email', 'roll_no']
 

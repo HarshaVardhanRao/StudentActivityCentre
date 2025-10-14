@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Register for {{ event.name }} - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h3>Register for Event</h3>
+            </div>
+            <div class="card-body">
+                <!-- Event Information -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h4>{{ event.name }}</h4>
+                        <p class="text-muted">{{ event.event_type }} | {{ event.club.name }}</p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <span class="badge bg-success fs-6">{{ event.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <strong>Date & Time:</strong><br>
+                        {{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Venue:</strong><br>
+                        {{ event.venue }}
+                    </div>
+                </div>
+
+                {% if event.description %}
+                <div class="mb-4">
+                    <strong>Description:</strong>
+                    <p class="mt-2">{{ event.description|linebreaks }}</p>
+                </div>
+                {% endif %}
+
+                <hr>
+
+                <!-- Registration Form -->
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Registration Confirmation:</strong> By registering for this event, you confirm your interest and intent to participate. You will receive notifications about event updates.
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
+                        <textarea name="notes" id="notes" class="form-control" rows="3" 
+                                  placeholder="Any questions or special requirements you'd like to mention..."></textarea>
+                        <div class="form-text">These notes will be visible to the event organizers.</div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-person-plus"></i> Register for Event
+                            </button>
+                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

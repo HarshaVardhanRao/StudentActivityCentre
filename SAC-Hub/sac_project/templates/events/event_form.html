@@ -127,6 +127,62 @@
                         {% endif %}
                     </div>
 
+                    <!-- Associations Section -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Event Associations</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="id_department_associations" class="form-label">Department Associations</label>
+                                <select name="department_associations" id="id_department_associations" class="form-select" multiple size="4">
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select departments to associate with this event. Requires department admin approval.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_club_associations" class="form-label">Club Associations</label>
+                                <select name="club_associations" id="id_club_associations" class="form-select" multiple size="4">
+                                    {% for club in all_clubs %}
+                                        <option value="{{ club.id }}">{{ club.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select clubs to associate with this event. Requires club coordinator approval.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Collaborations Section -->
+                    <div class="mb-4">
+                        <h6 class="mb-3">Event Collaborations</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="id_department_collaborations" class="form-label">Department Collaborations</label>
+                                <select name="department_collaborations" id="id_department_collaborations" class="form-select" multiple size="4">
+                                    {% for dept in departments %}
+                                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select departments for formal collaboration. Requires department admin approval.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="id_club_collaborations" class="form-label">Club Collaborations</label>
+                                <select name="club_collaborations" id="id_club_collaborations" class="form-select" multiple size="4">
+                                    {% for club in all_clubs %}
+                                        <option value="{{ club.id }}">{{ club.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <div class="form-text">Select clubs for formal collaboration. Requires club coordinator approval.</div>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <label for="id_collaboration_details" class="form-label">Collaboration Details</label>
+                            <textarea name="collaboration_details" id="id_collaboration_details" class="form-control" rows="3" 
+                                      placeholder="Describe the collaboration details, shared responsibilities, resources, etc..."></textarea>
+                            <div class="form-text">Provide details about what the collaboration involves.</div>
+                        </div>
+                    </div>
+
                     {% comment %}
                     Organizers are automatically set to club coordinators - no manual selection needed
                     {% endcomment %}

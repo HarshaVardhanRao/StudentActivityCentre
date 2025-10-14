@@ -10,12 +10,13 @@ import calendar
 import json
 
 from events.models import Event
+from events.models import EventRegistration
 from attendance.models import Attendance
 from calendar_app.models import CalendarEntry
 from users.models import User, Club
 
 def calendar_view(request):
-    """Display calendar view with events"""
+    """Display calendar view with approved events - accessible to everyone"""
     # Get month and year from request
     month = int(request.GET.get('month', datetime.now().month))
     year = int(request.GET.get('year', datetime.now().year))
@@ -34,13 +35,20 @@ def calendar_view(request):
     else:
         next_month = datetime(year, month + 1, 1)
     
-    # Get calendar entries for the month
+    # Get approved events for the month (visible to everyone)
     month_start = current_month
     month_end = datetime(year, month, calendar.monthrange(year, month)[1], 23, 59, 59)
     
-    calendar_entries = CalendarEntry.objects.filter(
-        date_time__range=[month_start, month_end]
-    ).select_related('event', 'event__club')
+    approved_events = Event.objects.filter(
+        date_time__range=[month_start, month_end],
+        status='APPROVED'
+    ).select_related('club', 'department').prefetch_related('organizers')
+    
+    # Add registration counts for authenticated users
+    if request.user.is_authenticated:
+        for event in approved_events:
+            event.registration_count = EventRegistration.objects.filter(event=event).count()
+            event.user_registered = EventRegistration.objects.filter(event=event, student=request.user).exists()
     
     # Create calendar structure
     cal = calendar.monthcalendar(year, month)
@@ -62,8 +70,8 @@ def calendar_view(request):
                 is_today = day_date.date() == datetime.now().date()
                 
                 # Get events for this day
-                day_events = [entry for entry in calendar_entries 
-                             if entry.date_time.day == day]
+                day_events = [event for event in approved_events 
+                             if event.date_time.day == day]
                 
                 calendar_week.append({
                     'day': day,
@@ -73,11 +81,27 @@ def calendar_view(request):
                 })
         calendar_weeks.append(calendar_week)
     
+    # Get upcoming events for the next 30 days (for sidebar)
+    from django.utils import timezone
+    upcoming_events = Event.objects.filter(
+        date_time__gte=timezone.now(),
+        date_time__lt=timezone.now() + timedelta(days=30),
+        status='APPROVED'
+    ).select_related('club').order_by('date_time')[:10]
+    
+    # Add registration info to upcoming events
+    if request.user.is_authenticated:
+        for event in upcoming_events:
+            event.registration_count = EventRegistration.objects.filter(event=event).count()
+            event.user_registered = EventRegistration.objects.filter(event=event, student=request.user).exists()
+    
     context = {
         'current_month': current_month,
         'prev_month': prev_month,
         'next_month': next_month,
         'calendar_weeks': calendar_weeks,
+        'upcoming_events': upcoming_events,
+        'total_events_this_month': approved_events.count(),
     }
     return render(request, 'calendar/calendar_view.html', context)
 
@@ -162,6 +186,12 @@ def profile_view(request):
             user.last_name = request.POST.get('last_name', '')
             user.email = request.POST.get('email', '')
             user.contact_number = request.POST.get('contact_number', '')
+            
+            # Update academic information for students
+            if 'STUDENT' in (user.roles or []):
+                user.year_of_study = request.POST.get('year_of_study', '')
+                user.section = request.POST.get('section', '')
+            
             user.save()
             
             messages.success(request, 'Profile updated successfully!')
