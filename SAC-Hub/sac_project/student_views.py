@@ -48,12 +48,12 @@ def student_dashboard(request):
             "description": "Manage events and activities"
         })
     
-    if "SAC_COORDINATOR" in user_roles:
+    if "SAC_COORDINATOR" in user_roles or "ADMIN" in user_roles:
         dashboards.append({
-            "name": "SAC Coordinator Dashboard", 
+            "name": "SAC Admin Dashboard", 
             "url": "/dashboard/admin/",
             "icon": "bi bi-gear",
-            "description": "Oversee all student activities"
+            "description": "Oversee all student activities and approve events"
         })
     
     if "DEPARTMENT_ADMIN" in user_roles:

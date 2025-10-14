@@ -34,7 +34,9 @@ from .auth_views import login_view, logout_view
 
 # Import frontend views
 from events.frontend_views import (
-    event_list, event_detail, event_create, event_edit, event_delete
+    event_list, event_detail, event_create, event_edit, event_delete,
+    event_register, event_unregister, event_registrations,
+    association_approval_list, approve_association, approve_collaboration
 )
 from clubs.frontend_views import (
     club_list, club_detail, club_create, club_edit, club_join, club_leave
@@ -98,6 +100,12 @@ urlpatterns = [
     path("events/create/", event_create, name="event_create"),
     path("events/<int:event_id>/edit/", event_edit, name="event_edit"),
     path("events/<int:event_id>/delete/", event_delete, name="event_delete"),
+    path("events/<int:event_id>/register/", event_register, name="event_register"),
+    path("events/<int:event_id>/unregister/", event_unregister, name="event_unregister"),
+    path("events/<int:event_id>/registrations/", event_registrations, name="event_registrations"),
+    path("events/associations/", association_approval_list, name="association_approval_list"),
+    path("events/associations/<int:association_id>/approve/", approve_association, name="approve_association"),
+    path("events/collaborations/<int:collaboration_id>/approve/", approve_collaboration, name="approve_collaboration"),
     
     # Clubs
     path("clubs/", club_list, name="club_list"),

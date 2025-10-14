@@ -120,9 +120,57 @@
                     </div>
                 </div>
 
+                <!-- Registration Information -->
+                {% if event.status == 'APPROVED' %}
+                <div class="mb-3">
+                    <strong>Registrations:</strong>
+                    <div class="mt-2">
+                        <span class="badge bg-info">{{ registration_count }} student(s) registered</span>
+                        {% if can_view_registrations %}
+                            <a href="{% url 'event_registrations' event.id %}" class="btn btn-sm btn-outline-info ms-2">
+                                <i class="bi bi-people"></i> View Registrations
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Registration Status for Students -->
+                {% if user.is_authenticated and event.status == 'APPROVED' %}
+                    {% if user_registered %}
+                        <div class="alert alert-success">
+                            <i class="bi bi-check-circle"></i>
+                            <strong>You are registered for this event!</strong>
+                            {% if user_registration.notes %}
+                                <br><small>Your notes: {{ user_registration.notes }}</small>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i>
+                            <strong>Interested in this event?</strong> Register to show your participation and receive updates.
+                        </div>
+                    {% endif %}
+                {% endif %}
+
                 <!-- Action Buttons -->
                 <div class="mt-4">
                     {% if user.is_authenticated %}
+                        <!-- Registration Buttons for Students -->
+                        {% if event.status == 'APPROVED' %}
+                            {% if user_registered %}
+                                <a href="{% url 'event_unregister' event.id %}" class="btn btn-outline-danger" 
+                                   onclick="return confirm('Are you sure you want to unregister from this event?')">
+                                    <i class="bi bi-person-dash"></i> Unregister
+                                </a>
+                            {% else %}
+                                <a href="{% url 'event_register' event.id %}" class="btn btn-success">
+                                    <i class="bi bi-person-plus"></i> Register for Event
+                                </a>
+                            {% endif %}
+                        {% endif %}
+
+                        <!-- Management Buttons -->
                         {% if user in event.organizers.all or user in event.club.coordinators.all %}
                             <a href="{% url 'event_edit' event.id %}" class="btn btn-primary">Edit Event</a>
                         {% endif %}
@@ -136,6 +184,92 @@
                 </div>
             </div>
         </div>
+
+        <!-- Event Associations and Collaborations -->
+        {% if event.associations.all or event.collaborations.all %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5>Event Associations & Collaborations</h5>
+            </div>
+            <div class="card-body">
+                {% if event.associations.all %}
+                    <h6>Associations</h6>
+                    <div class="row mb-3">
+                        {% for association in event.associations.all %}
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                    <div>
+                                        <strong>{{ association.get_associated_entity.name }}</strong>
+                                        <small class="text-muted d-block">{{ association.get_association_type_display }}</small>
+                                    </div>
+                                    <span class="badge 
+                                        {% if association.status == 'APPROVED' %}bg-success
+                                        {% elif association.status == 'PENDING' %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ association.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if event.collaborations.all %}
+                    <h6>Collaborations</h6>
+                    <div class="row">
+                        {% for collaboration in event.collaborations.all %}
+                            <div class="col-md-6 mb-2">
+                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                    <div>
+                                        <strong>{{ collaboration.get_collaborating_entity.name }}</strong>
+                                        <small class="text-muted d-block">{{ collaboration.get_collaboration_type_display }}</small>
+                                        {% if collaboration.collaboration_details %}
+                                            <button class="btn btn-sm btn-outline-info mt-1" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#collabDetailModal{{ collaboration.id }}">
+                                                View Details
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    <span class="badge 
+                                        {% if collaboration.status == 'APPROVED' %}bg-success
+                                        {% elif collaboration.status == 'PENDING' %}bg-warning
+                                        {% else %}bg-danger{% endif %}">
+                                        {{ collaboration.get_status_display }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Collaboration Detail Modals -->
+        {% for collaboration in event.collaborations.all %}
+            {% if collaboration.collaboration_details %}
+            <div class="modal fade" id="collabDetailModal{{ collaboration.id }}" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Collaboration Details</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h6>{{ collaboration.get_collaborating_entity.name }}</h6>
+                            <p>{{ collaboration.collaboration_details|linebreaks }}</p>
+                            {% if collaboration.approval_notes %}
+                                <hr>
+                                <p><strong>Approval Notes:</strong></p>
+                                <p>{{ collaboration.approval_notes|linebreaks }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% endfor %}
 
         <!-- Collaboration Requests -->
         {% if event.collaboration_requests.all %}

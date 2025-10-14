@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrations for {{ event.name }} - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Event Registrations</h2>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{% url 'event_list' %}">Events</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'event_detail' event.id %}">{{ event.name }}</a></li>
+                <li class="breadcrumb-item active">Registrations</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- Event Information Card -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">{{ event.name }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong>Event Type:</strong><br>
+                    {{ event.event_type }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Club:</strong><br>
+                    {{ event.club.name }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Date & Time:</strong><br>
+                    {{ event.date_time|date:"M d, Y g:i A" }}
+                </div>
+                <div class="col-md-3">
+                    <strong>Total Registrations:</strong><br>
+                    <span class="badge bg-primary fs-6">{{ registration_count }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registrations List -->
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Registered Students ({{ registration_count }})</h5>
+                {% if registration_count > 0 %}
+                    <div>
+                        <button class="btn btn-sm btn-outline-success" onclick="exportToCSV()">
+                            <i class="bi bi-file-earmark-spreadsheet"></i> Export CSV
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary" onclick="window.print()">
+                            <i class="bi bi-printer"></i> Print
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="card-body">
+            {% if registrations %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student Details</th>
+                                <th>Academic Info</th>
+                                <th>Contact</th>
+                                <th>Registration Date</th>
+                                <th>Notes</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for registration in registrations %}
+                            <tr>
+                                <td>
+                                    <strong>{{ registration.student.get_full_name }}</strong>
+                                    {% if registration.student.roll_no %}
+                                        <br><small class="text-muted">Roll No: {{ registration.student.roll_no }}</small>
+                                    {% endif %}
+                                    {% if registration.student.roles %}
+                                        <br><small class="text-muted">
+                                            {% for role in registration.student.roles %}
+                                                {% if role == 'STUDENT' %}Student{% elif role == 'CLUB_COORDINATOR' %}Club Coordinator{% elif role == 'PRESIDENT' %}President{% elif role == 'SECRETARY' %}Secretary{% elif role == 'TREASURER' %}Treasurer{% else %}{{ role|title }}{% endif %}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if registration.student.department %}
+                                        <strong>{{ registration.student.department.name }}</strong><br>
+                                    {% endif %}
+                                    {% if registration.student.year_of_study %}
+                                        <small class="text-muted">Year: {{ registration.student.year_of_study }}</small><br>
+                                    {% endif %}
+                                    {% if registration.student.section %}
+                                        <small class="text-muted">Section: {{ registration.student.section }}</small>
+                                    {% endif %}
+                                    {% if not registration.student.department and not registration.student.year_of_study and not registration.student.section %}
+                                        <small class="text-muted">Not specified</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>{{ registration.student.email }}</strong>
+                                    {% if registration.student.contact_number %}
+                                        <br><small class="text-muted">{{ registration.student.contact_number }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ registration.registered_at|date:"M d, Y g:i A" }}</td>
+                                <td>
+                                    {% if registration.notes %}
+                                        {{ registration.notes|truncatewords:15 }}
+                                        {% if registration.notes|length > 100 %}
+                                            <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#notesModal{{ registration.id }}">
+                                                View Full Notes
+                                            </button>
+                                        {% endif %}
+                                    {% else %}
+                                        <em class="text-muted">No notes</em>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#contactModal{{ registration.student.id }}">
+                                        <i class="bi bi-envelope"></i> Contact
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-people" style="font-size: 4rem; color: #6c757d;"></i>
+                    <h4 class="mt-3 text-muted">No Registrations Yet</h4>
+                    <p class="text-muted">Students haven't registered for this event yet. Check back later!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Event Details
+        </a>
+    </div>
+</div>
+
+<!-- Notes Modal -->
+{% for registration in registrations %}
+    {% if registration.notes %}
+    <div class="modal fade" id="notesModal{{ registration.id }}" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Notes from {{ registration.student.get_full_name }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>{{ registration.notes|linebreaks }}</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endfor %}
+
+<!-- Contact Modal -->
+{% for registration in registrations %}
+<div class="modal fade" id="contactModal{{ registration.student.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Contact {{ registration.student.get_full_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Contact Information</h6>
+                        <p><strong>Email:</strong> <a href="mailto:{{ registration.student.email }}">{{ registration.student.email }}</a></p>
+                        {% if registration.student.contact_number %}
+                        <p><strong>Phone:</strong> {{ registration.student.contact_number }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Academic Information</h6>
+                        {% if registration.student.roll_no %}
+                        <p><strong>Roll Number:</strong> {{ registration.student.roll_no }}</p>
+                        {% endif %}
+                        {% if registration.student.department %}
+                        <p><strong>Department:</strong> {{ registration.student.department.name }}</p>
+                        {% endif %}
+                        {% if registration.student.year_of_study %}
+                        <p><strong>Year of Study:</strong> {{ registration.student.year_of_study }}</p>
+                        {% endif %}
+                        {% if registration.student.section %}
+                        <p><strong>Section:</strong> {{ registration.student.section }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <hr>
+                <p><strong>Registered:</strong> {{ registration.registered_at|date:"M d, Y g:i A" }}</p>
+                {% if registration.notes %}
+                <p><strong>Notes:</strong></p>
+                <div class="alert alert-light">{{ registration.notes|linebreaks }}</div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+                <a href="mailto:{{ registration.student.email }}" class="btn btn-primary">
+                    <i class="bi bi-envelope"></i> Send Email
+                </a>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+function exportToCSV() {
+    const eventName = "{{ event.name|escapejs }}";
+    const rows = [];
+    
+    // CSV Headers
+    rows.push([
+        'Student Name',
+        'Roll Number', 
+        'Email',
+        'Contact Number',
+        'Department',
+        'Year of Study',
+        'Section',
+        'Registration Date',
+        'Notes'
+    ]);
+    
+    // CSV Data
+    {% for registration in registrations %}
+    rows.push([
+        "{{ registration.student.get_full_name|escapejs }}",
+        "{{ registration.student.roll_no|default:''|escapejs }}",
+        "{{ registration.student.email|escapejs }}",
+        "{{ registration.student.contact_number|default:''|escapejs }}",
+        "{{ registration.student.department.name|default:''|escapejs }}",
+        "{{ registration.student.year_of_study|default:''|escapejs }}",
+        "{{ registration.student.section|default:''|escapejs }}",
+        "{{ registration.registered_at|date:'M d, Y g:i A'|escapejs }}",
+        "{{ registration.notes|default:''|escapejs }}"
+    ]);
+    {% endfor %}
+    
+    // Convert to CSV
+    let csvContent = rows.map(row => 
+        row.map(field => `"${field.replace(/"/g, '""')}"`).join(',')
+    ).join('\n');
+    
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${eventName}_registrations.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Print styles
+window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('.btn, .modal').forEach(el => el.style.display = 'none');
+});
+
+window.addEventListener('afterprint', function() {
+    document.querySelectorAll('.btn, .modal').forEach(el => el.style.display = '');
+});
+</script>
+{% endblock %}

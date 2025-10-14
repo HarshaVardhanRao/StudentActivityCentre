@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from events.models import Event
+from users.models import Notification
 
 @login_required
 def club_coordinator_dashboard(request):
@@ -40,4 +42,25 @@ def faculty_dashboard(request):
 
 @login_required
 def admin_dashboard(request):
-    return render(request, "admin_dashboard.html")
+    # Check if user has admin permissions
+    if 'ADMIN' not in (request.user.roles or []) and 'SAC_COORDINATOR' not in (request.user.roles or []):
+        return render(request, "admin_dashboard.html", {
+            'error_message': 'You do not have permission to access this dashboard.'
+        })
+    
+    # Get dashboard data
+    pending_event_proposals = Event.objects.filter(status='PENDING').count()
+    approved_events = Event.objects.filter(status='APPROVED').count()
+    pending_collaborations = 0  # Placeholder for future collaboration feature
+    
+    # Get recent notifications for this user
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    context = {
+        'pending_event_proposals': pending_event_proposals,
+        'approved_events': approved_events,
+        'pending_collaborations': pending_collaborations,
+        'notifications': notifications,
+    }
+    
+    return render(request, "admin_dashboard.html", context)

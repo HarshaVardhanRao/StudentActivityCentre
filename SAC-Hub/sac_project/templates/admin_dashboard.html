@@ -1,14 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container">
-	<h2 class="mb-4">SAC Coordinator / Co-Coordinator Dashboard</h2>
+	<h2 class="mb-4">SAC Admin Dashboard</h2>
+	
+	{% if error_message %}
+		<div class="alert alert-danger">{{ error_message }}</div>
+	{% else %}
+	
 	<div class="row mb-4">
 		<div class="col-md-4">
 			<div class="card text-bg-warning mb-3">
 				<div class="card-header">Event Approvals</div>
 				<div class="card-body">
 					<h5 class="card-title">{{ pending_event_proposals }}</h5>
-					<p class="card-text">Events from Faculty/Coordinators pending approval. <a href="{% url 'event_approval_list' %}">Review Events</a></p>
+					<p class="card-text">Events from Faculty/Coordinators pending approval.</p>
+					<a href="{% url 'event_approval_list' %}" class="btn btn-light">
+						<i class="bi bi-calendar-check"></i> Review Events
+					</a>
 				</div>
 			</div>
 		</div>
@@ -70,4 +78,5 @@
 		</div>
 	</div>
 </div>
+{% endif %}
 {% endblock %}
