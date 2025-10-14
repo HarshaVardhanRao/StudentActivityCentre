@@ -1,1 +1,1 @@
-# Template tags package for sac_project
+# Package marker for Django templatetags. Actual filters live in custom_filters.py

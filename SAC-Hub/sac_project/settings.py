@@ -57,6 +57,8 @@ INSTALLED_APPS = [
     "calendar_app",
     # Third-party
     "rest_framework",  # Temporarily disabled
+    # Project package (contains templates and templatetags)
+    "sac_project",
 ]
 
 MIDDLEWARE = [
