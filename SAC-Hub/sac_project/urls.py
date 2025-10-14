@@ -30,6 +30,7 @@ from .role_dashboards import (
     treasurer_dashboard, department_admin_dashboard, club_advisor_dashboard, event_organizer_dashboard,
     student_volunteer_dashboard, faculty_dashboard, admin_dashboard
 )
+from .role_dashboards import dashboard_redirect
 from .auth_views import login_view, logout_view
 
 # Import frontend views
@@ -80,6 +81,8 @@ urlpatterns = [
     path("api/dashboard/club-advisor/", ClubAdvisorDashboardView.as_view(), name="club-advisor-dashboard"),
 
     # Role-based dashboard template views
+    path("dashboard/admin/", admin_dashboard, name="admin-dashboard-template"),
+    path("dashboard/<str:role>/", dashboard_redirect, name="dashboard"),
     path("dashboard/club-coordinator/", club_coordinator_dashboard, name="club-coordinator-dashboard-template"),
     path("dashboard/svp/", svp_dashboard, name="svp-dashboard-template"),
     path("dashboard/secretary/", secretary_dashboard, name="secretary-dashboard-template"),
@@ -89,7 +92,6 @@ urlpatterns = [
     path("dashboard/event-organizer/", event_organizer_dashboard, name="event-organizer-dashboard-template"),
     path("dashboard/student-volunteer/", student_volunteer_dashboard, name="student-volunteer-dashboard-template"),
     path("dashboard/faculty/", faculty_dashboard, name="faculty-dashboard-template"),
-    path("dashboard/admin/", admin_dashboard, name="admin-dashboard-template"),
     
     # Frontend views
     # Events

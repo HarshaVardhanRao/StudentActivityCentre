@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 
 @login_required
 def club_coordinator_dashboard(request):
@@ -41,3 +42,34 @@ def faculty_dashboard(request):
 @login_required
 def admin_dashboard(request):
     return render(request, "admin_dashboard.html")
+
+
+@login_required
+def dashboard_redirect(request, role):
+    """Redirect a generic role string to the appropriate named dashboard template.
+
+    The project stores roles as uppercase constants (e.g. 'PRESIDENT', 'SVP').
+    This view normalizes the role and redirects to the template route already
+    present in `urls.py`. If no mapping exists, redirect to the main student dashboard.
+    """
+    role_norm = (role or "").upper()
+    mapping = {
+        "CLUB_COORDINATOR": "club-coordinator-dashboard-template",
+        "EVENT_ORGANIZER": "event-organizer-dashboard-template",
+        "SAC_COORDINATOR": "admin-dashboard-template",
+        "ADMIN": "admin-dashboard-template",
+        "DEPARTMENT_ADMIN": "department-admin-dashboard-template",
+        "PRESIDENT": "student-dashboard",  # no specific president template; fallback
+        "SVP": "svp-dashboard-template",
+        "SECRETARY": "secretary-dashboard-template",
+        "TREASURER": "treasurer-dashboard-template",
+        "CLUB_ADVISOR": "club-advisor-dashboard-template",
+        "STUDENT_VOLUNTEER": "student-volunteer-dashboard-template",
+        "FACULTY": "faculty-dashboard-template",
+    }
+
+    target_name = mapping.get(role_norm)
+    if target_name:
+        return redirect(target_name)
+    # fallback
+    return redirect("student-dashboard")
