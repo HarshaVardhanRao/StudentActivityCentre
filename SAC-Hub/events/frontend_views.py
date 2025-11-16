@@ -109,8 +109,8 @@ def event_detail(request, event_id):
     attendance_count = None
     if event.status in ['APPROVED', 'COMPLETED']:
         attendance_count = {
-            'present': Attendance.objects.filter(event=event, status='PRESENT').count(),
-            'absent': Attendance.objects.filter(event=event, status='ABSENT').count(),
+            'present': Attendance.objects.filter(session__event=event, status='PRESENT').count(),
+            'absent': Attendance.objects.filter(session__event=event, status='ABSENT').count(),
         }
     
     # Check registration status for logged-in users

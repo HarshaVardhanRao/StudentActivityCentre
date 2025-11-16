@@ -17,7 +17,7 @@ def club_coordinator_dashboard(request):
     # Basic counts
     club_events_count = Event.objects.filter(club__in=coordinator_clubs).count()
     pending_approvals_count = Event.objects.filter(club__in=coordinator_clubs, status='PENDING').count()
-    participant_count = Attendance.objects.filter(event__club__in=coordinator_clubs).count()
+    participant_count = Attendance.objects.filter(session__event__club__in=coordinator_clubs).count()
 
     coordinator_club = coordinator_clubs.first() if coordinator_clubs.count() == 1 else None
 
@@ -165,7 +165,7 @@ def admin_dashboard(request):
     clubs = Club.objects.all()
     departments = Department.objects.all()
     events = Event.objects.all().order_by('-created_at')[:20]
-    attendances = Attendance.objects.select_related('event', 'student').order_by('-timestamp')[:20]
+    attendances = Attendance.objects.select_related('session', 'session__event', 'student').order_by('-timestamp')[:20]
     calendar_entries = CalendarEntry.objects.select_related('event').order_by('-date_time')[:20]
     
     # Get recent notifications

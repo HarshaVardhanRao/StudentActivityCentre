@@ -44,7 +44,7 @@ from clubs.frontend_views import (
 )
 from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
-    settings_view, reports_dashboard
+    settings_view, reports_dashboard, attendance_export, attendance_verify
 )
 from .frontend_views import (
     send_notification, mark_notification_read, mark_notification_unread,
@@ -132,6 +132,8 @@ urlpatterns = [
     # Calendar and Attendance
     path("calendar/", calendar_view, name="calendar_view"),
     path("events/<int:event_id>/attendance/", attendance_manage, name="attendance_manage"),
+    path("events/<int:event_id>/attendance/export/", attendance_export, name="attendance_export"),
+    path("attendance/verify/", attendance_verify, name="attendance_verify"),
     
     # User pages
     path("profile/", profile_view, name="profile"),

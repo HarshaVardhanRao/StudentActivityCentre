@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Verify Attendance{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <h2>Verify Attendance Reference</h2>
+  <p>Enter the attendance reference code to verify a record.</p>
+
+  <form method="get" action="{% url 'attendance_verify' %}" class="mb-3">
+    <div class="input-group">
+      <input type="text" name="ref" value="{{ ref|default:'' }}" class="form-control" placeholder="Reference code" required>
+      <button class="btn btn-primary" type="submit">Verify</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+
+  {% if result %}
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Attendance Verified</h5>
+        <p><strong>Event:</strong> {{ result.event }}</p>
+        <p><strong>Session:</strong> {{ result.session_label }}</p>
+        <p><strong>Student:</strong> {{ result.student_name }} ({{ result.student_roll }})</p>
+        <p><strong>Status:</strong> {{ result.status }}</p>
+        <p><strong>Timestamp:</strong> {{ result.timestamp }}</p>
+        <p><strong>Reference:</strong> {{ result.ref }}</p>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

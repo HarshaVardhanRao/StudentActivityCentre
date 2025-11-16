@@ -101,7 +101,7 @@ class DepartmentAdminDashboardView(APIView):
         user = request.user
         dept = user.department
         events = Event.objects.filter(department=dept)
-        attendance = Attendance.objects.filter(event__department=dept)
+        attendance = Attendance.objects.filter(session__event__department=dept)
         return Response({
             "department_events": events.count(),
             "pending_approvals": events.filter(status='PENDING').count(),
