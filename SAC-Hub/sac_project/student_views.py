@@ -6,6 +6,9 @@ from django.db.models import Q
 
 def student_dashboard(request):
     now = timezone.now()
+    # Upcoming events: future dates with APPROVED status
+    upcoming_events = Event.objects.filter(date_time__gt=now, status="APPROVED").order_by('date_time')[:6]
+    # Ongoing events: current or past with PENDING or APPROVED status
     ongoing_events = Event.objects.filter(date_time__lte=now, status__in=["PENDING", "APPROVED"]).order_by('-date_time')
     finished_events = Event.objects.filter(date_time__lt=now, status="COMPLETED").order_by('-date_time')
     notices = Notification.objects.filter(user__isnull=True).order_by('-created_at')[:10]  # Global notices
@@ -98,6 +101,7 @@ def student_dashboard(request):
             "description": f"Advise {advised_clubs.count()} club(s)"
         })
     return render(request, "student_dashboard.html", {
+        "upcoming_events": upcoming_events,
         "ongoing_events": ongoing_events,
         "finished_events": finished_events,
         "notices": notices,

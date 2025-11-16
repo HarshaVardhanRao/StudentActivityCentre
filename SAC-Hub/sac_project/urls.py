@@ -40,14 +40,15 @@ from events.frontend_views import (
     association_approval_list, approve_association, approve_collaboration
 )
 from clubs.frontend_views import (
-    club_list, club_detail, club_create, club_edit, club_join, club_leave
+    club_list, club_detail, club_create, club_edit, club_delete, club_join, club_leave
 )
 from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
     settings_view, reports_dashboard
 )
 from .admin_views import (
-    assign_club_coordinator, get_students_ajax, event_approval_list, event_approve_reject
+    assign_club_coordinator, get_students_ajax, event_approval_list, event_approve_reject,
+    api_clubs_crud, api_departments_crud, api_users_crud
 )
 
 urlpatterns = [
@@ -61,6 +62,11 @@ urlpatterns = [
     path("admin/event-approvals/", event_approval_list, name="event_approval_list"),
     path("admin/event-approve-reject/", event_approve_reject, name="event_approve_reject"),
     path("admin/ajax/students/", get_students_ajax, name="get_students_ajax"),
+    
+    # Admin API endpoints
+    path("api/admin/clubs/", api_clubs_crud, name="api_clubs_crud"),
+    path("api/admin/departments/", api_departments_crud, name="api_departments_crud"),
+    path("api/admin/users/", api_users_crud, name="api_users_crud"),
     
     # Django Admin (must come after custom admin URLs)
     path("admin/", admin.site.urls),
@@ -84,7 +90,6 @@ urlpatterns = [
 
     # Role-based dashboard template views
     path("dashboard/admin/", admin_dashboard, name="admin-dashboard-template"),
-    path("dashboard/<str:role>/", dashboard_redirect, name="dashboard"),
     path("dashboard/club-coordinator/", club_coordinator_dashboard, name="club-coordinator-dashboard-template"),
     path("dashboard/svp/", svp_dashboard, name="svp-dashboard-template"),
     path("dashboard/secretary/", secretary_dashboard, name="secretary-dashboard-template"),
@@ -94,6 +99,8 @@ urlpatterns = [
     path("dashboard/event-organizer/", event_organizer_dashboard, name="event-organizer-dashboard-template"),
     path("dashboard/student-volunteer/", student_volunteer_dashboard, name="student-volunteer-dashboard-template"),
     path("dashboard/faculty/", faculty_dashboard, name="faculty-dashboard-template"),
+    # Fallback role-based redirect (keep after specific dashboard routes to avoid loops)
+    path("dashboard/<str:role>/", dashboard_redirect, name="dashboard"),
     
     # Frontend views
     # Events
@@ -114,6 +121,7 @@ urlpatterns = [
     path("clubs/<int:club_id>/", club_detail, name="club_detail"),
     path("clubs/create/", club_create, name="club_create"),
     path("clubs/<int:club_id>/edit/", club_edit, name="club_edit"),
+    path("clubs/<int:club_id>/delete/", club_delete, name="club_delete"),
     path("clubs/<int:club_id>/join/", club_join, name="club_join"),
     path("clubs/<int:club_id>/leave/", club_leave, name="club_leave"),
     

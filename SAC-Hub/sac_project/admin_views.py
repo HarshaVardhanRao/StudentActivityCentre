@@ -3,8 +3,128 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from users.models import User, Club, Role
+from django.views.decorators.csrf import csrf_exempt
+from users.models import User, Club, Role, Department
 import json
+
+def check_admin_permission(user):
+    """Check if user has admin or SAC_COORDINATOR role"""
+    return 'ADMIN' in (user.roles or []) or 'SAC_COORDINATOR' in (user.roles or [])
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def api_clubs_crud(request):
+    """API for Club CRUD operations"""
+    if not check_admin_permission(request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    if request.method == 'GET':
+        clubs = Club.objects.all().values('id', 'name', 'description')
+        return JsonResponse({'success': True, 'clubs': list(clubs)})
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            action = data.get('action')
+            
+            if action == 'create':
+                club = Club.objects.create(
+                    name=data.get('name'),
+                    description=data.get('description', '')
+                )
+                return JsonResponse({'success': True, 'club_id': club.id, 'message': 'Club created successfully'})
+            
+            elif action == 'update':
+                club = get_object_or_404(Club, id=data.get('id'))
+                club.name = data.get('name', club.name)
+                club.description = data.get('description', club.description)
+                club.save()
+                return JsonResponse({'success': True, 'message': 'Club updated successfully'})
+            
+            elif action == 'delete':
+                club = get_object_or_404(Club, id=data.get('id'))
+                club.delete()
+                return JsonResponse({'success': True, 'message': 'Club deleted successfully'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def api_departments_crud(request):
+    """API for Department CRUD operations"""
+    if not check_admin_permission(request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    if request.method == 'GET':
+        depts = Department.objects.all().values('id', 'name', 'description')
+        return JsonResponse({'success': True, 'departments': list(depts)})
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            action = data.get('action')
+            
+            if action == 'create':
+                dept = Department.objects.create(
+                    name=data.get('name'),
+                    description=data.get('description', '')
+                )
+                return JsonResponse({'success': True, 'dept_id': dept.id, 'message': 'Department created successfully'})
+            
+            elif action == 'update':
+                dept = get_object_or_404(Department, id=data.get('id'))
+                dept.name = data.get('name', dept.name)
+                dept.description = data.get('description', dept.description)
+                dept.save()
+                return JsonResponse({'success': True, 'message': 'Department updated successfully'})
+            
+            elif action == 'delete':
+                dept = get_object_or_404(Department, id=data.get('id'))
+                dept.delete()
+                return JsonResponse({'success': True, 'message': 'Department deleted successfully'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+
+@login_required
+@require_http_methods(['GET', 'POST'])
+def api_users_crud(request):
+    """API for User CRUD operations"""
+    if not check_admin_permission(request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    if request.method == 'GET':
+        users_data = []
+        for user in User.objects.all()[:100]:
+            users_data.append({
+                'id': user.id,
+                'name': user.get_full_name(),
+                'email': user.email,
+                'username': user.username,
+                'roles': user.roles,
+                'department': str(user.department) if user.department else None
+            })
+        return JsonResponse({'success': True, 'users': users_data})
+    
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            action = data.get('action')
+            
+            if action == 'update_roles':
+                user = get_object_or_404(User, id=data.get('id'))
+                user.roles = data.get('roles', user.roles)
+                user.save()
+                return JsonResponse({'success': True, 'message': 'User roles updated successfully'})
+            
+            elif action == 'delete':
+                user = get_object_or_404(User, id=data.get('id'))
+                user.delete()
+                return JsonResponse({'success': True, 'message': 'User deleted successfully'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=400)
 
 @login_required
 def assign_club_coordinator(request):

@@ -61,7 +61,7 @@
                                class="btn btn-outline-secondary">Cancel</a>
                         </div>
                         {% if club and user.is_staff %}
-                            <a href="#" class="btn btn-outline-danger"
+                            <a href="{% url 'club_delete' club.id %}" class="btn btn-outline-danger"
                                onclick="return confirm('Are you sure you want to delete this club?')">Delete Club</a>
                         {% endif %}
                     </div>

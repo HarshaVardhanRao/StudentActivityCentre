@@ -75,16 +75,14 @@
 
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label for="id_club" class="form-label">Club *</label>
+                            <label for="id_club" class="form-label">Club <span class="text-muted">(Optional)</span></label>
                             {% if is_club_coordinator and coordinator_club and not event %}
                                 <input type="text" class="form-control" value="{{ coordinator_club.name }}" readonly>
                                 <input type="hidden" name="club" value="{{ coordinator_club.id }}">
                                 <small class="text-muted">Events are automatically assigned to your club as a coordinator.</small>
                             {% else %}
-                                <select name="club" id="id_club" class="form-select" required {% if is_club_coordinator and coordinator_club and event %}disabled{% endif %}>
-                                    {% if not event and not coordinator_club %}
-                                        <option value="">Select a club...</option>
-                                    {% endif %}
+                                <select name="club" id="id_club" class="form-select" {% if is_club_coordinator and coordinator_club and event %}disabled{% endif %}>
+                                    <option value="">No club (Administrative event)</option>
                                     {% for club in clubs %}
                                         <option value="{{ club.id }}" 
                                                 {% if form.club.value == club.id or event.club.id == club.id %}selected{% elif coordinator_club and coordinator_club.id == club.id %}selected{% endif %}>

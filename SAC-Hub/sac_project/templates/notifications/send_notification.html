@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}Send Notification - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="bi bi-send"></i> Send Notification
+                    </h4>
+                </div>
+                
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <form method="post" id="notificationForm">
+                        {% csrf_token %}
+                        
+                        <!-- Recipient Type Selection -->
+                        <div class="mb-4">
+                            <label for="recipientType" class="form-label fw-bold">Send To</label>
+                            <select name="recipient_type" id="recipientType" class="form-select" required onchange="updateScopeOptions()">
+                                <option value="">-- Select Recipients --</option>
+                                {% for value, label in recipient_options %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                Select who you want to send this notification to
+                            </small>
+                        </div>
+
+                        <!-- Scope Selection (for specific clubs/departments) -->
+                        <div class="mb-4" id="scopeContainer" style="display: none;">
+                            <label for="scopeValue" class="form-label fw-bold">Select Specific</label>
+                            <select name="scope_value" id="scopeValue" class="form-select">
+                                <option value="">-- Choose --</option>
+                                <!-- Options populated by JavaScript -->
+                            </select>
+                        </div>
+
+                        <!-- Message Text Area -->
+                        <div class="mb-4">
+                            <label for="message" class="form-label fw-bold">Message</label>
+                            <textarea 
+                                name="message" 
+                                id="message" 
+                                class="form-control" 
+                                rows="5" 
+                                placeholder="Enter your notification message (max 500 characters)"
+                                maxlength="500"
+                                required></textarea>
+                            <small class="form-text text-muted">
+                                <span id="charCount">0</span>/500 characters
+                            </small>
+                        </div>
+
+                        <!-- Recipient Preview -->
+                        <div class="alert alert-info d-none" id="recipientPreview">
+                            <small class="d-block mb-2"><strong>Recipients Preview:</strong></small>
+                            <small id="previewText">No recipients selected</small>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send-fill"></i> Send Notification
+                            </button>
+                            <a href="{% url 'notifications_list' %}" class="btn btn-secondary">
+                                <i class="bi bi-arrow-left"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Helper Info Box -->
+            <div class="card mt-4 bg-light">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="bi bi-info-circle"></i> About Your Role Permissions
+                    </h6>
+                    <small class="text-muted d-block">
+                        {% if "ADMIN" in user.roles or "SAC_COORDINATOR" in user.roles %}
+                            <strong>As an Admin/SAC Coordinator:</strong> You can send notifications to all users, specific groups, or individual clubs/departments.
+                        {% elif "CLUB_COORDINATOR" in user.roles %}
+                            <strong>As a Club Coordinator:</strong> You can send notifications to members of your coordinated clubs and their faculty advisors.
+                        {% elif "CLUB_ADVISOR" in user.roles %}
+                            <strong>As a Club Advisor:</strong> You can send notifications to members of the clubs you advise.
+                        {% elif "DEPARTMENT_ADMIN" in user.roles or "DEPARTMENT_VP" in user.roles or "EVENT_ORGANIZER" in user.roles %}
+                            <strong>As a Department Admin/VP/Event Organizer:</strong> You can send notifications to students in your department or all students.
+                        {% elif "PRESIDENT" in user.roles or "SVP" in user.roles %}
+                            <strong>As President/SVP:</strong> You can send notifications to all students, all users, or specific clubs/departments.
+                        {% elif "SECRETARY" in user.roles or "TREASURER" in user.roles %}
+                            <strong>As Secretary/Treasurer:</strong> You can send notifications to all users or all students.
+                        {% endif %}
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data for JavaScript -->
+<script>
+    const clubsData = {{ clubs|safe }};
+    const departmentsData = {{ departments|safe }};
+    const userRole = '{{ user_role }}';
+    const coordinatedClubs = {{ coordinated_clubs|default:"[]"|safe }};
+    const advisedClubs = {{ advised_clubs|default:"[]"|safe }};
+    const userDepartment = {{ user_department|default:"null"|safe }};
+
+    // Update character count
+    document.getElementById('message').addEventListener('input', function() {
+        document.getElementById('charCount').textContent = this.value.length;
+    });
+
+    // Update scope options based on recipient type
+    function updateScopeOptions() {
+        const recipientType = document.getElementById('recipientType').value;
+        const scopeContainer = document.getElementById('scopeContainer');
+        const scopeSelect = document.getElementById('scopeValue');
+        
+        scopeSelect.innerHTML = '<option value="">-- Choose --</option>';
+        
+        if (recipientType === 'specific_club') {
+            scopeContainer.style.display = 'block';
+            clubsData.forEach(club => {
+                const option = document.createElement('option');
+                option.value = club.id;
+                option.textContent = club.name;
+                scopeSelect.appendChild(option);
+            });
+        } else if (recipientType === 'specific_department') {
+            scopeContainer.style.display = 'block';
+            departmentsData.forEach(dept => {
+                const option = document.createElement('option');
+                option.value = dept.id;
+                option.textContent = dept.name;
+                scopeSelect.appendChild(option);
+            });
+        } else {
+            scopeContainer.style.display = 'none';
+        }
+    }
+
+    // Form submission validation
+    document.getElementById('notificationForm').addEventListener('submit', function(e) {
+        const recipientType = document.getElementById('recipientType').value;
+        const message = document.getElementById('message').value.trim();
+        
+        if (!recipientType) {
+            e.preventDefault();
+            alert('Please select recipients');
+            return false;
+        }
+        
+        if (!message) {
+            e.preventDefault();
+            alert('Please enter a message');
+            return false;
+        }
+
+        if ((recipientType === 'specific_club' || recipientType === 'specific_department') && !document.getElementById('scopeValue').value) {
+            e.preventDefault();
+            alert('Please select a specific club or department');
+            return false;
+        }
+
+        // Confirm before sending
+        return confirm('Send notification to selected recipients?');
+    });
+</script>
+
+{% endblock %}

@@ -85,14 +85,25 @@ def event_detail(request, event_id):
     
     event = get_object_or_404(Event, id=event_id)
     
-    # Prefetch associations and collaborations
-    event = Event.objects.select_related('club', 'department').prefetch_related(
-        'organizers',
-        'associations__department',
-        'associations__club', 
-        'collaborations__department',
-        'collaborations__club'
-    ).get(id=event_id)
+    # Prefetch associations and collaborations. If the related tables are missing
+    # (e.g. migrations haven't been applied yet) fall back to a safer query
+    # to avoid a server 500 and give the operator time to run migrations.
+    try:
+        event = Event.objects.select_related('club', 'department').prefetch_related(
+            'organizers',
+            'associations__department',
+            'associations__club', 
+            'collaborations__department',
+            'collaborations__club'
+        ).get(id=event_id)
+    except Exception as e:
+        # Import here to avoid top-level import if Django isn't fully available
+        from django.db import utils as db_utils
+        # If the error is an OperationalError (missing table), fall back to a query
+        if isinstance(e, db_utils.OperationalError):
+            event = Event.objects.select_related('club', 'department').prefetch_related('organizers').get(id=event_id)
+        else:
+            raise
     
     # Get attendance statistics if event is approved/completed
     attendance_count = None
@@ -106,23 +117,23 @@ def event_detail(request, event_id):
     user_registered = False
     user_registration = None
     registration_count = 0
+    can_view_registrations = False
     
     if request.user.is_authenticated:
         user_registration = EventRegistration.objects.filter(event=event, student=request.user).first()
         user_registered = user_registration is not None
-    
-    # Get registration count
-    registration_count = EventRegistration.objects.filter(event=event).count()
-    
-    # Check if user can view registrations
-    can_view_registrations = False
-    if request.user.is_authenticated:
+        
+        # Check if user can view registrations
         user_roles = request.user.roles or []
         if ('ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles or 
             request.user in event.organizers.all() or
-            ('FACULTY' in user_roles and event.club.advisor == request.user) or
-            ('CLUB_COORDINATOR' in user_roles and request.user in event.club.coordinators.all())):
+            (event.club and 'FACULTY' in user_roles and event.club.advisor == request.user) or
+            (event.club and 'CLUB_COORDINATOR' in user_roles and request.user in event.club.coordinators.all())):
             can_view_registrations = True
+    
+    # Get registration count only for authorized users
+    if can_view_registrations:
+        registration_count = EventRegistration.objects.filter(event=event).count()
     
     context = {
         'event': event,
@@ -167,8 +178,8 @@ def event_create(request):
             # Debug: Print form data
             print("Form data:", request.POST)
             
-            # Validate required fields
-            required_fields = ['name', 'event_type', 'date_time', 'venue', 'club']
+            # Validate required fields (club is now optional)
+            required_fields = ['name', 'event_type', 'date_time', 'venue']
             missing_fields = []
             for field in required_fields:
                 if not request.POST.get(field):
@@ -200,25 +211,31 @@ def event_create(request):
             if 'ADMIN' in (request.user.roles or []) or 'SAC_COORDINATOR' in (request.user.roles or []):
                 event_status = 'APPROVED'  # Admins can auto-approve
             
+            club_id = request.POST.get('club') or None
+            
             event = Event.objects.create(
                 name=request.POST['name'],
                 event_type=request.POST['event_type'],
                 description=request.POST.get('description', ''),
                 date_time=request.POST['date_time'],
                 venue=request.POST['venue'],
-                club_id=request.POST['club'],
+                club_id=club_id,
                 department_id=request.POST.get('department') or None,
                 resources=request.POST.get('resources', ''),
                 status=event_status,
                 created_by=request.user
             )
             
-            # Add organizers - automatically set to club coordinators
-            selected_club = Club.objects.get(id=request.POST['club'])
-            event.organizers.set(selected_club.coordinators.all())
-            
-            # Also add the event creator as an organizer if they're not already included
-            if request.user not in selected_club.coordinators.all():
+            # Add organizers - automatically set to club coordinators (if club is assigned)
+            if club_id:
+                selected_club = Club.objects.get(id=club_id)
+                event.organizers.set(selected_club.coordinators.all())
+                
+                # Also add the event creator as an organizer if they're not already included
+                if request.user not in selected_club.coordinators.all():
+                    event.organizers.add(request.user)
+            else:
+                # If no club is assigned, add only the creator as organizer
                 event.organizers.add(request.user)
             
             # Handle Associations
@@ -328,11 +345,11 @@ def event_edit(request, event_id):
     # Check if user is admin/SAC coordinator
     if 'ADMIN' in (request.user.roles or []) or 'SAC_COORDINATOR' in (request.user.roles or []):
         can_edit = True
-    # Check if user is Faculty advisor of the club
-    elif 'FACULTY' in (request.user.roles or []) and event.club.advisor == request.user:
+    # Check if user is Faculty advisor of the club (if club is assigned)
+    elif event.club and 'FACULTY' in (request.user.roles or []) and event.club.advisor == request.user:
         can_edit = True
-    # Check if user is Club Coordinator of the club
-    elif 'CLUB_COORDINATOR' in (request.user.roles or []) and request.user in event.club.coordinators.all():
+    # Check if user is Club Coordinator of the club (if club is assigned)
+    elif event.club and 'CLUB_COORDINATOR' in (request.user.roles or []) and request.user in event.club.coordinators.all():
         can_edit = True
     # Check if user is an organizer
     elif request.user in event.organizers.all():
@@ -350,7 +367,9 @@ def event_edit(request, event_id):
             event.description = request.POST.get('description', '')
             event.date_time = request.POST['date_time']
             event.venue = request.POST['venue']
-            event.club_id = request.POST['club']
+            
+            club_id = request.POST.get('club') or None
+            event.club_id = club_id
             event.department_id = request.POST.get('department') or None
             event.resources = request.POST.get('resources', '')
             
@@ -360,13 +379,20 @@ def event_edit(request, event_id):
             
             event.save()
             
-            # Update organizers - automatically set to club coordinators
-            selected_club = Club.objects.get(id=request.POST['club'])
-            event.organizers.set(selected_club.coordinators.all())
-            
-            # Also add the event creator as an organizer if they're not already included
-            if event.created_by and event.created_by not in selected_club.coordinators.all():
-                event.organizers.add(event.created_by)
+            # Update organizers - automatically set to club coordinators (if club is assigned)
+            if club_id:
+                selected_club = Club.objects.get(id=club_id)
+                event.organizers.set(selected_club.coordinators.all())
+                
+                # Also add the event creator as an organizer if they're not already included
+                if event.created_by and event.created_by not in selected_club.coordinators.all():
+                    event.organizers.add(event.created_by)
+            else:
+                # If no club is assigned, keep only creator as organizer
+                if event.created_by:
+                    event.organizers.set([event.created_by])
+                else:
+                    event.organizers.clear()
             
             messages.success(request, f'Event "{event.name}" updated successfully!')
             return redirect('event_detail', event_id=event.id)
@@ -502,8 +528,8 @@ def event_registrations(request, event_id):
     
     if ('ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles or 
         request.user in event.organizers.all() or
-        ('FACULTY' in user_roles and event.club.advisor == request.user) or
-        ('CLUB_COORDINATOR' in user_roles and request.user in event.club.coordinators.all())):
+        (event.club and 'FACULTY' in user_roles and event.club.advisor == request.user) or
+        (event.club and 'CLUB_COORDINATOR' in user_roles and request.user in event.club.coordinators.all())):
         can_view = True
     
     if not can_view:
