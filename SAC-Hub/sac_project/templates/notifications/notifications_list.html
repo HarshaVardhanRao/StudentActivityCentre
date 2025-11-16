@@ -6,10 +6,22 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Notifications</h2>
     <div>
+        {% if can_send_notifications %}
+            <a href="{% url 'send_notification' %}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-lg"></i> Create
+            </a>
+        {% else %}
+            <button type="button" class="btn btn-primary me-2" disabled title="You do not have permission to create notifications">
+                <i class="bi bi-plus-lg"></i> Create
+            </button>
+        {% endif %}
         <button type="button" class="btn btn-outline-primary" onclick="markAllRead()">Mark All Read</button>
         <button type="button" class="btn btn-outline-danger" onclick="clearAll()">Clear All</button>
     </div>
 </div>
+
+<!-- Hidden CSRF form so JS can read the token value -->
+<form id="csrfForm" style="display:none;">{% csrf_token %}</form>
 
 <!-- Filter Tabs -->
 <ul class="nav nav-tabs mb-4">
@@ -38,6 +50,9 @@
                      data-notification-id="{{ notification.id }}">
                     <div class="flex-grow-1">
                         <div class="d-flex align-items-center mb-2">
+                            {% if notification.important %}
+                                <span class="badge bg-warning text-dark me-2">Important</span>
+                            {% endif %}
                             {% if not notification.read %}
                                 <span class="badge bg-primary me-2">New</span>
                             {% endif %}
@@ -120,13 +135,14 @@ function markAsUnread(notificationId) {
 }
 
 function updateNotificationStatus(notificationId, status) {
-    fetch(`/api/notifications/${notificationId}/`, {
-        method: 'PATCH',
+    const url = status === 'read' ?
+        `{% url 'mark_notification_read' 0 %}`.replace('/0/', `/${notificationId}/`) :
+        `{% url 'mark_notification_unread' 0 %}`.replace('/0/', `/${notificationId}/`);
+    fetch(url, {
+        method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify({ read: status === 'read' })
+        }
     })
     .then(response => response.json())
     .then(data => {
@@ -146,14 +162,16 @@ function deleteNotification(notificationId) {
         return;
     }
     
-    fetch(`/api/notifications/${notificationId}/`, {
-        method: 'DELETE',
+    const url = `{% url 'delete_notification' 0 %}`.replace('/0/', `/${notificationId}/`);
+    fetch(url, {
+        method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }
     })
-    .then(response => {
-        if (response.ok) {
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
             document.querySelector(`[data-notification-id="${notificationId}"]`).remove();
             location.reload();
         } else {
@@ -170,7 +188,7 @@ function markAllRead() {
         return;
     }
     
-    fetch('/api/notifications/mark-all-read/', {
+    fetch(`{% url 'mark_all_read' %}`, {
         method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
@@ -194,8 +212,8 @@ function clearAll() {
         return;
     }
     
-    fetch('/api/notifications/clear-all/', {
-        method: 'DELETE',
+    fetch(`{% url 'clear_all_notifications' %}`, {
+        method: 'POST',
         headers: {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }

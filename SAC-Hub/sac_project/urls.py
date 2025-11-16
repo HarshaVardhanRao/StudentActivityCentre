@@ -46,6 +46,10 @@ from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
     settings_view, reports_dashboard
 )
+from .frontend_views import (
+    send_notification, mark_notification_read, mark_notification_unread,
+    delete_notification, mark_all_read, clear_all_notifications
+)
 from .admin_views import (
     assign_club_coordinator, get_students_ajax, event_approval_list, event_approve_reject,
     api_clubs_crud, api_departments_crud, api_users_crud
@@ -132,6 +136,12 @@ urlpatterns = [
     # User pages
     path("profile/", profile_view, name="profile"),
     path("notifications/", notifications_list, name="notifications_list"),
+    path("notifications/send/", send_notification, name="send_notification"),
+    path("notifications/<int:notification_id>/mark-read/", mark_notification_read, name="mark_notification_read"),
+    path("notifications/<int:notification_id>/mark-unread/", mark_notification_unread, name="mark_notification_unread"),
+    path("notifications/<int:notification_id>/delete/", delete_notification, name="delete_notification"),
+    path("notifications/mark-all-read/", mark_all_read, name="mark_all_read"),
+    path("notifications/clear-all/", clear_all_notifications, name="clear_all_notifications"),
     path("settings/", settings_view, name="settings"),
     
     # Reports

@@ -43,10 +43,23 @@
                         <!-- Scope Selection (for specific clubs/departments) -->
                         <div class="mb-4" id="scopeContainer" style="display: none;">
                             <label for="scopeValue" class="form-label fw-bold">Select Specific</label>
-                            <select name="scope_value" id="scopeValue" class="form-select">
+
+                            <!-- Single-selection fallback (for older roles / compatibility) -->
+                            <select name="scope_value" id="scopeValue" class="form-select" style="display: none;">
                                 <option value="">-- Choose --</option>
+                            </select>
+
+                            <!-- Multi-select for clubs -->
+                            <select name="clubs" id="clubsSelect" class="form-select" multiple style="display: none; height: 200px;">
                                 <!-- Options populated by JavaScript -->
                             </select>
+
+                            <!-- Multi-select for departments -->
+                            <select name="departments" id="deptsSelect" class="form-select" multiple style="display: none; height: 200px;">
+                                <!-- Options populated by JavaScript -->
+                            </select>
+
+                            <small class="form-text text-muted mt-1">Use Ctrl / Cmd to select multiple items.</small>
                         </div>
 
                         <!-- Message Text Area -->
@@ -63,6 +76,14 @@
                             <small class="form-text text-muted">
                                 <span id="charCount">0</span>/500 characters
                             </small>
+                        </div>
+
+                        <!-- Important flag -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" value="1" id="importantFlag" name="important">
+                            <label class="form-check-label" for="importantFlag">
+                                Mark as important
+                            </label>
                         </div>
 
                         <!-- Recipient Preview -->
@@ -119,6 +140,8 @@
     const coordinatedClubs = {{ coordinated_clubs|default:"[]"|safe }};
     const advisedClubs = {{ advised_clubs|default:"[]"|safe }};
     const userDepartment = {{ user_department|default:"null"|safe }};
+    const allowMultiClub = {{ allow_multi_club_select|default:False|yesno:"true,false" }};
+    const allowMultiDept = {{ allow_multi_dept_select|default:False|yesno:"true,false" }};
 
     // Update character count
     document.getElementById('message').addEventListener('input', function() {
@@ -130,27 +153,53 @@
         const recipientType = document.getElementById('recipientType').value;
         const scopeContainer = document.getElementById('scopeContainer');
         const scopeSelect = document.getElementById('scopeValue');
-        
+        const clubsSelect = document.getElementById('clubsSelect');
+        const deptsSelect = document.getElementById('deptsSelect');
+
+        // Reset all
+        scopeSelect.style.display = 'none';
+        clubsSelect.style.display = 'none';
+        deptsSelect.style.display = 'none';
+        scopeContainer.style.display = 'none';
+
+        clubsSelect.innerHTML = '';
+        deptsSelect.innerHTML = '';
         scopeSelect.innerHTML = '<option value="">-- Choose --</option>';
-        
+
         if (recipientType === 'specific_club') {
             scopeContainer.style.display = 'block';
-            clubsData.forEach(club => {
-                const option = document.createElement('option');
-                option.value = club.id;
-                option.textContent = club.name;
-                scopeSelect.appendChild(option);
-            });
+            // If multi-select allowed, show multi-select with limited options (coordinator/advisor vs admin)
+            if (allowMultiClub) {
+                clubsSelect.style.display = 'block';
+                // If coordinator/advisor, show only their clubs
+                if (coordinatedClubs && coordinatedClubs.length > 0) {
+                    coordinatedClubs.forEach(c => {
+                        const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.name; clubsSelect.appendChild(opt);
+                    });
+                } else if (advisedClubs && advisedClubs.length > 0) {
+                    advisedClubs.forEach(c => {
+                        const opt = document.createElement('option'); opt.value = c.id; opt.textContent = c.name; clubsSelect.appendChild(opt);
+                    });
+                } else {
+                    // Admin/President case: show all clubs
+                    clubsData.forEach(club => { const opt = document.createElement('option'); opt.value = club.id; opt.textContent = club.name; clubsSelect.appendChild(opt); });
+                }
+            } else {
+                // Single select fallback
+                scopeSelect.style.display = 'block';
+                clubsData.forEach(club => {
+                    const option = document.createElement('option'); option.value = club.id; option.textContent = club.name; scopeSelect.appendChild(option);
+                });
+            }
         } else if (recipientType === 'specific_department') {
             scopeContainer.style.display = 'block';
-            departmentsData.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept.id;
-                option.textContent = dept.name;
-                scopeSelect.appendChild(option);
-            });
-        } else {
-            scopeContainer.style.display = 'none';
+            if (allowMultiDept) {
+                deptsSelect.style.display = 'block';
+                departmentsData.forEach(dept => { const opt = document.createElement('option'); opt.value = dept.id; opt.textContent = dept.name; deptsSelect.appendChild(opt); });
+            } else {
+                scopeSelect.style.display = 'block';
+                departmentsData.forEach(dept => { const option = document.createElement('option'); option.value = dept.id; option.textContent = dept.name; scopeSelect.appendChild(option); });
+            }
         }
     }
 
@@ -171,15 +220,57 @@
             return false;
         }
 
-        if ((recipientType === 'specific_club' || recipientType === 'specific_department') && !document.getElementById('scopeValue').value) {
-            e.preventDefault();
-            alert('Please select a specific club or department');
-            return false;
+        if (recipientType === 'specific_club') {
+            const clubsSel = document.getElementById('clubsSelect');
+            const scopeSel = document.getElementById('scopeValue');
+            if ((clubsSel && clubsSel.style.display !== 'none' && clubsSel.selectedOptions.length === 0) && (scopeSel && scopeSel.style.display !== 'none' && !scopeSel.value)) {
+                e.preventDefault();
+                alert('Please select at least one club');
+                return false;
+            }
+        }
+        if (recipientType === 'specific_department') {
+            const deptsSel = document.getElementById('deptsSelect');
+            const scopeSel = document.getElementById('scopeValue');
+            if ((deptsSel && deptsSel.style.display !== 'none' && deptsSel.selectedOptions.length === 0) && (scopeSel && scopeSel.style.display !== 'none' && !scopeSel.value)) {
+                e.preventDefault();
+                alert('Please select at least one department');
+                return false;
+            }
         }
 
         // Confirm before sending
         return confirm('Send notification to selected recipients?');
     });
 </script>
+
+    <!-- Select2 CDN and initialization for nicer multi-select UI -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        (function(){
+            // Initialize Select2 on multi-select elements when they are present
+            function initSelect2() {
+                if (document.getElementById('clubsSelect')) {
+                    $('#clubsSelect').select2({placeholder: 'Select club(s)', width: '100%'});
+                }
+                if (document.getElementById('deptsSelect')) {
+                    $('#deptsSelect').select2({placeholder: 'Select department(s)', width: '100%'});
+                }
+                if (document.getElementById('scopeValue')) {
+                    $('#scopeValue').select2({placeholder: '-- Choose --', minimumResultsForSearch: Infinity, width: '100%'});
+                }
+            }
+
+            // Call init after a small timeout to ensure DOM updates from updateScopeOptions
+            document.getElementById('recipientType').addEventListener('change', function(){
+                setTimeout(initSelect2, 50);
+            });
+
+            // Init now in case elements are present
+            setTimeout(initSelect2, 100);
+        })();
+    </script>
 
 {% endblock %}

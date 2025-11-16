@@ -14,6 +14,8 @@ from events.models import EventRegistration
 from attendance.models import Attendance
 from calendar_app.models import CalendarEntry
 from users.models import User, Club
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
 
 def calendar_view(request):
     """Display calendar view with approved events - accessible to everyone"""
@@ -247,7 +249,8 @@ def notifications_list(request):
     elif filter_type == 'read':
         notifications = notifications.filter(read=True)
     
-    notifications = notifications.order_by('-created_at')
+    # Show important notifications first
+    notifications = notifications.order_by('-important', '-created_at')
     
     # Get counts
     total_count = user.notifications.count()
@@ -258,13 +261,22 @@ def notifications_list(request):
     paginator = Paginator(notifications, 20)
     page_number = request.GET.get('page')
     notifications = paginator.get_page(page_number)
-    
+    # Determine non-student roles: if a user has STUDENT plus another role,
+    # treat them as the other role for permission checks and UI.
+    raw_roles = user.roles if isinstance(user.roles, list) else []
+    user_roles = [r for r in raw_roles if r != 'STUDENT'] or raw_roles
+    allowed_roles = ['ADMIN', 'SAC_COORDINATOR', 'CLUB_COORDINATOR', 'CLUB_ADVISOR', 
+                     'DEPARTMENT_ADMIN', 'DEPARTMENT_VP', 'EVENT_ORGANIZER', 
+                     'PRESIDENT', 'SVP', 'SECRETARY', 'TREASURER']
+    can_send = any(role in user_roles for role in allowed_roles)
+
     context = {
         'notifications': notifications,
         'filter': filter_type,
         'total_count': total_count,
         'unread_count': unread_count,
         'read_count': read_count,
+        'can_send_notifications': can_send,
     }
     return render(request, 'notifications/notifications_list.html', context)
 
@@ -303,13 +315,16 @@ def send_notification(request):
     from django.db.models import Q
     
     user = request.user
-    user_roles = user.roles if isinstance(user.roles, list) else []
+    # Prefer non-student role if present (e.g., ['STUDENT','CLUB_COORDINATOR'])
+    raw_roles = user.roles if isinstance(user.roles, list) else []
+    user_roles = [r for r in raw_roles if r != 'STUDENT'] or raw_roles
     
-    # Check if user has permission to send notifications
+    # Check if user has permission to send notifications. Treat users who are
+    # students but have an additional role as that additional role.
     allowed_roles = ['ADMIN', 'SAC_COORDINATOR', 'CLUB_COORDINATOR', 'CLUB_ADVISOR', 
                      'DEPARTMENT_ADMIN', 'DEPARTMENT_VP', 'EVENT_ORGANIZER', 
                      'PRESIDENT', 'SVP', 'SECRETARY', 'TREASURER']
-    
+
     if not any(role in user_roles for role in allowed_roles):
         messages.error(request, 'You do not have permission to send notifications.')
         return redirect('student-dashboard')
@@ -342,7 +357,9 @@ def send_notification(request):
             ('club_members', 'My Club Members'),
             ('club_faculty', 'My Club Faculty Advisor'),
         ]
+        # Expose only the coordinator's clubs for selection (allow multi-select client-side)
         context['coordinated_clubs'] = list(coordinator_clubs.values('id', 'name'))
+        context['allow_multi_club_select'] = True
         
     elif 'CLUB_ADVISOR' in user_roles:
         # Club advisor can send to their advised club members
@@ -352,6 +369,7 @@ def send_notification(request):
             ('all_advisees', 'All Members from Advised Clubs'),
         ]
         context['advised_clubs'] = list(advised_clubs.values('id', 'name'))
+        context['allow_multi_club_select'] = True
         
     elif 'DEPARTMENT_ADMIN' in user_roles or 'DEPARTMENT_VP' in user_roles or 'EVENT_ORGANIZER' in user_roles:
         # Department admin/VP/EO can send to their department students
@@ -359,7 +377,7 @@ def send_notification(request):
         context['recipient_options'] = [
             ('dept_students', 'Department Students'),
             ('dept_faculty', 'Department Faculty'),
-            ('all_students', 'All Students'),
+            # Dept roles are restricted to their own department; do not expose 'all_students' here
         ]
         if user_department:
             context['user_department'] = {'id': user_department.id, 'name': user_department.name}
@@ -372,6 +390,8 @@ def send_notification(request):
             ('specific_club', 'Specific Club'),
             ('specific_department', 'Specific Department'),
         ]
+        context['allow_multi_club_select'] = True
+        context['allow_multi_dept_select'] = True
     
     elif 'SECRETARY' in user_roles or 'TREASURER' in user_roles:
         # Secretary/Treasurer can send to all
@@ -387,7 +407,10 @@ def send_notification(request):
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
         recipient_type = request.POST.get('recipient_type', '')
-        scope_value = request.POST.get('scope_value', '')  # For specific club/department
+        # Support multi-select fields named 'clubs' and 'departments'
+        scope_value = request.POST.get('scope_value', '')  # legacy single selection
+        selected_club_ids = request.POST.getlist('clubs') or ([] if not scope_value else [scope_value])
+        selected_dept_ids = request.POST.getlist('departments') or ([] if not scope_value else [scope_value])
         
         if not message_text:
             messages.error(request, 'Message cannot be empty.')
@@ -397,104 +420,97 @@ def send_notification(request):
             messages.error(request, 'Message cannot exceed 500 characters.')
             return render(request, 'notifications/send_notification.html', context)
         
-        # Determine recipient users based on role and selection
-        recipient_users = set()
+        # Determine recipient users based on role and selection (use querysets)
+        recipient_qs = User.objects.none()
         
         try:
             if 'ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles:
-                # Admin/SAC notification logic
+                # Admin/SAC notification logic (allow multi-select)
                 if recipient_type == 'all':
-                    recipient_users = set(User.objects.all())
+                    recipient_qs = User.objects.all()
                 elif recipient_type == 'all_students':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'STUDENT' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(roles__contains=['STUDENT'])
                 elif recipient_type == 'all_faculty':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'FACULTY' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(roles__contains=['FACULTY'])
                 elif recipient_type == 'all_coordinators':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'CLUB_COORDINATOR' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(roles__contains=['CLUB_COORDINATOR'])
                 elif recipient_type == 'all_advisors':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'CLUB_ADVISOR' in (u.roles or [])}
-                elif recipient_type == 'specific_club' and scope_value:
-                    club = Club.objects.get(id=int(scope_value))
-                    recipient_users = set(club.members.all())
-                elif recipient_type == 'specific_department' and scope_value:
-                    dept = Department.objects.get(id=int(scope_value))
-                    recipient_users = set(dept.users.all())
+                    recipient_qs = User.objects.filter(roles__contains=['CLUB_ADVISOR'])
+                elif recipient_type == 'specific_club' and selected_club_ids:
+                    recipient_qs = User.objects.filter(clubs__id__in=selected_club_ids)
+                elif recipient_type == 'specific_department' and selected_dept_ids:
+                    recipient_qs = User.objects.filter(department__id__in=selected_dept_ids)
                     
             elif 'CLUB_COORDINATOR' in user_roles:
                 # Club coordinator notification logic
-                if recipient_type == 'club_members':
-                    # Send to all members of coordinated clubs
-                    coordinator_clubs = user.coordinated_clubs.all()
-                    for club in coordinator_clubs:
-                        recipient_users.update(club.members.all())
-                elif recipient_type == 'club_faculty':
-                    # Send to faculty advisors of coordinated clubs
-                    coordinator_clubs = user.coordinated_clubs.all()
-                    for club in coordinator_clubs:
-                        if club.advisor:
-                            recipient_users.add(club.advisor)
+                coordinator_club_ids = set(user.coordinated_clubs.values_list('id', flat=True))
+                # If clubs were selected, ensure they are subset of coordinator's clubs
+                if selected_club_ids:
+                    requested = set(int(c) for c in selected_club_ids)
+                    if not requested.issubset(coordinator_club_ids):
+                        messages.error(request, 'You may only target your own coordinated club(s).')
+                        return render(request, 'notifications/send_notification.html', context)
+                    recipient_qs = User.objects.filter(clubs__id__in=requested)
+                else:
+                    # No selection — default to all members of coordinated clubs
+                    recipient_qs = User.objects.filter(clubs__id__in=coordinator_club_ids)
+                if recipient_type == 'club_faculty':
+                    # advisors of the coordinator's clubs
+                    recipient_qs = User.objects.filter(advised_clubs__id__in=coordinator_club_ids)
                             
             elif 'CLUB_ADVISOR' in user_roles:
                 # Club advisor notification logic
-                advised_clubs = user.advised_clubs.all()
-                if recipient_type == 'club_members':
-                    for club in advised_clubs:
-                        recipient_users.update(club.members.all())
-                elif recipient_type == 'all_advisees':
-                    for club in advised_clubs:
-                        recipient_users.update(club.members.all())
+                advised_club_ids = set(user.advised_clubs.values_list('id', flat=True))
+                if selected_club_ids:
+                    requested = set(int(c) for c in selected_club_ids)
+                    if not requested.issubset(advised_club_ids):
+                        messages.error(request, 'You may only target your advised club(s).')
+                        return render(request, 'notifications/send_notification.html', context)
+                    recipient_qs = User.objects.filter(clubs__id__in=requested)
+                else:
+                    # default to all advised club members
+                    recipient_qs = User.objects.filter(clubs__id__in=advised_club_ids)
                         
             elif 'DEPARTMENT_ADMIN' in user_roles or 'DEPARTMENT_VP' in user_roles or 'EVENT_ORGANIZER' in user_roles:
-                # Department admin/VP/EO notification logic
+                # Department admin/VP/EO notification logic — restricted to own department
                 user_dept = user.department
+                if not user_dept:
+                    messages.error(request, 'You are not assigned to a department.')
+                    return render(request, 'notifications/send_notification.html', context)
                 if recipient_type == 'dept_students' and user_dept:
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users 
-                                     if u.department == user_dept and 'STUDENT' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(department=user_dept, roles__contains=['STUDENT'])
                 elif recipient_type == 'dept_faculty' and user_dept:
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users 
-                                     if u.department == user_dept and 'FACULTY' in (u.roles or [])}
-                elif recipient_type == 'all_students':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'STUDENT' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(department=user_dept, roles__contains=['FACULTY'])
+                else:
+                    messages.error(request, 'Invalid recipient selection for your role.')
+                    return render(request, 'notifications/send_notification.html', context)
                     
             elif 'PRESIDENT' in user_roles or 'SVP' in user_roles:
-                # President/SVP notification logic
+                # President/SVP notification logic (allow multi-select)
                 if recipient_type == 'all_students':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'STUDENT' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(roles__contains=['STUDENT'])
                 elif recipient_type == 'all_users':
-                    recipient_users = set(User.objects.all())
-                elif recipient_type == 'specific_club' and scope_value:
-                    club = Club.objects.get(id=int(scope_value))
-                    recipient_users = set(club.members.all())
-                elif recipient_type == 'specific_department' and scope_value:
-                    dept = Department.objects.get(id=int(scope_value))
-                    recipient_users = set(dept.users.all())
+                    recipient_qs = User.objects.all()
+                elif recipient_type == 'specific_club' and selected_club_ids:
+                    recipient_qs = User.objects.filter(clubs__id__in=selected_club_ids)
+                elif recipient_type == 'specific_department' and selected_dept_ids:
+                    recipient_qs = User.objects.filter(department__id__in=selected_dept_ids)
                     
             elif 'SECRETARY' in user_roles or 'TREASURER' in user_roles:
                 # Secretary/Treasurer notification logic
                 if recipient_type == 'all':
-                    recipient_users = set(User.objects.all())
+                    recipient_qs = User.objects.all()
                 elif recipient_type == 'all_students':
-                    all_users = User.objects.all()
-                    recipient_users = {u for u in all_users if 'STUDENT' in (u.roles or [])}
+                    recipient_qs = User.objects.filter(roles__contains=['STUDENT'])
             
-            # Create notifications for all recipient users
-            if recipient_users:
+            # Create notifications for all recipient users (queryset)
+            recipient_qs = recipient_qs.distinct()
+            total = recipient_qs.count()
+            if total > 0:
                 created_count = 0
-                for recipient in recipient_users:
-                    notification = Notification.objects.create(
-                        user=recipient,
-                        message=message_text
-                    )
+                for recipient in recipient_qs:
+                    Notification.objects.create(user=recipient, message=message_text, important=bool(request.POST.get('important')))
                     created_count += 1
-                
                 messages.success(request, f'Notification sent to {created_count} user(s).')
                 return redirect('notifications_list')
             else:
@@ -509,3 +525,71 @@ def send_notification(request):
             return render(request, 'notifications/send_notification.html', context)
     
     return render(request, 'notifications/send_notification.html', context)
+
+
+@login_required
+@require_POST
+def mark_notification_read(request, notification_id):
+    from users.models import Notification
+    try:
+        n = Notification.objects.get(id=notification_id)
+        # Only allow owner or admins to modify
+        if n.user != request.user and 'ADMIN' not in (request.user.roles or []):
+            return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
+        n.read = True
+        n.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not found'}, status=404)
+
+
+@login_required
+@require_POST
+def mark_notification_unread(request, notification_id):
+    from users.models import Notification
+    try:
+        n = Notification.objects.get(id=notification_id)
+        if n.user != request.user and 'ADMIN' not in (request.user.roles or []):
+            return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
+        n.read = False
+        n.save()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not found'}, status=404)
+
+
+@login_required
+@require_POST
+def delete_notification(request, notification_id):
+    from users.models import Notification
+    try:
+        n = Notification.objects.get(id=notification_id)
+        if n.user != request.user and 'ADMIN' not in (request.user.roles or []):
+            return JsonResponse({'success': False, 'error': 'Not authorized'}, status=403)
+        n.delete()
+        return JsonResponse({'success': True})
+    except Notification.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Not found'}, status=404)
+
+
+@login_required
+@require_POST
+def mark_all_read(request):
+    from users.models import Notification
+    # Admins can mark all users' notifications; otherwise only the user's
+    if 'ADMIN' in (request.user.roles or []):
+        Notification.objects.filter(read=False).update(read=True)
+    else:
+        Notification.objects.filter(user=request.user, read=False).update(read=True)
+    return JsonResponse({'success': True})
+
+
+@login_required
+@require_POST
+def clear_all_notifications(request):
+    from users.models import Notification
+    if 'ADMIN' in (request.user.roles or []):
+        Notification.objects.all().delete()
+    else:
+        Notification.objects.filter(user=request.user).delete()
+    return JsonResponse({'success': True})
