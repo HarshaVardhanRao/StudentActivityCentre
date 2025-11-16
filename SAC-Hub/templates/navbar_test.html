@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Modern Navbar Test - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<div style="padding: 2rem 0;">
+    <!-- Hero Section to Test Navbar Scrolling -->
+    <div style="background: linear-gradient(135deg, var(--primary-main) 0%, var(--accent-gold) 100%); color: var(--text-inverse); padding: 6rem 2rem; border-radius: 24px; text-align: center; margin-bottom: 3rem;">
+        <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 1rem; color: var(--text-inverse);">🎯 Modern Navbar Test</h1>
+        <p style="font-size: 1.25rem; opacity: 0.9; max-width: 600px; margin: 0 auto;">Scroll down to see the navbar effects in action. Test mobile responsiveness by resizing your browser window.</p>
+    </div>
+
+    <!-- Content Sections to Enable Scrolling -->
+    <div class="card-grid" style="gap: 2rem;">
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🎨</span>
+                <h3>Modern Design</h3>
+            </div>
+            <div class="feature-card-body">
+                <p><strong>Glassmorphism Effect:</strong> The navbar uses modern backdrop blur and transparency effects for a sophisticated look.</p>
+                <p><strong>Smooth Animations:</strong> All hover effects and transitions use cubic-bezier timing for natural movement.</p>
+                <p><strong>Professional Typography:</strong> Inter font family with proper letter spacing and weight hierarchy.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">📱</span>
+                <h3>Mobile Responsive</h3>
+            </div>
+            <div class="feature-card-body">
+                <p><strong>Hamburger Menu:</strong> Clean animated toggle button that transforms on interaction.</p>
+                <p><strong>Full-Screen Menu:</strong> Mobile menu slides in smoothly with backdrop blur effect.</p>
+                <p><strong>Touch Optimized:</strong> Larger touch targets and appropriate spacing for mobile devices.</p>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">⚡</span>
+                <h3>Interactive Features</h3>
+            </div>
+            <div class="feature-card-body">
+                <p><strong>Scroll Effects:</strong> Navbar adapts its size and appearance based on scroll position.</p>
+                <p><strong>Active States:</strong> Current page highlighting with visual feedback.</p>
+                <p><strong>Hover Animations:</strong> Smooth scaling and glow effects on interaction.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Large Content Section to Test Scrolling -->
+    <div style="margin-top: 4rem;">
+        <h2 style="color: var(--primary-main); margin-bottom: 2rem;">Navbar Features Demonstration</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+            <div class="stat-card">
+                <h3>Fixed Position</h3>
+                <div class="number">✅</div>
+                <div class="label">Always visible at top</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Glassmorphism</h3>
+                <div class="number">🎨</div>
+                <div class="label">Modern blur effects</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Responsive</h3>
+                <div class="number">📱</div>
+                <div class="label">Mobile optimized</div>
+            </div>
+            
+            <div class="stat-card">
+                <h3>Animated</h3>
+                <div class="number">⚡</div>
+                <div class="label">Smooth transitions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Content for Scrolling Test -->
+    <div style="margin-top: 4rem; padding: 3rem; background: var(--surface-primary); border-radius: 20px; box-shadow: var(--shadow-lg);">
+        <h3 style="color: var(--primary-main); margin-bottom: 1.5rem;">Testing Instructions</h3>
+        
+        <div style="display: grid; gap: 1.5rem;">
+            <div style="padding: 1.5rem; background: var(--surface-secondary); border-radius: 12px; border-left: 4px solid var(--accent-gold);">
+                <h4 style="color: var(--primary-deep); margin-bottom: 0.5rem;">1. Scroll Test</h4>
+                <p>Scroll up and down to see the navbar's dynamic behavior. It should hide when scrolling down and show when scrolling up.</p>
+            </div>
+            
+            <div style="padding: 1.5rem; background: var(--surface-secondary); border-radius: 12px; border-left: 4px solid var(--accent-emerald);">
+                <h4 style="color: var(--primary-deep); margin-bottom: 0.5rem;">2. Mobile Test</h4>
+                <p>Resize your browser window to mobile size (< 768px) to test the hamburger menu functionality.</p>
+            </div>
+            
+            <div style="padding: 1.5rem; background: var(--surface-secondary); border-radius: 12px; border-left: 4px solid var(--primary-main);">
+                <h4 style="color: var(--primary-deep); margin-bottom: 0.5rem;">3. Interaction Test</h4>
+                <p>Hover over navigation links to see the smooth animation effects and visual feedback.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Spacer for scrolling -->
+    <div style="height: 50vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(45deg, var(--surface-secondary), var(--surface-tertiary)); border-radius: 20px; margin-top: 3rem;">
+        <div style="text-align: center;">
+            <h2 style="color: var(--primary-main); margin-bottom: 1rem;">Keep Scrolling! 📜</h2>
+            <p style="color: var(--text-secondary); font-size: 1.125rem;">Test the navbar's scroll behavior by continuing to scroll up and down.</p>
+        </div>
+    </div>
+
+    <!-- Final Section -->
+    <div style="margin-top: 3rem; padding: 3rem; background: linear-gradient(135deg, var(--primary-deep) 0%, var(--primary-main) 100%); color: var(--text-inverse); border-radius: 20px; text-align: center;">
+        <h2 style="color: var(--text-inverse); margin-bottom: 1rem;">🎉 Navbar Redesign Complete!</h2>
+        <p style="font-size: 1.125rem; opacity: 0.9; margin-bottom: 2rem;">Your navigation now features modern design, responsive layout, and smooth interactions.</p>
+        <a href="/dashboard/" class="btn btn-primary" style="display: inline-block; padding: 1rem 2rem; background: var(--accent-gold); color: var(--text-inverse); text-decoration: none; border-radius: 12px; font-weight: 600; transition: all 0.3s ease;">
+            Go to Dashboard →
+        </a>
+    </div>
+</div>
+{% endblock %}

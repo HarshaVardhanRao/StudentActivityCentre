@@ -1,0 +1,300 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete {{ club.name }} - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<!-- Warning Header -->
+<div class="warning-header" style="background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%); color: var(--text-inverse); padding: 3rem 0; border-radius: var(--radius-xl); margin-bottom: 3rem; text-align: center; position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -10%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
+    
+    <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem; position: relative; z-index: 2;">
+        ⚠️ Delete Club
+    </h1>
+    <p style="font-size: 1.125rem; opacity: 0.9; position: relative; z-index: 2; max-width: 600px; margin: 0 auto;">
+        You are about to permanently delete this club. This action cannot be undone.
+    </p>
+</div>
+
+<div class="container" style="max-width: 700px;">
+    <!-- Confirmation Card -->
+    <div class="delete-confirmation" style="background: var(--surface-primary); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg); border: 2px solid var(--error); position: relative;">
+        <div style="background: var(--error-light); padding: 2rem; border-bottom: 1px solid var(--error);">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <div style="width: 60px; height: 60px; background: var(--error); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5rem; font-weight: 700;">
+                    {{ club.name.0 }}
+                </div>
+                <div>
+                    <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.25rem;">
+                        {{ club.name }}
+                    </h2>
+                    <p style="color: var(--text-secondary); margin: 0;">
+                        Created: {{ club.created_at|date:"F j, Y" }}
+                    </p>
+                </div>
+            </div>
+            
+            {% if club.description %}
+            <div style="background: var(--surface-primary); padding: 1rem; border-radius: var(--radius-md); border: 1px solid rgba(0,0,0,0.1);">
+                <p style="color: var(--text-secondary); font-style: italic; margin: 0; line-height: 1.5;">
+                    "{{ club.description|truncatewords:30 }}"
+                </p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Impact Summary -->
+        <div style="padding: 2rem;">
+            <h3 style="color: var(--error); font-weight: 700; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.25rem;">
+                💥 What will be deleted:
+            </h3>
+            
+            <div style="display: grid; gap: 1rem; margin-bottom: 2rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--surface-secondary); border-radius: var(--radius-lg); border-left: 4px solid var(--error);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">🎓</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Club Members</span>
+                    </div>
+                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--error);">{{ club.members.count }}</span>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--surface-secondary); border-radius: var(--radius-lg); border-left: 4px solid var(--error);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">📅</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Club Events</span>
+                    </div>
+                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--error);">{{ club.events.count }}</span>
+                </div>
+                
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--surface-secondary); border-radius: var(--radius-lg); border-left: 4px solid var(--error);">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 1.5rem;">👥</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">Coordinators</span>
+                    </div>
+                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--error);">{{ club.coordinators.count }}</span>
+                </div>
+            </div>
+            
+            <!-- Warning Notice -->
+            <div style="background: linear-gradient(135deg, var(--error-light) 0%, #fed7d7 100%); border: 2px solid var(--error); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem;">
+                    <div style="font-size: 2rem; flex-shrink: 0;">⚠️</div>
+                    <div>
+                        <h4 style="color: var(--error); font-weight: 700; margin-bottom: 0.5rem; font-size: 1.1rem;">
+                            This action is permanent and irreversible!
+                        </h4>
+                        <ul style="color: var(--text-primary); margin: 0; padding-left: 1.5rem; line-height: 1.6;">
+                            <li>All club data will be permanently deleted</li>
+                            <li>Members will lose their club membership</li>
+                            <li>All associated events and records will be removed</li>
+                            <li>This action cannot be undone</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confirmation Input -->
+            <div style="margin-bottom: 2rem;">
+                <label for="confirmInput" style="display: block; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
+                    Type "DELETE {{ club.name }}" to confirm:
+                </label>
+                <input 
+                    type="text" 
+                    id="confirmInput" 
+                    placeholder="Type 'DELETE {{ club.name }}' here"
+                    style="width: 100%; padding: 1rem; border: 2px solid var(--error); border-radius: var(--radius-lg); font-size: 1rem; background: var(--surface-primary);"
+                >
+                <small style="color: var(--error); font-size: 0.875rem; margin-top: 0.25rem; display: block;">
+                    You must type the exact text above to enable the delete button
+                </small>
+            </div>
+            
+            <!-- Action Buttons -->
+            <form method="post" style="display: flex; gap: 1rem;">
+                {% csrf_token %}
+                <button 
+                    type="submit" 
+                    id="deleteBtn"
+                    disabled
+                    style="flex: 1; background: var(--surface-tertiary); color: var(--text-muted); padding: 1rem 2rem; border: none; border-radius: var(--radius-lg); font-size: 1rem; font-weight: 600; cursor: not-allowed; transition: var(--transition-normal);"
+                >
+                    🗑️ Delete Club Forever
+                </button>
+                
+                <a 
+                    href="{% url 'club_detail' club.id %}" 
+                    style="background: var(--primary-main); color: var(--text-inverse); padding: 1rem 2rem; border-radius: var(--radius-lg); text-decoration: none; font-size: 1rem; font-weight: 600; text-align: center; transition: var(--transition-normal); display: flex; align-items: center; justify-content: center;"
+                >
+                    ← Cancel & Go Back
+                </a>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Additional Safety Notice -->
+    <div style="text-align: center; margin-top: 2rem; padding: 1.5rem; background: var(--surface-secondary); border-radius: var(--radius-lg); border: 1px solid var(--surface-tertiary);">
+        <p style="color: var(--text-secondary); margin: 0; font-size: 0.95rem;">
+            <strong>Need help?</strong> Contact the system administrator if you're unsure about deleting this club.
+        </p>
+    </div>
+</div>
+
+<!-- Enhanced JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmInput = document.getElementById('confirmInput');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const form = document.querySelector('form');
+    const expectedText = 'DELETE {{ club.name }}';
+    
+    // Real-time validation
+    confirmInput.addEventListener('input', function() {
+        const inputValue = this.value.trim();
+        
+        if (inputValue === expectedText) {
+            deleteBtn.disabled = false;
+            deleteBtn.style.background = 'var(--error)';
+            deleteBtn.style.color = 'var(--text-inverse)';
+            deleteBtn.style.cursor = 'pointer';
+            this.style.borderColor = 'var(--success)';
+            this.style.background = 'var(--success-light)';
+        } else {
+            deleteBtn.disabled = true;
+            deleteBtn.style.background = 'var(--surface-tertiary)';
+            deleteBtn.style.color = 'var(--text-muted)';
+            deleteBtn.style.cursor = 'not-allowed';
+            this.style.borderColor = 'var(--error)';
+            this.style.background = 'var(--surface-primary)';
+        }
+    });
+    
+    // Enhanced focus effects
+    confirmInput.addEventListener('focus', function() {
+        this.style.boxShadow = '0 0 0 3px rgba(220, 38, 38, 0.1)';
+    });
+    
+    confirmInput.addEventListener('blur', function() {
+        this.style.boxShadow = 'none';
+    });
+    
+    // Form submission with final confirmation
+    form.addEventListener('submit', function(e) {
+        const finalConfirm = confirm(
+            `Are you absolutely sure you want to delete "${{ club.name }}"?\n\n` +
+            'This will permanently delete:\n' +
+            '• {{ club.members.count }} members\n' +
+            '• {{ club.events.count }} events\n' +
+            '• {{ club.coordinators.count }} coordinators\n' +
+            '• All associated data\n\n' +
+            'This action CANNOT be undone!'
+        );
+        
+        if (!finalConfirm) {
+            e.preventDefault();
+            return false;
+        }
+        
+        // Show loading state
+        deleteBtn.innerHTML = '<div style="display: flex; align-items: center; gap: 0.5rem;"><div class="spinner"></div>Deleting...</div>';
+        deleteBtn.disabled = true;
+    });
+    
+    // Animate warning elements
+    const animateElements = document.querySelectorAll('.delete-confirmation > div > div');
+    animateElements.forEach((element, index) => {
+        element.style.animation = `fadeInUp 0.6s ease-out ${index * 0.1}s both`;
+    });
+});
+</script>
+
+<style>
+/* Spinner animation */
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Fade in animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Button hover effects */
+#deleteBtn:not(:disabled):hover {
+    background: #dc2626 !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+a[href*="club_detail"]:hover {
+    background: var(--primary-light) !important;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Enhanced input states */
+#confirmInput:focus {
+    outline: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .warning-header {
+        padding: 2rem 0 !important;
+    }
+    
+    .warning-header h1 {
+        font-size: 2rem !important;
+    }
+    
+    .delete-confirmation > div {
+        padding: 1.5rem !important;
+    }
+    
+    form {
+        flex-direction: column !important;
+    }
+    
+    form button,
+    form a {
+        flex: none !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .warning-header h1 {
+        font-size: 1.75rem !important;
+    }
+    
+    .delete-confirmation > div {
+        padding: 1rem !important;
+    }
+}
+
+/* Shake animation for invalid input */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.shake {
+    animation: shake 0.5s ease-in-out;
+}
+</style>
+{% endblock %}

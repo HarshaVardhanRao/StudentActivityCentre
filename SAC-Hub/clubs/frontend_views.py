@@ -20,7 +20,7 @@ def club_list(request):
     page_number = request.GET.get('page')
     clubs = paginator.get_page(page_number)
     
-    return render(request, 'clubs/club_list.html', {'clubs': clubs})
+    return render(request, 'clubs_list.html', {'clubs': clubs})
 
 def club_detail(request, club_id):
     """Display club details"""
@@ -33,7 +33,7 @@ def club_detail(request, club_id):
         'club': club,
         'recent_events': recent_events,
     }
-    return render(request, 'clubs/club_detail.html', context)
+    return render(request, 'clubs_detail.html', context)
 
 @login_required
 def club_create(request):
@@ -74,7 +74,7 @@ def club_create(request):
         'faculty_users': faculty_users,
         'all_users': all_users,
     }
-    return render(request, 'clubs/club_form.html', context)
+    return render(request, 'clubs_form.html', context)
 
 @login_required
 def club_edit(request, club_id):
@@ -119,7 +119,7 @@ def club_edit(request, club_id):
         'faculty_users': faculty_users,
         'all_users': all_users,
     }
-    return render(request, 'clubs/club_form.html', context)
+    return render(request, 'clubs_form.html', context)
 
 @login_required
 def club_join(request, club_id):
@@ -163,4 +163,4 @@ def club_delete(request, club_id):
         messages.success(request, f'Club "{club_name}" deleted successfully!')
         return redirect('club_list')
     
-    return render(request, 'clubs/club_confirm_delete.html', {'club': club})
+    return render(request, 'clubs_confirm_delete.html', {'club': club})

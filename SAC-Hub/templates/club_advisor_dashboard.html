@@ -1,5 +1,290 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Club Advisor Dashboard - MITS SAC Hub{% endblock %}
+
 {% block content %}
-<h2>Club Advisor Dashboard</h2>
-<p>Welcome, Club Advisor! Here you can approve club activities and mentor coordinators.</p>
+<!-- Advisor Welcome Section -->
+<div class="dashboard-welcome">
+    <h1>Welcome, Advisor {{ user.get_full_name|default:user.username }}! 🎯</h1>
+    <p>Guide and mentor the next generation of leaders. Support club activities, provide strategic guidance, and help students achieve their goals.</p>
+</div>
+
+<!-- Advisor Overview Stats -->
+<div class="stats-showcase">
+    <div class="stat-card">
+        <h3>Clubs Supervised</h3>
+        <div class="number">{{ supervised_clubs_count|default:3 }}</div>
+        <div class="label">Active Supervision</div>
+    </div>
+    <div class="stat-card">
+        <h3>Student Leaders</h3>
+        <div class="number">{{ student_leaders_count|default:15 }}</div>
+        <div class="label">Under Mentorship</div>
+    </div>
+    <div class="stat-card">
+        <h3>Events Approved</h3>
+        <div class="number">{{ approved_events|default:28 }}</div>
+        <div class="label">This Semester</div>
+    </div>
+    <div class="stat-card">
+        <h3>Mentorship Score</h3>
+        <div class="number">{{ mentorship_score|default:4.8 }}</div>
+        <div class="label">Student Feedback</div>
+    </div>
+</div>
+
+<!-- Advisor Management Tools -->
+<div class="card-grid">
+    <!-- Club Oversight -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">👥</span>
+            <h3>Club Oversight</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Monitor club activities, review event proposals, and provide strategic guidance to club leadership teams.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/advisor/clubs/" class="btn btn-primary" style="flex: 1;">View Clubs</a>
+                <a href="/advisor/reports/" class="btn btn-outline" style="flex: 1;">Club Reports</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mentorship Hub -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🌟</span>
+            <h3>Mentorship Hub</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Schedule meetings with student leaders, track their development, and provide personalized guidance.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/advisor/mentorship/" class="btn btn-success" style="flex: 1;">Mentorship Portal</a>
+                <a href="/advisor/schedule/" class="btn btn-outline" style="flex: 1;">Schedule Meetings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Approvals -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">✅</span>
+            <h3>Event Approvals</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Review and approve event proposals, ensure compliance with university guidelines, and provide feedback.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/advisor/approvals/" class="btn btn-accent" style="flex: 1;">Pending Approvals</a>
+                <a href="/advisor/guidelines/" class="btn btn-outline" style="flex: 1;">Guidelines</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Management -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📚</span>
+            <h3>Resource Management</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Manage club resources, approve budget requests, and ensure proper utilization of facilities.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/advisor/resources/" class="btn btn-primary" style="flex: 1;">Resource Portal</a>
+                <a href="/advisor/budget/" class="btn btn-outline" style="flex: 1;">Budget Reviews</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities & Approvals -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Recent Activities & Approvals</h2>
+        <p>Stay updated with your clubs' latest activities and pending approvals</p>
+    </div>
+
+    {% if pending_approvals %}
+    <div class="modern-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event/Request</th>
+                    <th>Club</th>
+                    <th>Date Submitted</th>
+                    <th>Type</th>
+                    <th>Priority</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in pending_approvals %}
+                <tr>
+                    <td><strong>{{ item.title }}</strong></td>
+                    <td>{{ item.club.name }}</td>
+                    <td>{{ item.submitted_date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if item.type == 'EVENT' %}
+                            <span class="status-badge" style="background: rgba(66, 153, 225, 0.1); color: var(--info);">Event</span>
+                        {% elif item.type == 'BUDGET' %}
+                            <span class="status-badge" style="background: rgba(214, 158, 46, 0.1); color: var(--accent-gold);">Budget</span>
+                        {% else %}
+                            <span class="status-badge" style="background: rgba(74, 85, 104, 0.1); color: var(--accent-slate);">{{ item.type }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.priority == 'HIGH' %}
+                            <span class="status-badge status-error">High</span>
+                        {% elif item.priority == 'MEDIUM' %}
+                            <span class="status-badge status-warning">Medium</span>
+                        {% else %}
+                            <span class="status-badge status-success">Low</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/advisor/review/{{ item.id }}/" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Review</a>
+                            <a href="/advisor/details/{{ item.id }}/" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Details</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>All Caught Up! 🎉</h3>
+        <p>No pending approvals at the moment. Your clubs are running smoothly!</p>
+        <a href="/advisor/clubs/" class="btn btn-primary">View All Clubs</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Mentorship Progress -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Student Leadership Development</h2>
+        <p>Track the growth and development of your student leaders</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">📈</span>
+                <h3>Leadership Growth</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
+                    +{{ leadership_growth|default:25 }}%
+                </div>
+                <p style="margin-bottom: 1rem;">Average improvement in leadership skills</p>
+                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, var(--accent-emerald), #48bb78); height: 100%; width: {{ leadership_growth|default:75 }}%; border-radius: 4px; transition: width 1s ease;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🏆</span>
+                <h3>Student Achievements</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
+                    {{ student_achievements|default:42 }}
+                </div>
+                <p style="margin-bottom: 1rem;">Awards and recognitions earned</p>
+                <small style="color: var(--text-muted);">Under your mentorship this year</small>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🎯</span>
+                <h3>Guidance Sessions</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
+                    {{ guidance_sessions|default:18 }}
+                </div>
+                <p style="margin-bottom: 1rem;">One-on-one mentorship sessions</p>
+                <small style="color: var(--text-muted);">This semester</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Advisor Tools -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Advisor Toolkit</h2>
+        <p>Essential tools for effective club advising and mentorship</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📝</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Meeting Notes</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Keep track of mentorship sessions and guidance meetings</p>
+            <a href="/advisor/notes/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Manage Notes</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📊</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Performance Analytics</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Monitor club performance and student development metrics</p>
+            <a href="/advisor/analytics/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Analytics</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🎓</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Training Resources</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Access leadership training materials and best practices</p>
+            <a href="/advisor/resources/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Access Resources</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--info);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📞</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Quick Communication</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Send messages and announcements to your clubs</p>
+            <a href="/advisor/communicate/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Send Message</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Highlight urgent approvals
+    document.querySelectorAll('.status-badge.status-error').forEach(badge => {
+        if (badge.textContent.trim() === 'High') {
+            badge.parentElement.parentElement.style.background = 'rgba(245, 101, 101, 0.05)';
+            badge.parentElement.parentElement.style.borderLeft = '3px solid var(--error)';
+        }
+    });
+
+    // Add advisor-specific interactions
+    const approvalButtons = document.querySelectorAll('a[href*="/review/"]');
+    approvalButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Could add confirmation or additional tracking here
+            console.log('Reviewing approval:', this.href);
+        });
+    });
+
+    // Progress bar animations
+    setTimeout(() => {
+        const progressBars = document.querySelectorAll('[style*="width:"]');
+        progressBars.forEach(bar => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 500);
+        });
+    }, 1000);
+});
+</script>
 {% endblock %}

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSS Test - MITS SAC Hub</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Our CSS -->
+    <link rel="stylesheet" href="static/admin/modern-styles.css">
+    
+    <style>
+        /* Inline CSS to force styles */
+        :root {
+            --primary-deep: #1a365d !important;
+            --primary-main: #2c5aa0 !important;
+            --primary-light: #4299e1 !important;
+            --accent-gold: #d69e2e !important;
+            --accent-emerald: #38a169 !important;
+            --surface-primary: #ffffff !important;
+            --surface-secondary: #f8fafc !important;
+            --surface-tertiary: #e2e8f0 !important;
+            --text-primary: #1a202c !important;
+            --text-secondary: #4a5568 !important;
+            --text-muted: #718096 !important;
+            --text-inverse: #ffffff !important;
+        }
+        
+        body {
+            background: linear-gradient(135deg, var(--surface-secondary) 0%, #e2e8f0 100%) !important;
+            color: var(--text-primary) !important;
+            font-family: 'Inter', sans-serif !important;
+            margin: 0 !important;
+            padding: 2rem !important;
+        }
+        
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .hero-test {
+            background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-deep) 100%) !important;
+            color: var(--text-inverse) !important;
+            padding: 4rem 2rem !important;
+            border-radius: 24px !important;
+            margin-bottom: 2rem !important;
+            text-align: center;
+            box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15), 0 10px 10px rgba(0, 0, 0, 0.04) !important;
+        }
+        
+        .hero-test h1 {
+            font-size: 2.5rem !important;
+            font-weight: 800 !important;
+            color: var(--text-inverse) !important;
+            margin-bottom: 1rem !important;
+        }
+        
+        .hero-test p {
+            font-size: 1.125rem !important;
+            color: var(--text-inverse) !important;
+            opacity: 0.9 !important;
+        }
+        
+        .cards-test {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .card-test {
+            background: var(--surface-primary) !important;
+            padding: 2rem !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+            transition: transform 0.3s ease !important;
+        }
+        
+        .card-test:hover {
+            transform: translateY(-6px) !important;
+        }
+        
+        .card-test h3 {
+            color: var(--primary-main) !important;
+            font-weight: 700 !important;
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .btn-test {
+            display: inline-block;
+            padding: 1rem 2rem !important;
+            background: linear-gradient(135deg, var(--primary-main) 0%, var(--primary-deep) 100%) !important;
+            color: var(--text-inverse) !important;
+            text-decoration: none !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            margin-top: 1rem !important;
+            transition: all 0.3s ease !important;
+        }
+        
+        .btn-test:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <div class="hero-test">
+            <h1>🎓 CSS Test Page</h1>
+            <p>Testing modern styling for MITS SAC Hub</p>
+        </div>
+        
+        <div class="cards-test">
+            <div class="card-test">
+                <h3>Modern Design ✨</h3>
+                <p>Clean, professional styling with modern color palette and typography using Inter font family.</p>
+                <a href="#" class="btn-test">Learn More</a>
+            </div>
+            
+            <div class="card-test">
+                <h3>Responsive Layout 📱</h3>
+                <p>Fully responsive grid system that works beautifully on all device sizes and screen resolutions.</p>
+                <a href="#" class="btn-test">Get Started</a>
+            </div>
+            
+            <div class="card-test">
+                <h3>Interactive Elements 🎯</h3>
+                <p>Smooth animations and hover effects that provide engaging user feedback and modern interactions.</p>
+                <a href="#" class="btn-test">Explore Features</a>
+            </div>
+        </div>
+        
+        <!-- Test our CSS classes -->
+        <div style="margin-top: 3rem;">
+            <h2>CSS Classes Test</h2>
+            
+            <div class="dashboard-welcome">
+                <h1>Dashboard Welcome Section</h1>
+                <p>This should have a blue gradient background with white text and rounded corners.</p>
+            </div>
+            
+            <div class="stats-showcase">
+                <div class="stat-card">
+                    <h3>Test Stat</h3>
+                    <div class="number">42</div>
+                    <div class="label">Sample Label</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Another Stat</h3>
+                    <div class="number">158</div>
+                    <div class="label">More Data</div>
+                </div>
+            </div>
+            
+            <div class="card-grid">
+                <div class="feature-card">
+                    <div class="feature-card-header">
+                        <span class="feature-card-icon">🚀</span>
+                        <h3>Feature Card</h3>
+                    </div>
+                    <div class="feature-card-body">
+                        <p>This is a feature card testing our CSS classes and styling system.</p>
+                        <a href="#" class="btn btn-primary">Primary Button</a>
+                        <a href="#" class="btn btn-outline">Outline Button</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

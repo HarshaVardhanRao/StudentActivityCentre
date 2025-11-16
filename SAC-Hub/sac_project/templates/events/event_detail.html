@@ -2,133 +2,593 @@
 
 {% block title %}{{ event.name }} - SAC Hub{% endblock %}
 
+{% block extra_css %}
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+        min-height: 100vh;
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .event-hero {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #533483 75%, #7209b7 100%);
+        color: white;
+        padding: 3.5rem 0;
+        border-radius: 25px;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 25px 70px rgba(26, 26, 46, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .event-hero::before {
+        content: '';
+        position: absolute;
+        top: -30%;
+        right: -10%;
+        width: 120px;
+        height: 120px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+        border-radius: 50%;
+        transform: scale(5);
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .event-hero::after {
+        content: '';
+        position: absolute;
+        bottom: -20%;
+        left: -5%;
+        width: 80px;
+        height: 80px;
+        background: radial-gradient(circle, rgba(52, 152, 219, 0.2) 0%, transparent 70%);
+        border-radius: 50%;
+        transform: scale(6);
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: scale(5) translateY(0px); }
+        50% { transform: scale(5) translateY(-15px); }
+    }
+    
+    .event-hero h1 {
+        font-weight: 800;
+        font-size: 2.75rem;
+        text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        margin-bottom: 0.75rem;
+        letter-spacing: -1px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .event-hero p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .event-status-badge {
+        padding: 12px 20px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        position: relative;
+        z-index: 2;
+    }
+    
+    .badge-approved { 
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: white;
+    }
+    .badge-pending { 
+        background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+        color: white;
+    }
+    .badge-rejected { 
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: white;
+    }
+    .badge-completed { 
+        background: linear-gradient(135deg, #8e44ad 0%, #9b59b6 100%);
+        color: white;
+    }
+    
+    .event-detail-card {
+        background: rgba(255, 255, 255, 0.99);
+        border-radius: 25px;
+        box-shadow: 0 20px 50px rgba(26, 26, 46, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        overflow: hidden;
+        backdrop-filter: blur(15px);
+        position: relative;
+    }
+    
+    .event-detail-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b6b, #ee5a24, #ff3742, #c44569, #764ba2);
+        background-size: 300% 100%;
+        animation: gradientShift 4s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    
+    .event-info-section {
+        background: linear-gradient(135deg, #f8f9fc 0%, #ecf0f3 100%);
+        border-radius: 20px;
+        padding: 2.25rem;
+        margin-bottom: 2rem;
+        border: 1px solid rgba(118, 75, 162, 0.15);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+    }
+    
+    .event-info-section h5 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+    }
+    
+    .info-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.25rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: all 0.3s ease;
+        border: 1px solid rgba(52, 152, 219, 0.1);
+    }
+    
+    .info-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+    
+    .info-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .info-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1.25rem;
+        flex-shrink: 0;
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+    }
+    
+    .info-content {
+        flex-grow: 1;
+    }
+    
+    .info-label {
+        font-weight: 700;
+        color: #2c3e50;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        color: #5d6d7e;
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+    
+    .alert-custom {
+        border-radius: 15px;
+        border: none;
+        padding: 1.5rem 2rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+    
+    .alert-success-custom {
+        background: linear-gradient(135deg, rgba(39, 174, 96, 0.1) 0%, rgba(46, 204, 113, 0.05) 100%);
+        border-left: 5px solid #27ae60;
+        color: #1e8449;
+    }
+    
+    .alert-warning-custom {
+        background: linear-gradient(135deg, rgba(243, 156, 18, 0.1) 0%, rgba(230, 126, 34, 0.05) 100%);
+        border-left: 5px solid #f39c12;
+        color: #b7950b;
+    }
+    
+    .alert-danger-custom {
+        background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(192, 57, 43, 0.05) 100%);
+        border-left: 5px solid #e74c3c;
+        color: #a93226;
+    }
+    
+    .description-section {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        border-left: 5px solid #3498db;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+    }
+    
+    .description-section h5 {
+        color: #2c3e50;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    
+    .description-section p {
+        color: #5d6d7e;
+        font-size: 1.05rem;
+        line-height: 1.7;
+    }
+    
+    .action-buttons .btn {
+        border-radius: 30px;
+        padding: 14px 30px;
+        font-weight: 700;
+        font-size: 1rem;
+        margin-right: 12px;
+        margin-bottom: 12px;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-buttons .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.6s;
+    }
+    
+    .action-buttons .btn:hover::before {
+        left: 100%;
+    }
+    
+    .btn-register {
+        background: linear-gradient(135deg, #10ac84 0%, #1dd1a1 100%);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .btn-register:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(16, 172, 132, 0.5);
+        color: white;
+    }
+    
+    .btn-unregister {
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .btn-unregister:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(255, 107, 107, 0.5);
+        color: white;
+    }
+    
+    .btn-edit-event {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .btn-edit-event:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+        color: white;
+    }
+    
+    /* Modal improvements */
+    .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .modal-header {
+        background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+        color: white;
+        border-radius: 20px 20px 0 0;
+        border-bottom: none;
+    }
+    
+    /* Enhanced animations */
+    .event-detail-card {
+        animation: fadeInUp 0.8s ease-out forwards;
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    
+    .event-detail-card:nth-child(1) { animation-delay: 0.1s; }
+    .event-detail-card:nth-child(2) { animation-delay: 0.3s; }
+    .event-detail-card:nth-child(3) { animation-delay: 0.5s; }
+    
+    @keyframes fadeInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 768px) {
+        .event-hero h1 {
+            font-size: 2rem;
+        }
+        
+        .event-hero {
+            padding: 2rem 0;
+        }
+        
+        .info-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .info-icon {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+        
+        .action-buttons .btn {
+            width: 100%;
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">{{ event.name }}</h3>
-                <span class="badge fs-6
-                    {% if event.status == 'APPROVED' %}bg-success
-                    {% elif event.status == 'PENDING' %}bg-warning
-                    {% elif event.status == 'REJECTED' %}bg-danger
-                    {% elif event.status == 'COMPLETED' %}bg-info
-                    {% else %}bg-secondary{% endif %}">
+<div class="event-hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="d-flex align-items-center mb-2">
+                    <i class="bi bi-calendar-event me-3" style="font-size: 2rem;"></i>
+                    <div>
+                        <h1>{{ event.name }}</h1>
+                        <p class="mb-0 opacity-75">
+                            <i class="bi bi-building me-1"></i>{{ event.club.name|default:"General Event" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <span class="event-status-badge 
+                    {% if event.status == 'APPROVED' %}badge-approved
+                    {% elif event.status == 'PENDING' %}badge-pending
+                    {% elif event.status == 'REJECTED' %}badge-rejected
+                    {% elif event.status == 'COMPLETED' %}badge-completed
+                    {% else %}badge-pending{% endif %}">
                     {{ event.get_status_display }}
                 </span>
             </div>
-            <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Event Type:</strong> {{ event.event_type }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Club:</strong> {{ event.club.name }}
-                    </div>
-                </div>
-                
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Date & Time:</strong> {{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Venue:</strong> {{ event.venue }}
-                    </div>
-                </div>
+        </div>
+    </div>
+</div>
 
-                {% if event.department %}
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Department:</strong> {{ event.department.name }}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="event-detail-card">
+            <div class="card-body p-4">
+                <!-- Event Information Section -->
+                <div class="event-info-section">
+                    <h5 class="mb-3"><i class="bi bi-info-circle me-2"></i>Event Details</h5>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-calendar-event"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Date & Time</div>
+                            <div class="info-value">{{ event.date_time|date:"F d, Y" }} at {{ event.date_time|time:"g:i A" }}</div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        {% if event.created_by %}
-                            <strong>Created By:</strong> {{ event.created_by.get_full_name }}
-                            <small class="text-muted">
-                                ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
-                            </small>
-                        {% endif %}
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-geo-alt"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Venue</div>
+                            <div class="info-value">{{ event.venue }}</div>
+                        </div>
                     </div>
+                    
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-tag"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Event Type</div>
+                            <div class="info-value">{{ event.event_type }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if event.department %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Department</div>
+                            <div class="info-value">{{ event.department.name }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if event.created_by %}
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-person-check"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Organized By</div>
+                            <div class="info-value">
+                                {{ event.created_by.get_full_name }}
+                                <small class="text-muted">
+                                    ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
-                {% else %}
-                <div class="row mb-3">
-                    <div class="col-md-12">
-                        {% if event.created_by %}
-                            <strong>Created By:</strong> {{ event.created_by.get_full_name }}
-                            <small class="text-muted">
-                                ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
-                            </small>
-                        {% endif %}
-                    </div>
-                </div>
-                {% endif %}
 
                 <!-- Approval Status Information -->
                 {% if event.status == 'PENDING' %}
-                <div class="alert alert-warning">
-                    <i class="bi bi-clock"></i>
-                    <strong>Approval Pending:</strong> This event is waiting for administrator approval.
+                <div class="alert-custom alert-warning-custom">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-clock-history me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Approval Pending</strong>
+                            <p class="mb-0">This event is awaiting administrator approval before it goes live.</p>
+                        </div>
+                    </div>
                 </div>
                 {% elif event.status == 'REJECTED' %}
-                <div class="alert alert-danger">
-                    <i class="bi bi-x-circle"></i>
-                    <strong>Event Rejected:</strong> This event has been rejected by administrators.
-                    {% if event.approval_notes %}
-                        <br><strong>Reason:</strong> {{ event.approval_notes }}
-                    {% endif %}
+                <div class="alert-custom alert-danger-custom">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-x-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Event Rejected</strong>
+                            <p class="mb-0">This event has been rejected by administrators.</p>
+                            {% if event.approval_notes %}
+                                <small><strong>Reason:</strong> {{ event.approval_notes }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 {% elif event.status == 'APPROVED' %}
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle"></i>
-                    <strong>Event Approved:</strong> This event has been approved and is ready to proceed.
-                    {% if event.approval_notes %}
-                        <br><strong>Notes:</strong> {{ event.approval_notes }}
-                    {% endif %}
+                <div class="alert-custom alert-success-custom">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-check-circle me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <strong>Event Approved</strong>
+                            <p class="mb-0">This event has been approved and is ready for registration.</p>
+                            {% if event.approval_notes %}
+                                <small><strong>Admin Notes:</strong> {{ event.approval_notes }}</small>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
 
-                <div class="mb-3">
-                    <strong>Description:</strong>
-                    <p class="mt-2">{{ event.description|linebreaks }}</p>
+                <!-- Event Description -->
+                <div class="description-section">
+                    <h5 class="mb-3"><i class="bi bi-file-text me-2"></i>About This Event</h5>
+                    <p class="mb-0" style="line-height: 1.7;">{{ event.description|linebreaks }}</p>
                 </div>
 
                 {% if event.resources %}
-                <div class="mb-3">
-                    <strong>Resources Required:</strong>
-                    <p class="mt-2">{{ event.resources|linebreaks }}</p>
+                <div class="description-section">
+                    <h5 class="mb-3"><i class="bi bi-gear me-2"></i>Resources Required</h5>
+                    <p class="mb-0" style="line-height: 1.7;">{{ event.resources|linebreaks }}</p>
                 </div>
                 {% endif %}
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong>Created:</strong> {{ event.created_at|date:"M d, Y g:i A" }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Last Updated:</strong> {{ event.updated_at|date:"M d, Y g:i A" }}
+                <!-- Organizers Section -->
+                <div class="event-info-section">
+                    <h5 class="mb-3"><i class="bi bi-people me-2"></i>Event Team</h5>
+                    <div class="row g-3">
+                        {% for organizer in event.organizers.all %}
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="bi bi-person-badge"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Organizer</div>
+                                    <div class="info-value">{{ organizer.get_full_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-12">
+                            <div class="text-center text-muted py-3">
+                                <i class="bi bi-person-x fs-3"></i>
+                                <p class="mb-0">No organizers assigned yet</p>
+                            </div>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-
-                <!-- Organizers -->
-                <div class="mb-3">
-                    <strong>Organizers:</strong>
-                    <div class="mt-2">
-                        {% for organizer in event.organizers.all %}
-                            <span class="badge bg-light text-dark me-1">{{ organizer.get_full_name }}</span>
-                        {% empty %}
-                            <span class="text-muted">No organizers assigned</span>
-                        {% endfor %}
+                
+                <!-- Metadata Section -->
+                <div class="event-info-section">
+                    <h5 class="mb-3"><i class="bi bi-clock-history me-2"></i>Event Timeline</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="bi bi-plus-circle"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Created</div>
+                                    <div class="info-value">{{ event.created_at|date:"F d, Y g:i A" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <div class="info-icon">
+                                    <i class="bi bi-pencil-square"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Last Updated</div>
+                                    <div class="info-value">{{ event.updated_at|date:"F d, Y g:i A" }}</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Registration Information -->
                 {% if event.status == 'APPROVED' and can_view_registrations %}
-                <div class="mb-3">
-                    <strong>Registrations:</strong>
-                    <div class="mt-2">
-                        <span class="badge bg-info">{{ registration_count }} student(s) registered</span>
-                        <a href="{% url 'event_registrations' event.id %}" class="btn btn-sm btn-outline-info ms-2">
-                            <i class="bi bi-people"></i> View Registrations
-                        </a>
+                <div class="event-info-section">
+                    <h5 class="mb-3"><i class="bi bi-person-check me-2"></i>Registration Status</h5>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div class="info-content">
+                            <div class="info-label">Total Registrations</div>
+                            <div class="info-value">
+                                {{ registration_count }} student(s) registered
+                                <a href="{% url 'event_registrations' event.id %}" class="btn btn-edit btn-sm ms-2">
+                                    <i class="bi bi-eye me-1"></i>View All
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 {% endif %}
@@ -136,108 +596,137 @@
                 <!-- Registration Status for Students -->
                 {% if user.is_authenticated and event.status == 'APPROVED' %}
                     {% if user_registered %}
-                        <div class="alert alert-success">
-                            <i class="bi bi-check-circle"></i>
-                            <strong>You are registered for this event!</strong>
-                            {% if user_registration.notes %}
-                                <br><small>Your notes: {{ user_registration.notes }}</small>
-                            {% endif %}
+                        <div class="alert-custom alert-success-custom">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-check-circle-fill me-3" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <strong>Registration Confirmed</strong>
+                                    <p class="mb-0">You are registered for this event! Don't forget to attend.</p>
+                                    {% if user_registration.notes %}
+                                        <small><strong>Your notes:</strong> {{ user_registration.notes }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
                         </div>
                     {% else %}
-                        <div class="alert alert-info">
-                            <i class="bi bi-info-circle"></i>
-                            <strong>Interested in this event?</strong> Register to show your participation and receive updates.
+                        <div class="alert-custom" style="background: linear-gradient(45deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1)); border-left: 4px solid #667eea; color: #4c63b6;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-star me-3" style="font-size: 1.5rem;"></i>
+                                <div>
+                                    <strong>Join This Event</strong>
+                                    <p class="mb-0">Register now to secure your spot and receive important updates.</p>
+                                </div>
+                            </div>
                         </div>
                     {% endif %}
                 {% endif %}
 
                 <!-- Action Buttons -->
-                <div class="mt-4">
+                <div class="action-buttons mt-4">
                     {% if user.is_authenticated %}
                         <!-- Registration Buttons for Students -->
                         {% if event.status == 'APPROVED' %}
                             {% if user_registered %}
-                                <a href="{% url 'event_unregister' event.id %}" class="btn btn-outline-danger" 
+                                <a href="{% url 'event_unregister' event.id %}" class="btn btn-unregister" 
                                    onclick="return confirm('Are you sure you want to unregister from this event?')">
-                                    <i class="bi bi-person-dash"></i> Unregister
+                                    <i class="bi bi-person-dash me-1"></i>Unregister
                                 </a>
                             {% else %}
-                                <a href="{% url 'event_register' event.id %}" class="btn btn-success">
-                                    <i class="bi bi-person-plus"></i> Register for Event
+                                <a href="{% url 'event_register' event.id %}" class="btn btn-register">
+                                    <i class="bi bi-person-plus me-1"></i>Register Now
                                 </a>
                             {% endif %}
                         {% endif %}
 
                         <!-- Management Buttons -->
                         {% if user in event.organizers.all or user in event.club.coordinators.all %}
-                            <a href="{% url 'event_edit' event.id %}" class="btn btn-primary">Edit Event</a>
+                            <a href="{% url 'event_edit' event.id %}" class="btn btn-edit-event">
+                                <i class="bi bi-pencil me-1"></i>Edit Event
+                            </a>
                         {% endif %}
                         
                         {% if event.status == 'APPROVED' %}
-                            <a href="{% url 'attendance_manage' event.id %}" class="btn btn-success">Manage Attendance</a>
+                            <a href="{% url 'attendance_manage' event.id %}" class="btn btn-edit-event">
+                                <i class="bi bi-clipboard-check me-1"></i>Manage Attendance
+                            </a>
                         {% endif %}
                     {% endif %}
                     
-                    <a href="{% url 'event_list' %}" class="btn btn-outline-secondary">Back to Events</a>
+                    <a href="{% url 'event_list' %}" class="btn" style="background: linear-gradient(45def, #6c757d, #495057); color: white; border: none; border-radius: 20px; padding: 10px 25px; font-weight: 600;">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Events
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Event Associations and Collaborations -->
         {% if event.associations.all or event.collaborations.all %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5>Event Associations & Collaborations</h5>
-            </div>
-            <div class="card-body">
+        <div class="event-detail-card mt-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-link-45deg me-2"></i>Partnerships</h5>
+                
                 {% if event.associations.all %}
-                    <h6>Associations</h6>
-                    <div class="row mb-3">
-                        {% for association in event.associations.all %}
-                            <div class="col-md-6 mb-2">
-                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
-                                    <div>
-                                        <strong>{{ association.get_associated_entity.name }}</strong>
-                                        <small class="text-muted d-block">{{ association.get_association_type_display }}</small>
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3"><i class="bi bi-handshake me-2"></i>Associations</h6>
+                        <div class="row g-3">
+                            {% for association in event.associations.all %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-building"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">{{ association.get_association_type_display }}</div>
+                                            <div class="info-value d-flex justify-content-between align-items-center">
+                                                <span>{{ association.get_associated_entity.name }}</span>
+                                                <span class="event-badge 
+                                                    {% if association.status == 'APPROVED' %}badge-approved
+                                                    {% elif association.status == 'PENDING' %}badge-pending
+                                                    {% else %}badge-rejected{% endif %}">
+                                                    {{ association.get_status_display }}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <span class="badge 
-                                        {% if association.status == 'APPROVED' %}bg-success
-                                        {% elif association.status == 'PENDING' %}bg-warning
-                                        {% else %}bg-danger{% endif %}">
-                                        {{ association.get_status_display }}
-                                    </span>
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
 
                 {% if event.collaborations.all %}
-                    <h6>Collaborations</h6>
-                    <div class="row">
-                        {% for collaboration in event.collaborations.all %}
-                            <div class="col-md-6 mb-2">
-                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
-                                    <div>
-                                        <strong>{{ collaboration.get_collaborating_entity.name }}</strong>
-                                        <small class="text-muted d-block">{{ collaboration.get_collaboration_type_display }}</small>
-                                        {% if collaboration.collaboration_details %}
-                                            <button class="btn btn-sm btn-outline-info mt-1" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#collabDetailModal{{ collaboration.id }}">
-                                                View Details
-                                            </button>
-                                        {% endif %}
+                    <div>
+                        <h6 class="text-success mb-3"><i class="bi bi-people me-2"></i>Collaborations</h6>
+                        <div class="row g-3">
+                            {% for collaboration in event.collaborations.all %}
+                                <div class="col-md-6">
+                                    <div class="info-item">
+                                        <div class="info-icon">
+                                            <i class="bi bi-diagram-2"></i>
+                                        </div>
+                                        <div class="info-content">
+                                            <div class="info-label">{{ collaboration.get_collaboration_type_display }}</div>
+                                            <div class="info-value d-flex justify-content-between align-items-center">
+                                                <span>{{ collaboration.get_collaborating_entity.name }}</span>
+                                                <span class="event-badge 
+                                                    {% if collaboration.status == 'APPROVED' %}badge-approved
+                                                    {% elif collaboration.status == 'PENDING' %}badge-pending
+                                                    {% else %}badge-rejected{% endif %}">
+                                                    {{ collaboration.get_status_display }}
+                                                </span>
+                                            </div>
+                                            {% if collaboration.collaboration_details %}
+                                                <button class="btn btn-edit btn-sm mt-2" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#collabDetailModal{{ collaboration.id }}">
+                                                    <i class="bi bi-info-circle me-1"></i>View Details
+                                                </button>
+                                            {% endif %}
+                                        </div>
                                     </div>
-                                    <span class="badge 
-                                        {% if collaboration.status == 'APPROVED' %}bg-success
-                                        {% elif collaboration.status == 'PENDING' %}bg-warning
-                                        {% else %}bg-danger{% endif %}">
-                                        {{ collaboration.get_status_display }}
-                                    </span>
                                 </div>
-                            </div>
-                        {% endfor %}
+                            {% endfor %}
+                        </div>
                     </div>
                 {% endif %}
             </div>
@@ -271,23 +760,26 @@
 
         <!-- Collaboration Requests -->
         {% if event.collaboration_requests.all %}
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5>Collaboration Requests</h5>
-            </div>
-            <div class="card-body">
+        <div class="event-detail-card mt-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-envelope me-2"></i>Collaboration Requests</h5>
                 {% for collab in event.collaboration_requests.all %}
-                    <div class="d-flex justify-content-between align-items-center mb-2 p-2 border rounded">
-                        <div>
-                            <strong>{{ collab.requesting_department.name }}</strong>
-                            <small class="text-muted">- {{ collab.created_at|date:"M d, Y" }}</small>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-send"></i>
                         </div>
-                        <span class="badge 
-                            {% if collab.status == 'APPROVED' %}bg-success
-                            {% elif collab.status == 'PENDING' %}bg-warning
-                            {% else %}bg-danger{% endif %}">
-                            {{ collab.get_status_display }}
-                        </span>
+                        <div class="info-content">
+                            <div class="info-label">Request from {{ collab.requesting_department.name }}</div>
+                            <div class="info-value d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ collab.created_at|date:"F d, Y" }}</small>
+                                <span class="event-badge 
+                                    {% if collab.status == 'APPROVED' %}badge-approved
+                                    {% elif collab.status == 'PENDING' %}badge-pending
+                                    {% else %}badge-rejected{% endif %}">
+                                    {{ collab.get_status_display }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>
@@ -297,47 +789,65 @@
 
     <div class="col-lg-4">
         <!-- Event Statistics -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5>Event Statistics</h5>
-            </div>
-            <div class="card-body">
+        <div class="event-detail-card mb-4">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Event Analytics</h5>
                 {% if event.status == 'APPROVED' or event.status == 'COMPLETED' %}
-                    <div class="row text-center">
+                    <div class="row g-3 text-center">
                         <div class="col-6">
-                            <h4 class="text-success">{{ attendance_count.present|default:0 }}</h4>
-                            <small class="text-muted">Present</small>
+                            <div class="info-item">
+                                <div class="info-icon" style="background: linear-gradient(45deg, #28a745, #20c997);">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Present</div>
+                                    <div class="info-value" style="font-size: 1.5rem; font-weight: bold; color: #28a745;">{{ attendance_count.present|default:0 }}</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="col-6">
-                            <h4 class="text-danger">{{ attendance_count.absent|default:0 }}</h4>
-                            <small class="text-muted">Absent</small>
+                            <div class="info-item">
+                                <div class="info-icon" style="background: linear-gradient(45deg, #dc3545, #e83e8c);">
+                                    <i class="bi bi-person-x"></i>
+                                </div>
+                                <div class="info-content">
+                                    <div class="info-label">Absent</div>
+                                    <div class="info-value" style="font-size: 1.5rem; font-weight: bold; color: #dc3545;">{{ attendance_count.absent|default:0 }}</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 {% else %}
-                    <p class="text-muted text-center">Attendance tracking available after event approval</p>
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-graph-up fs-2"></i>
+                        <p class="mb-0 mt-2">Attendance tracking available after event approval</p>
+                    </div>
                 {% endif %}
             </div>
         </div>
 
         <!-- Approval Chain -->
         {% if event.approval_chain %}
-        <div class="card">
-            <div class="card-header">
-                <h5>Approval Chain</h5>
-            </div>
-            <div class="card-body">
+        <div class="event-detail-card">
+            <div class="card-body p-4">
+                <h5 class="mb-3"><i class="bi bi-diagram-3 me-2"></i>Approval Chain</h5>
                 {% for approval in event.approval_chain %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div>
-                            <strong>{{ approval.role }}</strong><br>
-                            <small class="text-muted">{{ approval.approver }}</small>
+                    <div class="info-item">
+                        <div class="info-icon">
+                            <i class="bi bi-person-gear"></i>
                         </div>
-                        <span class="badge 
-                            {% if approval.status == 'approved' %}bg-success
-                            {% elif approval.status == 'pending' %}bg-warning
-                            {% else %}bg-danger{% endif %}">
-                            {{ approval.status|title }}
-                        </span>
+                        <div class="info-content">
+                            <div class="info-label">{{ approval.role }}</div>
+                            <div class="info-value d-flex justify-content-between align-items-center">
+                                <span>{{ approval.approver }}</span>
+                                <span class="event-badge 
+                                    {% if approval.status == 'approved' %}badge-approved
+                                    {% elif approval.status == 'pending' %}badge-pending
+                                    {% else %}badge-rejected{% endif %}">
+                                    {{ approval.status|title }}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 {% endfor %}
             </div>
