@@ -121,16 +121,14 @@
                 </div>
 
                 <!-- Registration Information -->
-                {% if event.status == 'APPROVED' %}
+                {% if event.status == 'APPROVED' and can_view_registrations %}
                 <div class="mb-3">
                     <strong>Registrations:</strong>
                     <div class="mt-2">
                         <span class="badge bg-info">{{ registration_count }} student(s) registered</span>
-                        {% if can_view_registrations %}
-                            <a href="{% url 'event_registrations' event.id %}" class="btn btn-sm btn-outline-info ms-2">
-                                <i class="bi bi-people"></i> View Registrations
-                            </a>
-                        {% endif %}
+                        <a href="{% url 'event_registrations' event.id %}" class="btn btn-sm btn-outline-info ms-2">
+                            <i class="bi bi-people"></i> View Registrations
+                        </a>
                     </div>
                 </div>
                 {% endif %}

@@ -66,6 +66,7 @@ class User(AbstractUser):
 class Notification(models.Model):
 	user = models.ForeignKey('User', on_delete=models.CASCADE, related_name='notifications')
 	message = models.TextField()
+	important = models.BooleanField(default=False, help_text='Mark notification as important')
 	created_at = models.DateTimeField(auto_now_add=True)
 	read = models.BooleanField(default=False)
 

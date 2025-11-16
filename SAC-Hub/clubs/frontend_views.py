@@ -49,7 +49,7 @@ def club_create(request):
                 description=request.POST.get('description', ''),
             )
             
-            # Add coordinators
+            # Add coordinators (signals will handle role assignment)
             coordinator_ids = request.POST.getlist('coordinators')
             if coordinator_ids:
                 club.coordinators.set(coordinator_ids)
@@ -100,7 +100,7 @@ def club_edit(request, club_id):
             
             club.save()
             
-            # Update coordinators
+            # Update coordinators (signals will handle role assignment)
             coordinator_ids = request.POST.getlist('coordinators')
             club.coordinators.set(coordinator_ids)
             
@@ -146,3 +146,21 @@ def club_leave(request, club_id):
         messages.success(request, f'You have left {club.name}.')
     
     return redirect('club_detail', club_id=club.id)
+
+@login_required
+def club_delete(request, club_id):
+    """Delete a club"""
+    club = get_object_or_404(Club, id=club_id)
+    
+    # Check permissions - only admins can delete
+    if not ('ADMIN' in request.user.roles or request.user.is_staff):
+        messages.error(request, 'You do not have permission to delete clubs.')
+        return redirect('club_detail', club_id=club.id)
+    
+    if request.method == 'POST':
+        club_name = club.name
+        club.delete()
+        messages.success(request, f'Club "{club_name}" deleted successfully!')
+        return redirect('club_list')
+    
+    return render(request, 'clubs/club_confirm_delete.html', {'club': club})

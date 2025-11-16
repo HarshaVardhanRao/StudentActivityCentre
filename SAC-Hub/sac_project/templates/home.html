@@ -10,7 +10,10 @@
         <p class="lead mb-4">Discover events, join clubs, and connect with the vibrant student community at MITS. Log in to access your personalized dashboard, manage your activities, and stay updated with the latest happenings on campus.</p>
         <div class="mb-3">
             <a href="{% url 'login' %}" class="btn btn-primary btn-lg me-2">Login</a>
-            <a href="{% url 'event_list' %}" class="btn btn-outline-primary btn-lg">Browse Events</a>
+            <a href="{% url 'event_list' %}" class="btn btn-outline-primary btn-lg me-2">Browse Events</a>
+            <a href="{% url 'attendance_verify' %}" class="btn btn-outline-success btn-lg">
+                <i class="bi bi-shield-check"></i> Verify Attendance
+            </a>
         </div>
         <ul class="list-unstyled mt-4">
             <li><i class="bi bi-calendar-event text-primary"></i> Explore upcoming events</li>

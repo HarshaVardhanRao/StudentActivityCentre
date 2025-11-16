@@ -10,8 +10,31 @@
         <p class="text-muted">{{ event.date_time|date:"M d, Y" }} at {{ event.venue }}</p>
     </div>
     <div>
-        <button type="button" class="btn btn-success" onclick="markAllPresent()">Mark All Present</button>
-        <button type="button" class="btn btn-warning" onclick="markAllAbsent()">Mark All Absent</button>
+        <!-- Session selector -->
+        {% if sessions %}
+            <div class="btn-group me-2" role="group">
+                <select id="session-select" class="form-select" onchange="changeSession(this.value)">
+                    {% for s in sessions %}
+                        <option value="{{ s.id }}" {% if session and s.id == session.id %}selected{% endif %}>
+                            {% if s.label %}{{ s.label }}{% else %}Session {{ s.id }}{% endif %} - {{ s.created_at|date:"M d, Y H:i" }} {% if s.locked %}(submitted){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <button type="button" class="btn btn-success me-2" onclick="markAllPresent()">Mark All Present</button>
+        <button type="button" class="btn btn-warning me-2" onclick="markAllAbsent()">Mark All Absent</button>
+        <!-- New session form (simple inline) -->
+        <form id="new-session-form" method="post" style="display:inline-block">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="new_session">
+            <input type="text" name="label" placeholder="Label (optional)" class="form-control d-inline-block" style="width:160px;">
+            <label class="form-check-label ms-2">
+                <input type="checkbox" name="force_open" value="1"> Open now
+            </label>
+            <button type="submit" class="btn btn-outline-primary ms-2">New Session</button>
+        </form>
     </div>
 </div>
 
@@ -99,14 +122,13 @@
                             <td>{{ student.get_full_name }}</td>
                             <td>{{ student.department.name|default:"N/A" }}</td>
                             <td>
-                                {% with attendance_dict|get_item:student.id as student_attendance %}
-                                <span class="badge attendance-badge 
-                                    {% if student_attendance.status == 'PRESENT' %}bg-success
-                                    {% elif student_attendance.status == 'ABSENT' %}bg-danger
-                                    {% else %}bg-secondary{% endif %}">
-                                    {% if student_attendance %}{{ student_attendance.get_status_display }}{% else %}Not Marked{% endif %}
-                                </span>
-                                {% endwith %}
+                                {% if student.attendance %}
+                                    <span class="badge attendance-badge {% if student.attendance.status == 'PRESENT' %}bg-success{% elif student.attendance.status == 'ABSENT' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                        {{ student.attendance.get_status_display }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge attendance-badge bg-secondary">Not Marked</span>
+                                {% endif %}
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
@@ -187,7 +209,7 @@ function saveAttendance() {
         return;
     }
     
-    fetch(`/api/events/{{ event.id }}/attendance/`, {
+    fetch(`/events/{{ event.id }}/attendance/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -195,17 +217,27 @@ function saveAttendance() {
         },
         body: JSON.stringify(attendanceChanges)
     })
-    .then(response => response.json())
+    .then(response => {
+        const ct = response.headers.get('content-type') || '';
+        if (!response.ok) {
+            // Try to show HTML/text response when server returns an error page
+            return response.text().then(text => { throw new Error(text || response.statusText); });
+        }
+        if (ct.includes('application/json')) return response.json();
+        return response.text().then(text => { throw new Error(text || 'Unexpected response'); });
+    })
     .then(data => {
-        if (data.success) {
+        if (data && data.success) {
             alert('Attendance saved successfully!');
             attendanceChanges = {};
         } else {
-            alert('Error saving attendance: ' + data.error);
+            alert('Error saving attendance: ' + (data && data.error ? data.error : 'Unknown error'));
         }
     })
     .catch(error => {
-        alert('Error saving attendance: ' + error);
+        // If server returned an HTML error page (login redirect, template error), show a concise message
+        const msg = (error && error.message) ? error.message : String(error);
+        alert('Error saving attendance: ' + msg);
     });
 }
 
@@ -240,6 +272,12 @@ function filterStudents() {
         
         row.style.display = matchesSearch && matchesStatus ? '' : 'none';
     });
+}
+
+function changeSession(sessionId) {
+    if (!sessionId) return;
+    // Navigate to the same attendance manage view with the selected session id
+    window.location.href = `/events/{{ event.id }}/attendance/?session_id=${sessionId}`;
 }
 </script>
 {% endblock %}
