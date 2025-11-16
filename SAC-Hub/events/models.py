@@ -89,3 +89,16 @@ class CollaborationRequest(models.Model):
 
 	def __str__(self):
 		return f"{self.requesting_department} requests for {self.event}"
+
+class EventRegistration(models.Model):
+	event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='registrations')
+	student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='event_registrations')
+	registered_at = models.DateTimeField(auto_now_add=True)
+	status = models.CharField(max_length=20, choices=[('REGISTERED','Registered'),('ATTENDED','Attended'),('CANCELLED','Cancelled')], default='REGISTERED')
+
+	class Meta:
+		unique_together = ['event', 'student']
+		ordering = ['-registered_at']
+
+	def __str__(self):
+		return f"{self.student.get_full_name()} - {self.event.name}"
