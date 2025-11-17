@@ -1,250 +1,65 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Department Admin Dashboard - MITS SAC Hub{% endblock %}
-
 {% block content %}
-<!-- Department Admin Welcome Section -->
-<div class="dashboard-welcome">
-    <h1>Welcome, Department Admin {{ user.get_full_name|default:user.username }}! 🏛️</h1>
-    <p>Oversee departmental excellence and strategic coordination. Manage faculty collaboration, monitor student progress, and drive institutional success.</p>
+<div class="container">
+	<h2 class="mb-4">Department Admin / VP Dashboard</h2>
+	<div class="row mb-4">
+		<div class="col-md-4">
+			<div class="card text-bg-info mb-3">
+				<div class="card-header">Student Participation</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ department_students }}</h5>
+					<p class="card-text">List of students and their attendance/participation. <a href="#">View Details</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-warning mb-3">
+				<div class="card-header">Event Associations</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ ongoing_events }}</h5>
+					<p class="card-text">Ongoing/upcoming events and association status. <a href="#">View Events</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-primary mb-3">
+				<div class="card-header">Participation Requests</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_participation_requests }}</h5>
+					<p class="card-text">Requests to associate with club events. <a href="#">Review Requests</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-4">
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Notifications</div>
+				<div class="card-body">
+					<ul class="list-group">
+						{% for note in notifications %}
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							{{ note.message }}
+							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
+						</li>
+						{% empty %}
+						<li class="list-group-item">No urgent notifications.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Actions</div>
+				<div class="card-body">
+					<a href="#" class="btn btn-success me-2">Request Event Association</a>
+					<a href="#" class="btn btn-primary me-2">Update Attendance</a>
+					<a href="#" class="btn btn-outline-secondary me-2">Approve Participation</a>
+					<a href="#" class="btn btn-outline-info">Export Reports</a>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
-
-<!-- Department Overview Stats -->
-<div class="stats-showcase">
-    <div class="stat-card">
-        <h3>Department Clubs</h3>
-        <div class="number">{{ department_clubs|default:12 }}</div>
-        <div class="label">Active Organizations</div>
-    </div>
-    <div class="stat-card">
-        <h3>Faculty Members</h3>
-        <div class="number">{{ faculty_members|default:45 }}</div>
-        <div class="label">Department Staff</div>
-    </div>
-    <div class="stat-card">
-        <h3>Student Enrollment</h3>
-        <div class="number">{{ student_enrollment|default:850 }}</div>
-        <div class="label">Active Students</div>
-    </div>
-    <div class="stat-card">
-        <h3>Department Score</h3>
-        <div class="number">{{ department_score|default:4.7 }}</div>
-        <div class="label">Performance Rating</div>
-    </div>
-</div>
-
-<!-- Administrative Tools -->
-<div class="card-grid">
-    <!-- Faculty Management -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">👨‍🏫</span>
-            <h3>Faculty Management</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Coordinate with faculty advisors, track their involvement in student activities, and facilitate academic-extracurricular integration.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/dept-admin/faculty/" class="btn btn-primary" style="flex: 1;">Faculty Portal</a>
-                <a href="/dept-admin/assignments/" class="btn btn-outline" style="flex: 1;">Assignments</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Department Analytics -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">📊</span>
-            <h3>Department Analytics</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Monitor department-wide performance metrics, student engagement levels, and faculty participation in activities.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/dept-admin/analytics/" class="btn btn-success" style="flex: 1;">View Analytics</a>
-                <a href="/dept-admin/reports/" class="btn btn-outline" style="flex: 1;">Generate Reports</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Resource Management -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">💼</span>
-            <h3>Resource Management</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Allocate departmental resources, approve budget requests, and ensure optimal utilization of facilities and equipment.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/dept-admin/resources/" class="btn btn-accent" style="flex: 1;">Manage Resources</a>
-                <a href="/dept-admin/budgets/" class="btn btn-outline" style="flex: 1;">Budget Approval</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Strategic Planning -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">🎯</span>
-            <h3>Strategic Planning</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Develop departmental strategies, set long-term goals, and coordinate with institutional leadership for growth initiatives.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/dept-admin/planning/" class="btn btn-primary" style="flex: 1;">Strategic Plans</a>
-                <a href="/dept-admin/goals/" class="btn btn-outline" style="flex: 1;">Set Goals</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Department Performance Dashboard -->
-<div class="interactive-section">
-    <div class="section-header">
-        <h2>Department Performance Overview</h2>
-        <p>Monitor key performance indicators and departmental health metrics</p>
-    </div>
-
-    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">📈</span>
-                <h3>Student Engagement</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
-                    {{ student_engagement|default:78 }}%
-                </div>
-                <p style="margin-bottom: 1rem;">Students actively participating in activities</p>
-                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
-                    <div style="background: linear-gradient(90deg, var(--accent-emerald), #48bb78); height: 100%; width: {{ student_engagement|default:78 }}%; border-radius: 4px; transition: width 1s ease;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                    <small style="color: var(--text-muted);">Target: 80%</small>
-                    <small style="color: var(--accent-emerald);">↗ +5% vs last year</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">🎓</span>
-                <h3>Academic Integration</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
-                    {{ academic_integration|default:85 }}%
-                </div>
-                <p style="margin-bottom: 1rem;">Faculty involved in extracurricular activities</p>
-                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
-                    <div style="background: linear-gradient(90deg, var(--primary-main), var(--primary-light)); height: 100%; width: {{ academic_integration|default:85 }}%; border-radius: 4px; transition: width 1s ease;"></div>
-                </div>
-                <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">Above university average</small>
-            </div>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">🏆</span>
-                <h3>Department Achievements</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
-                    {{ department_achievements|default:23 }}
-                </div>
-                <p style="margin-bottom: 1rem;">Awards and recognitions this year</p>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <span style="color: var(--accent-gold); font-size: 0.875rem;">🏅 Top 3</span>
-                    <span style="color: var(--text-muted); font-size: 0.875rem;">in university rankings</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Administrative Toolkit -->
-<div class="interactive-section">
-    <div class="section-header">
-        <h2>Administrative Toolkit</h2>
-        <p>Essential administrative functions for department management</p>
-    </div>
-    
-    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📋</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Policy Management</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Review and update departmental policies and guidelines</p>
-            <a href="/dept-admin/policies/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Manage Policies</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔍</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Quality Assurance</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Monitor and ensure quality in all departmental activities</p>
-            <a href="/dept-admin/quality/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Quality Control</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📞</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Institutional Liaison</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Coordinate with university administration and other departments</p>
-            <a href="/dept-admin/liaison/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Coordinate</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--info);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📊</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Performance Reviews</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Conduct periodic reviews of faculty and staff performance</p>
-            <a href="/dept-admin/reviews/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Start Review</a>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate department statistics
-    const statNumbers = document.querySelectorAll('.stat-card .number');
-    statNumbers.forEach((number, index) => {
-        const finalValue = parseFloat(number.textContent);
-        let currentValue = 0;
-        const isDecimal = finalValue % 1 !== 0;
-        const increment = isDecimal ? finalValue / 50 : Math.ceil(finalValue / 50);
-        
-        const counter = setInterval(() => {
-            currentValue += increment;
-            if (currentValue >= finalValue) {
-                number.textContent = finalValue;
-                clearInterval(counter);
-            } else {
-                number.textContent = isDecimal ? currentValue.toFixed(1) : Math.floor(currentValue);
-            }
-        }, 30);
-    });
-
-    // Department admin specific functionality
-    const adminButtons = document.querySelectorAll('a[href*="/dept-admin/"]');
-    adminButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            // Add visual feedback for admin actions
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 150);
-        });
-    });
-
-    // Progress tracking for department goals
-    setTimeout(() => {
-        const progressBars = document.querySelectorAll('[style*="width:"][style*="%"]');
-        progressBars.forEach((bar, index) => {
-            const width = bar.style.width;
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.width = width;
-            }, 300 * (index + 1));
-        });
-    }, 1000);
-});
-</script>
 {% endblock %}

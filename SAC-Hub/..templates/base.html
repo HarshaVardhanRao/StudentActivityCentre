@@ -1,0 +1,286 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MITS SAC Hub - Student Activity Centre{% endblock %}</title>
+    
+    <!-- Google Fonts for Professional Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Modern Styles -->
+    <link rel="stylesheet" href="{% static 'admin/modern-styles.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/calendar-styles.css' %}">
+    
+    <!-- Modern Interactions -->
+    <script src="{% static 'admin/modern-interactions.js' %}" defer></script>
+    
+    <!-- Meta Tags for Better SEO and Social Sharing -->
+    <meta name="description" content="{% block description %}MITS Student Activity Centre - Manage clubs, events, and student activities professionally{% endblock %}">
+    <meta name="keywords" content="MITS, Student Activity Centre, SAC, Clubs, Events, Students">
+    <meta name="author" content="MITS SAC Team">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Enhanced Modern Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                MITS SAC Hub
+            </a>
+            
+            <!-- Mobile Menu Toggle -->
+            <div class="nav-toggle" id="navToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            
+            <!-- Navigation Menu -->
+            <div class="nav-menu" id="navMenu">
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/dashboard/">
+                                <span>📊</span>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/clubs/">
+                                <span>🏛️</span>
+                                <span>Clubs</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/events/">
+                                <span>📅</span>
+                                <span>Events</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/calendar/">
+                                <span>🗓️</span>
+                                <span>Calendar</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/profile/">
+                                <span>👤</span>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout/" onclick="return confirm('Are you sure you want to logout?')">
+                                <span>🚪</span>
+                                <span>Logout</span>
+                            </a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">
+                                <span>🏠</span>
+                                <span>Home</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/about/">
+                                <span>ℹ️</span>
+                                <span>About</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/clubs/">
+                                <span>🏛️</span>
+                                <span>Clubs</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/events/">
+                                <span>📅</span>
+                                <span>Events</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn-outline" href="/login/">
+                                <span>🔐</span>
+                                <span>Login</span>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Flash Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        <strong>
+                            {% if message.tags == 'success' %}✅{% endif %}
+                            {% if message.tags == 'error' %}❌{% endif %}
+                            {% if message.tags == 'warning' %}⚠️{% endif %}
+                            {% if message.tags == 'info' %}ℹ️{% endif %}
+                        </strong>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Page Content -->
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: var(--surface-dark); color: var(--text-inverse); padding: 2rem 0; margin-top: 4rem;">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                <div>
+                    <h3 style="color: var(--accent-gold); margin-bottom: 1rem; font-size: 1.25rem; font-weight: 600;">MITS SAC Hub</h3>
+                    <p style="color: var(--text-muted); line-height: 1.6;">Empowering students through organized activities, fostering leadership, and building a vibrant campus community.</p>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-inverse); margin-bottom: 1rem; font-weight: 600;">Quick Links</h4>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 0.5rem;"><a href="/about/" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">About SAC</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="/clubs/" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">All Clubs</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="/events/" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">Upcoming Events</a></li>
+                        <li style="margin-bottom: 0.5rem;"><a href="/contact/" style="color: var(--text-muted); text-decoration: none; transition: color 0.3s;">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 style="color: var(--text-inverse); margin-bottom: 1rem; font-weight: 600;">Contact Info</h4>
+                    <p style="color: var(--text-muted); margin-bottom: 0.5rem;">📧 sac@mits.ac.in</p>
+                    <p style="color: var(--text-muted); margin-bottom: 0.5rem;">📞 +91 XXXX-XXXXXX</p>
+                    <p style="color: var(--text-muted);">🏫 MITS Campus, Madanapalle</p>
+                </div>
+            </div>
+            <div style="border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1.5rem; text-align: center;">
+                <p style="color: var(--text-muted); margin: 0;">&copy; 2024 MITS Student Activity Centre. All rights reserved. | Built with ❤️ by SAC Team</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Enhanced Interactions -->
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Auto-dismiss alerts after 5 seconds
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-20px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+
+        // Loading states for form submissions
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const submitBtn = this.querySelector('button[type="submit"], input[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
+                    submitBtn.disabled = true;
+                }
+            });
+        });
+
+        // Enhanced Mobile Menu Toggle
+        const navToggle = document.getElementById('navToggle');
+        const navMenu = document.getElementById('navMenu');
+        const navbar = document.getElementById('navbar');
+        
+        if (navToggle && navMenu) {
+            navToggle.addEventListener('click', () => {
+                navToggle.classList.toggle('active');
+                navMenu.classList.toggle('active');
+                
+                // Prevent body scroll when menu is open
+                if (navMenu.classList.contains('active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Close menu when clicking on nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    navToggle.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                });
+            });
+            
+            // Close menu when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!navbar.contains(e.target)) {
+                    navToggle.classList.remove('active');
+                    navMenu.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+        
+        // Enhanced Navbar Scroll Effects
+        let lastScrollTop = 0;
+        const scrollThreshold = 50;
+        
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Add scrolled class for styling
+            if (scrollTop > scrollThreshold) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+            
+            // Hide/show navbar on scroll (optional - can be disabled)
+            if (window.innerWidth > 768) { // Only on desktop
+                if (scrollTop > lastScrollTop && scrollTop > 200) {
+                    navbar.style.transform = 'translateY(-100%)';
+                } else {
+                    navbar.style.transform = 'translateY(0)';
+                }
+            }
+            
+            lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+        });
+        
+        // Highlight active nav link based on current page
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                link.style.background = 'rgba(255, 255, 255, 0.2)';
+                link.style.color = 'var(--accent-gold)';
+                link.style.fontWeight = '700';
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

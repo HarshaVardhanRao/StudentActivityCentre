@@ -1,0 +1,222 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if event %}Edit Event{% else %}Create Event{% endif %} - SAC Hub{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-600 to-red-400 text-white text-center py-12 mb-12">
+    <div class="absolute -top-10 -right-10 w-72 h-72 bg-white/10 rounded-full"></div>
+    <h1 class="relative z-10 text-4xl md:text-5xl font-bold mb-4">
+        {% if event %}✏️ Edit Event: {{ event.name }}{% else %}➕ Create New Event{% endif %}
+    </h1>
+    {% if not event %}
+    <div class="relative z-10 max-w-2xl mx-auto bg-white/20 dark:bg-gray-800/30 p-4 rounded-lg text-left">
+        <p class="text-sm md:text-base">
+            <strong>Event Creation Notice:</strong>
+            {% if user_role %}
+                As a {{ user_role }}, you can create events for your clubs. All events require administrator approval before they become active.
+            {% else %}
+                Only Faculty Advisors and Club Coordinators can create events, which require administrator approval.
+            {% endif %}
+        </p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="max-w-3xl mx-auto">
+    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl border border-gray-100 dark:border-gray-800 p-8">
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Event Name & Type -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="md:col-span-2">
+                    <label for="id_name" class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Event Name *</label>
+                    <input type="text" name="name" id="id_name" required
+                        value="{{ form.name.value|default:'' }}"
+                        class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                        placeholder="Event title">
+                    {% if form.name.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_event_type" class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Event Type *</label>
+                    <input type="text" name="event_type" id="id_event_type" required
+                        value="{{ form.event_type.value|default:'' }}"
+                        class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                        placeholder="Workshop, Seminar, Competition">
+                    {% if form.event_type.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.event_type.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label for="id_description" class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                <textarea name="description" id="id_description" rows="4"
+                          class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                          placeholder="Detailed description of the event...">{{ form.description.value|default:'' }}</textarea>
+                {% if form.description.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.description.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Date/Time & Venue -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label for="id_date_time" class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Date & Time *</label>
+                    <input type="datetime-local" name="date_time" id="id_date_time" required
+                           value="{{ form.date_time.value|date:'Y-m-d\TH:i'|default:'' }}"
+                           class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                    {% if form.date_time.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.date_time.errors }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label for="id_venue" class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Venue *</label>
+                    <input type="text" name="venue" id="id_venue" required
+                           value="{{ form.venue.value|default:'' }}"
+                           class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                           placeholder="Auditorium, Room 101">
+                    {% if form.venue.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.venue.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Club & Department -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Club <span class="text-gray-400">(Optional)</span></label>
+                    {% if is_club_coordinator and coordinator_club and not event %}
+                        <input type="text" class="w-full px-4 py-3 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white" value="{{ coordinator_club.name }}" readonly>
+                        <input type="hidden" name="club" value="{{ coordinator_club.id }}">
+                        <small class="text-gray-500 dark:text-gray-400">Events are automatically assigned to your club.</small>
+                    {% else %}
+                        <select name="club" class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                            <option value="">No club (Administrative event)</option>
+                            {% for club in clubs %}
+                                <option value="{{ club.id }}" 
+                                        {% if form.club.value == club.id or event.club.id == club.id %}selected{% elif coordinator_club and coordinator_club.id == club.id %} selected {% endif %}>
+                                    {{ club.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        {% if is_club_coordinator and coordinator_club and event %}
+                            <input type="hidden" name="club" value="{{ event.club.id }}">
+                            <small class="text-gray-500 dark:text-gray-400">Club selection is readonly when editing events.</small>
+                        {% endif %}
+                    {% endif %}
+                    {% if form.club.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.club.errors }}</div>
+                    {% endif %}
+                </div>
+                <div>
+                    <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Department (Optional)</label>
+                    <select name="department" class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                        <option value="">Select a department...</option>
+                        {% for dept in departments %}
+                            <option value="{{ dept.id }}" {% if form.department.value == dept.id or event.department.id == dept.id %}selected{% endif %}>
+                                {{ dept.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.department.errors %}
+                        <div class="text-red-500 text-sm mt-1">{{ form.department.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Resources -->
+            <div>
+                <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Resources Required</label>
+                <textarea name="resources" rows="3"
+                          class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                          placeholder="List any equipment, materials, or support needed...">{{ form.resources.value|default:'' }}</textarea>
+                {% if form.resources.errors %}
+                    <div class="text-red-500 text-sm mt-1">{{ form.resources.errors }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Associations & Collaborations -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Event Associations & Collaborations</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-1">Department Associations</label>
+                        <select name="department_associations" multiple size="4"
+                                class="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                            {% for dept in departments %}
+                                <option value="{{ dept.id }}">{{ dept.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-gray-500 dark:text-gray-400">Requires department admin approval.</small>
+                    </div>
+                    <div>
+                        <label class="block font-medium text-gray-700 dark:text-gray-300 mb-1">Club Associations</label>
+                        <select name="club_associations" multiple size="4"
+                                class="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                            {% for club in all_clubs %}
+                                <option value="{{ club.id }}">{{ club.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-gray-500 dark:text-gray-400">Requires club coordinator approval.</small>
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-medium text-gray-700 dark:text-gray-300 mb-1">Collaboration Details</label>
+                    <textarea name="collaboration_details" rows="3"
+                              class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition"
+                              placeholder="Describe collaboration, responsibilities, resources..."></textarea>
+                </div>
+            </div>
+
+            <!-- Status (Edit only) -->
+            {% if event %}
+            <div>
+                <label class="block font-semibold text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                <select name="status" class="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-600 transition">
+                    <option value="DRAFT" {% if event.status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                    <option value="PENDING" {% if event.status == 'PENDING' %}selected{% endif %}>Pending Approval</option>
+                    {% if user.is_staff or 'ADMIN' in user.roles %}
+                        <option value="APPROVED" {% if event.status == 'APPROVED' %}selected{% endif %}>Approved</option>
+                        <option value="REJECTED" {% if event.status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                        <option value="COMPLETED" {% if event.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                    {% endif %}
+                </select>
+            </div>
+            {% endif %}
+
+            <!-- Form Actions -->
+            <div class="flex flex-col md:flex-row justify-between gap-4 mt-6">
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-gradient-to-br from-red-600 to-red-400 text-white py-3 px-6 rounded-lg font-semibold shadow-md hover:shadow-lg transition">
+                        {% if event %}Update Event{% else %}Create Event{% endif %}
+                    </button>
+                    <a href="{% if event %}{% url 'event_detail' event.id %}{% else %}{% url 'event_list' %}{% endif %}"
+                       class="bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white py-3 px-6 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition">Cancel</a>
+                </div>
+                {% if event and user.is_staff %}
+                    <a href="{% url 'event_delete' event.id %}" class="bg-red-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-red-700 transition"
+                       onclick="return confirm('Are you sure you want to delete this event?')">Delete Event</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% if not event %}
+    const dateTimeInput = document.getElementById('id_date_time');
+    if (!dateTimeInput.value) {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        dateTimeInput.value = now.toISOString().slice(0, 16);
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

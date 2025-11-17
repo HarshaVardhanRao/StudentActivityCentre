@@ -80,63 +80,48 @@ def event_list(request):
     return render(request, 'events/event_list.html', context)
 
 def event_detail(request, event_id):
-    """Display event details"""
     from .models import EventRegistration
-    
-    event = get_object_or_404(Event, id=event_id)
-    
-    # Prefetch associations and collaborations. If the related tables are missing
-    # (e.g. migrations haven't been applied yet) fall back to a safer query
-    # to avoid a server 500 and give the operator time to run migrations.
-    try:
-        event = Event.objects.select_related('club', 'department').prefetch_related(
-            'organizers',
-            'associations__department',
-            'associations__club', 
-            'collaborations__department',
-            'collaborations__club'
-        ).get(id=event_id)
-    except Exception as e:
-        # Import here to avoid top-level import if Django isn't fully available
-        from django.db import utils as db_utils
-        # If the error is an OperationalError (missing table), fall back to a query
-        if isinstance(e, db_utils.OperationalError):
-            event = Event.objects.select_related('club', 'department').prefetch_related('organizers').get(id=event_id)
-        else:
-            raise
-    
-    # Get attendance statistics if event is approved/completed
+
+    event = get_object_or_404(Event.objects.select_related('club', 'department').prefetch_related(
+        'organizers',
+        'club__members',
+        'club__coordinators',
+        'club__events'
+    ), id=event_id)
+
+    # Attendance info
     attendance_count = None
     if event.status in ['APPROVED', 'COMPLETED']:
         attendance_count = {
             'present': Attendance.objects.filter(session__event=event, status='PRESENT').count(),
             'absent': Attendance.objects.filter(session__event=event, status='ABSENT').count(),
         }
-    
-    # Check registration status for logged-in users
+
+    # User registration
     user_registered = False
     user_registration = None
     registration_count = 0
     can_view_registrations = False
-    
     if request.user.is_authenticated:
         user_registration = EventRegistration.objects.filter(event=event, student=request.user).first()
         user_registered = user_registration is not None
-        
-        # Check if user can view registrations
         user_roles = request.user.roles or []
         if ('ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles or 
             request.user in event.organizers.all() or
             (event.club and 'FACULTY' in user_roles and event.club.advisor == request.user) or
             (event.club and 'CLUB_COORDINATOR' in user_roles and request.user in event.club.coordinators.all())):
             can_view_registrations = True
-    
-    # Get registration count only for authorized users
-    if can_view_registrations:
-        registration_count = EventRegistration.objects.filter(event=event).count()
-    
+        if can_view_registrations:
+            registration_count = EventRegistration.objects.filter(event=event).count()
+
+    # Recent events from same club (excluding current)
+    recent_events = []
+    if event.club:
+        recent_events = event.club.events.exclude(id=event.id).order_by('-date_time')[:5]
+
     context = {
         'event': event,
+        'recent_events': recent_events,
         'attendance_count': attendance_count,
         'user_registered': user_registered,
         'user_registration': user_registration,

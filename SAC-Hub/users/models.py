@@ -11,13 +11,20 @@ class Department(models.Model):
 
 
 class Club(models.Model):
-	name = models.CharField(max_length=100, unique=True)
-	description = models.TextField(blank=True)
-	coordinators = models.ManyToManyField('User', blank=True, related_name='coordinated_clubs', help_text='Club Coordinators (Users)')
-	advisor = models.ForeignKey('User', on_delete=models.SET_NULL, null=True, blank=True, related_name='advised_clubs', limit_choices_to={'roles': 'FACULTY'}, help_text='Club Advisor (Faculty)')
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    coordinators = models.ManyToManyField(
+        'User', blank=True, related_name='coordinated_clubs'
+    )
+    logo = models.ImageField(upload_to='club_logos/', null=True, blank=True)
+    advisor = models.ForeignKey(
+        'User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='advised_clubs', limit_choices_to={'roles': 'FACULTY'}
+    )
 
-	def __str__(self):
-		return self.name
+    def __str__(self):
+        return self.name
+
 
 class Role(models.TextChoices):
 	SAC_COORDINATOR = 'SAC_COORDINATOR', 'SAC Coordinator'

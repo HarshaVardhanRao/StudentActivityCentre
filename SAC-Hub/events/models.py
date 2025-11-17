@@ -25,6 +25,7 @@ class Event(models.Model):
 	approval_notes = models.TextField(blank=True, help_text='Notes from administrators during approval process')
 	created_at = models.DateTimeField(auto_now_add=True)
 	updated_at = models.DateTimeField(auto_now=True)
+	thumbnail = models.ImageField(upload_to='event_thumbnails/', null=True, blank=True)
 
 	def __str__(self):
 		return self.name
