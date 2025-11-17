@@ -420,10 +420,11 @@ def profile_view(request):
     
     # Add attended events
     for attendance in user.attendances.filter(status='PRESENT')[:5]:
-        recent_activities.append({
-            'event': attendance.event,
-            'role': 'attendee'
-        })
+        if attendance.session and attendance.session.event:
+            recent_activities.append({
+                'event': attendance.session.event,
+                'role': 'attendee'
+            })
     
     # Sort by date
     recent_activities.sort(key=lambda x: x['event'].date_time, reverse=True)
@@ -794,4 +795,5 @@ def clear_all_notifications(request):
         Notification.objects.all().delete()
     else:
         Notification.objects.filter(user=request.user).delete()
+    return JsonResponse({'success': True})
     return JsonResponse({'success': True})
