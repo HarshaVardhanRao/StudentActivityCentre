@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Event Organizer Dashboard - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<!-- Event Organizer Welcome Section -->
+<div class="dashboard-welcome">
+    <h1>Welcome, Event Organizer {{ user.get_full_name|default:user.username }}! 🎪</h1>
+    <p>Bring ideas to life through exceptional events. Plan, execute, and deliver memorable experiences that engage and inspire our campus community.</p>
+</div>
+
+<!-- Event Management Stats -->
+<div class="stats-showcase">
+    <div class="stat-card">
+        <h3>Events Organized</h3>
+        <div class="number">{{ events_organized|default:32 }}</div>
+        <div class="label">Total Events</div>
+    </div>
+    <div class="stat-card">
+        <h3>Active Projects</h3>
+        <div class="number">{{ active_events|default:8 }}</div>
+        <div class="label">In Progress</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total Attendees</h3>
+        <div class="number">{{ total_attendees|default:2840 }}</div>
+        <div class="label">Across All Events</div>
+    </div>
+    <div class="stat-card">
+        <h3>Success Rate</h3>
+        <div class="number">{{ success_rate|default:96 }}%</div>
+        <div class="label">Event Completion</div>
+    </div>
+</div>
+
+<!-- Event Management Tools -->
+<div class="card-grid">
+    <!-- Event Creation -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">✨</span>
+            <h3>Event Creation</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Design and create new events from concept to execution. Set objectives, define requirements, and establish timelines.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/organizer/create/" class="btn btn-primary" style="flex: 1;">Create Event</a>
+                <a href="/organizer/templates/" class="btn btn-outline" style="flex: 1;">Use Template</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Management -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🎯</span>
+            <h3>Active Events</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Monitor ongoing events, track progress, manage resources, and coordinate with team members for successful delivery.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/organizer/active/" class="btn btn-success" style="flex: 1;">Manage Active</a>
+                <a href="/organizer/timeline/" class="btn btn-outline" style="flex: 1;">View Timeline</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logistics & Coordination -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🏗️</span>
+            <h3>Logistics Hub</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Handle venue bookings, vendor coordination, equipment management, and all logistical aspects of event execution.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/organizer/logistics/" class="btn btn-accent" style="flex: 1;">Logistics Panel</a>
+                <a href="/organizer/vendors/" class="btn btn-outline" style="flex: 1;">Manage Vendors</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics & Insights -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📊</span>
+            <h3>Event Analytics</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Analyze event performance, gather participant feedback, and generate insights to improve future events.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/organizer/analytics/" class="btn btn-primary" style="flex: 1;">View Analytics</a>
+                <a href="/organizer/feedback/" class="btn btn-outline" style="flex: 1;">Feedback Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Events Pipeline -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Events Pipeline</h2>
+        <p>Track your events from planning to completion</p>
+    </div>
+
+    {% if events_pipeline %}
+    <div class="modern-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date</th>
+                    <th>Stage</th>
+                    <th>Progress</th>
+                    <th>Attendees</th>
+                    <th>Budget Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events_pipeline %}
+                <tr>
+                    <td><strong>{{ event.name }}</strong></td>
+                    <td>{{ event.date|date:"M d, Y" }}</td>
+                    <td>
+                        {% if event.stage == 'PLANNING' %}
+                            <span class="status-badge" style="background: rgba(66, 153, 225, 0.1); color: var(--info);">Planning</span>
+                        {% elif event.stage == 'EXECUTION' %}
+                            <span class="status-badge status-warning">Execution</span>
+                        {% elif event.stage == 'COMPLETED' %}
+                            <span class="status-badge status-success">Completed</span>
+                        {% else %}
+                            <span class="status-badge">{{ event.stage }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="flex: 1; background: var(--surface-tertiary); height: 6px; border-radius: 3px; overflow: hidden;">
+                                <div style="background: var(--primary-main); height: 100%; width: {{ event.progress|default:45 }}%; transition: width 0.3s ease;"></div>
+                            </div>
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">{{ event.progress|default:45 }}%</span>
+                        </div>
+                    </td>
+                    <td>{{ event.expected_attendees|default:0 }}</td>
+                    <td>
+                        {% if event.budget_status == 'APPROVED' %}
+                            <span class="status-badge status-success">Approved</span>
+                        {% elif event.budget_status == 'PENDING' %}
+                            <span class="status-badge status-warning">Pending</span>
+                        {% elif event.budget_status == 'OVER_BUDGET' %}
+                            <span class="status-badge status-error">Over Budget</span>
+                        {% else %}
+                            <span class="status-badge">{{ event.budget_status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/organizer/event/{{ event.id }}/" class="btn btn-primary" style="padding: 0.5rem; font-size: 0.75rem;">Manage</a>
+                            <a href="/organizer/event/{{ event.id }}/edit/" class="btn btn-outline" style="padding: 0.5rem; font-size: 0.75rem;">Edit</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>Ready to Create Amazing Events! 🚀</h3>
+        <p>No events in your pipeline yet. Start planning your next spectacular event!</p>
+        <a href="/organizer/create/" class="btn btn-primary">Create Your First Event</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Event Performance Insights -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Performance Insights</h2>
+        <p>Key metrics and insights from your event organization activities</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🎯</span>
+                <h3>Event Attendance Rate</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
+                    {{ attendance_rate|default:89 }}%
+                </div>
+                <p style="margin-bottom: 1rem;">Average attendance across all events</p>
+                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, var(--accent-emerald), #48bb78); height: 100%; width: {{ attendance_rate|default:89 }}%; border-radius: 4px; transition: width 1s ease;"></div>
+                </div>
+                <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">↗ +7% from last quarter</small>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">⭐</span>
+                <h3>Participant Satisfaction</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
+                    {{ satisfaction_rating|default:4.7 }}/5
+                </div>
+                <p style="margin-bottom: 1rem;">Average participant rating</p>
+                <div style="display: flex; justify-content: center; gap: 0.25rem; margin-top: 0.5rem;">
+                    {% for i in "12345"|make_list %}
+                        <span style="color: var(--accent-gold); font-size: 1.125rem;">⭐</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">💰</span>
+                <h3>Budget Efficiency</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
+                    {{ budget_efficiency|default:92 }}%
+                </div>
+                <p style="margin-bottom: 1rem;">Average budget utilization</p>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <span style="color: var(--accent-emerald); font-size: 0.875rem;">💡 Efficient</span>
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">spending practices</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Organizer Toolkit -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Event Organizer Toolkit</h2>
+        <p>Essential tools and resources for successful event management</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📅</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Event Calendar</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Manage event schedules and avoid conflicts</p>
+            <a href="/organizer/calendar/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Calendar</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">👥</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Team Coordination</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Coordinate with volunteers and team members</p>
+            <a href="/organizer/teams/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Manage Teams</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📋</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Checklists & Templates</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Access proven event planning resources</p>
+            <a href="/organizer/resources/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Access Resources</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--info);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📊</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Performance Reports</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Generate detailed event performance reports</p>
+            <a href="/organizer/reports/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Generate Reports</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate event statistics
+    const statNumbers = document.querySelectorAll('.stat-card .number');
+    statNumbers.forEach((number, index) => {
+        const finalValue = parseFloat(number.textContent.replace('%', ''));
+        let currentValue = 0;
+        const isPercentage = number.textContent.includes('%');
+        const increment = Math.ceil(finalValue / 60);
+        
+        const counter = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                number.textContent = finalValue + (isPercentage ? '%' : '');
+                clearInterval(counter);
+            } else {
+                number.textContent = currentValue + (isPercentage ? '%' : '');
+            }
+        }, 25);
+    });
+
+    // Enhanced event progress visualization
+    setTimeout(() => {
+        const progressBars = document.querySelectorAll('[style*="width:"][style*="%"]');
+        progressBars.forEach((bar, index) => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 200 * (index + 1));
+        });
+    }, 800);
+
+    // Event management interactions
+    const eventButtons = document.querySelectorAll('a[href*="/organizer/event/"]');
+    eventButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const eventRow = this.closest('tr');
+            if (eventRow) {
+                eventRow.style.background = 'linear-gradient(90deg, var(--surface-secondary), transparent)';
+                setTimeout(() => {
+                    eventRow.style.background = '';
+                }, 300);
+            }
+        });
+    });
+
+    // Budget status color coding
+    document.querySelectorAll('.status-badge').forEach(badge => {
+        const row = badge.closest('tr');
+        if (badge.textContent.trim() === 'Over Budget' && row) {
+            row.style.borderLeft = '3px solid var(--error)';
+            row.style.background = 'rgba(245, 101, 101, 0.02)';
+        } else if (badge.textContent.trim() === 'Approved' && row) {
+            row.style.borderLeft = '3px solid var(--success)';
+        }
+    });
+});
+</script>
+{% endblock %}

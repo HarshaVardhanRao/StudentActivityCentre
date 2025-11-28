@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Club President Dashboard - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<!-- President Welcome Section -->
+<div class="dashboard-welcome">
+    <h1>Welcome, President {{ user.get_full_name|default:user.username }}! 👑</h1>
+    <p>Lead your club to new heights. Manage events, oversee team members, and drive engaging activities for your community.</p>
+</div>
+
+<!-- Club Performance Stats -->
+<div class="stats-showcase">
+    <div class="stat-card">
+        <h3>Active Members</h3>
+        <div class="number">{{ club.members.count|default:0 }}</div>
+        <div class="label">Total Club Members</div>
+    </div>
+    <div class="stat-card">
+        <h3>Events This Month</h3>
+        <div class="number">{{ monthly_events|default:0 }}</div>
+        <div class="label">Organized Events</div>
+    </div>
+    <div class="stat-card">
+        <h3>Pending Approvals</h3>
+        <div class="number">{{ pending_approvals|default:0 }}</div>
+        <div class="label">Awaiting Review</div>
+    </div>
+    <div class="stat-card">
+        <h3>Club Rating</h3>
+        <div class="number">{{ club_rating|default:"4.5" }}</div>
+        <div class="label">Member Satisfaction</div>
+    </div>
+</div>
+
+<!-- Quick Management Actions -->
+<div class="card-grid">
+    <!-- Event Management -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🎪</span>
+            <h3>Event Management</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Create, schedule, and manage club events. Track attendance and gather feedback from participants.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/events/create/" class="btn btn-primary" style="flex: 1;">Create Event</a>
+                <a href="/events/manage/" class="btn btn-outline" style="flex: 1;">Manage Events</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Management -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">👥</span>
+            <h3>Team Management</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Manage club members, assign roles, and coordinate with coordinators and volunteers.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/members/" class="btn btn-success" style="flex: 1;">View Members</a>
+                <a href="/members/invite/" class="btn btn-outline" style="flex: 1;">Invite Members</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics & Reports -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📊</span>
+            <h3>Analytics & Reports</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>View detailed analytics about member engagement, event success, and club performance metrics.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/analytics/" class="btn btn-accent" style="flex: 1;">View Analytics</a>
+                <a href="/reports/" class="btn btn-outline" style="flex: 1;">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Communication Hub -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">💬</span>
+            <h3>Communication</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Send announcements, newsletters, and stay connected with your club members.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/announcements/" class="btn btn-primary" style="flex: 1;">Send Announcement</a>
+                <a href="/messages/" class="btn btn-outline" style="flex: 1;">View Messages</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Club Activities -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Recent Club Activities</h2>
+        <p>Track your club's latest events and member engagements</p>
+    </div>
+
+    {% if recent_events %}
+    <div class="modern-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Date & Time</th>
+                    <th>Attendees</th>
+                    <th>Status</th>
+                    <th>Rating</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in recent_events %}
+                <tr>
+                    <td><strong>{{ event.name }}</strong></td>
+                    <td>{{ event.date_time|date:"M d, Y - H:i" }}</td>
+                    <td>{{ event.attendance_count|default:0 }}</td>
+                    <td>
+                        {% if event.status == 'COMPLETED' %}
+                            <span class="status-badge status-success">Completed</span>
+                        {% elif event.status == 'ONGOING' %}
+                            <span class="status-badge status-warning">Ongoing</span>
+                        {% else %}
+                            <span class="status-badge status-info">{{ event.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span>{{ event.rating|default:"--" }}</span>
+                            {% if event.rating %}
+                                <span style="color: var(--accent-gold);">⭐</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/events/{{ event.id }}/" class="btn btn-outline" style="padding: 0.5rem; font-size: 0.75rem;">View</a>
+                            <a href="/events/{{ event.id }}/edit/" class="btn btn-primary" style="padding: 0.5rem; font-size: 0.75rem;">Edit</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Recent Events</h3>
+        <p>Start by creating your first club event to engage your members!</p>
+        <a href="/events/create/" class="btn btn-primary">Create Your First Event</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Member Engagement Overview -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Member Engagement</h2>
+        <p>Monitor how active and engaged your club members are</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🎯</span>
+                <h3>Active Members</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
+                    {{ active_members_percentage|default:"85" }}%
+                </div>
+                <p style="margin-bottom: 1rem;">Members who attended events this month</p>
+                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, var(--primary-main), var(--accent-emerald)); height: 100%; width: {{ active_members_percentage|default:85 }}%; border-radius: 4px; transition: width 1s ease;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">📈</span>
+                <h3>Growth Rate</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
+                    +{{ membership_growth|default:"12" }}%
+                </div>
+                <p style="margin-bottom: 1rem;">New members this semester</p>
+                <small style="color: var(--text-muted);">Compared to last semester</small>
+            </div>
+        </div>
+
+        <div class="feature-card" style="text-align: center;">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">💡</span>
+                <h3>Event Success</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
+                    {{ event_success_rate|default:"92" }}%
+                </div>
+                <p style="margin-bottom: 1rem;">Average event satisfaction rating</p>
+                <div style="display: flex; justify-content: center; gap: 0.25rem;">
+                    {% for i in "12345"|make_list %}
+                        <span style="color: var(--accent-gold); font-size: 1.25rem;">⭐</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Panel -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Leadership Tools</h2>
+        <p>Essential tools for effective club leadership</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📋</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Task Management</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Assign and track tasks for coordinators and volunteers</p>
+            <a href="/tasks/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Manage Tasks</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">💰</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Budget Tracking</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Monitor club expenses and budget allocation</p>
+            <a href="/budget/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Budget</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🏆</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Recognition</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Recognize outstanding members and contributions</p>
+            <a href="/recognition/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Give Recognition</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate progress bars
+    const progressBars = document.querySelectorAll('[style*="width:"]');
+    progressBars.forEach(bar => {
+        const width = bar.style.width;
+        bar.style.width = '0%';
+        setTimeout(() => {
+            bar.style.width = width;
+        }, 500);
+    });
+
+    // Add real-time updates simulation (in a real app, use WebSockets)
+    setInterval(() => {
+        const now = new Date();
+        const timeElements = document.querySelectorAll('.last-updated');
+        timeElements.forEach(el => {
+            el.textContent = `Last updated: ${now.toLocaleTimeString()}`;
+        });
+    }, 30000); // Update every 30 seconds
+
+    // Enhanced card interactions
+    const cards = document.querySelectorAll('.feature-card');
+    cards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'A' && e.target.tagName !== 'BUTTON') {
+                const primaryLink = this.querySelector('.btn-primary');
+                if (primaryLink) {
+                    primaryLink.click();
+                }
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

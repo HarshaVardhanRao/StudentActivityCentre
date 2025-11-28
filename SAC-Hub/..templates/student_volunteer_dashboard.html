@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Volunteer Dashboard - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<!-- Volunteer Welcome Section -->
+<div class="dashboard-welcome">
+    <h1>Welcome, Volunteer {{ user.get_full_name|default:user.username }}! 🌟</h1>
+    <p>Make a difference through service. Your dedication and enthusiasm help create memorable experiences and strengthen our campus community. Every contribution matters!</p>
+</div>
+
+<!-- Volunteer Impact Stats -->
+<div class="stats-showcase">
+    <div class="stat-card">
+        <h3>Events Volunteered</h3>
+        <div class="number">{{ events_volunteered|default:18 }}</div>
+        <div class="label">Total Participation</div>
+    </div>
+    <div class="stat-card">
+        <h3>Service Hours</h3>
+        <div class="number">{{ service_hours|default:89 }}</div>
+        <div class="label">Hours Contributed</div>
+    </div>
+    <div class="stat-card">
+        <h3>Current Tasks</h3>
+        <div class="number">{{ current_tasks|default:5 }}</div>
+        <div class="label">Active Assignments</div>
+    </div>
+    <div class="stat-card">
+        <h3>Impact Score</h3>
+        <div class="number">{{ impact_score|default:4.6 }}</div>
+        <div class="label">Supervisor Rating</div>
+    </div>
+</div>
+
+<!-- Volunteer Activity Hub -->
+<div class="card-grid">
+    <!-- My Assignments -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📋</span>
+            <h3>My Assignments</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>View your current volunteer assignments, check task details, and track your progress on ongoing responsibilities.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/volunteer/assignments/" class="btn btn-primary" style="flex: 1;">View Tasks</a>
+                <a href="/volunteer/schedule/" class="btn btn-outline" style="flex: 1;">My Schedule</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volunteer Opportunities -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🎯</span>
+            <h3>New Opportunities</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Discover new volunteer opportunities, explore different types of service, and expand your contribution to campus life.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/volunteer/opportunities/" class="btn btn-success" style="flex: 1;">Browse Opportunities</a>
+                <a href="/volunteer/apply/" class="btn btn-outline" style="flex: 1;">Apply Now</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Service Portfolio -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🏆</span>
+            <h3>Service Portfolio</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Track your volunteer journey, view achievements, and build a portfolio of your community service contributions.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/volunteer/portfolio/" class="btn btn-accent" style="flex: 1;">View Portfolio</a>
+                <a href="/volunteer/achievements/" class="btn btn-outline" style="flex: 1;">Achievements</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Team Collaboration -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">👥</span>
+            <h3>Team Collaboration</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Connect with fellow volunteers, coordinate team activities, and participate in volunteer community discussions.</p>
+            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <a href="/volunteer/teams/" class="btn btn-primary" style="flex: 1;">My Teams</a>
+                <a href="/volunteer/community/" class="btn btn-outline" style="flex: 1;">Community</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Current Volunteer Assignments -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Current Volunteer Assignments</h2>
+        <p>Manage your active volunteer tasks and responsibilities</p>
+    </div>
+
+    {% if current_assignments %}
+    <div class="modern-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event/Activity</th>
+                    <th>Role</th>
+                    <th>Date & Time</th>
+                    <th>Location</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in current_assignments %}
+                <tr>
+                    <td><strong>{{ assignment.event.name }}</strong></td>
+                    <td>
+                        {% if assignment.role == 'SETUP' %}
+                            <span class="status-badge" style="background: rgba(44, 90, 160, 0.1); color: var(--primary-main);">🛠️ Setup</span>
+                        {% elif assignment.role == 'REGISTRATION' %}
+                            <span class="status-badge" style="background: rgba(56, 161, 105, 0.1); color: var(--accent-emerald);">📝 Registration</span>
+                        {% elif assignment.role == 'CROWD_MANAGEMENT' %}
+                            <span class="status-badge" style="background: rgba(214, 158, 46, 0.1); color: var(--accent-gold);">👥 Crowd Mgmt</span>
+                        {% elif assignment.role == 'TECHNICAL' %}
+                            <span class="status-badge" style="background: rgba(153, 102, 255, 0.1); color: var(--accent-purple);">⚙️ Technical</span>
+                        {% else %}
+                            <span class="status-badge">{{ assignment.role }}</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ assignment.event.date_time|date:"M d, Y H:i" }}</td>
+                    <td>{{ assignment.location|default:"TBD" }}</td>
+                    <td>
+                        {% if assignment.priority == 'HIGH' %}
+                            <span class="status-badge status-error">High</span>
+                        {% elif assignment.priority == 'MEDIUM' %}
+                            <span class="status-badge status-warning">Medium</span>
+                        {% else %}
+                            <span class="status-badge status-success">Low</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if assignment.status == 'ASSIGNED' %}
+                            <span class="status-badge" style="background: rgba(66, 153, 225, 0.1); color: var(--info);">Assigned</span>
+                        {% elif assignment.status == 'IN_PROGRESS' %}
+                            <span class="status-badge status-warning">In Progress</span>
+                        {% elif assignment.status == 'COMPLETED' %}
+                            <span class="status-badge status-success">Completed</span>
+                        {% else %}
+                            <span class="status-badge">{{ assignment.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="/volunteer/assignment/{{ assignment.id }}/" class="btn btn-primary" style="padding: 0.5rem; font-size: 0.75rem;">View Details</a>
+                            {% if assignment.status == 'ASSIGNED' %}
+                                <a href="/volunteer/assignment/{{ assignment.id }}/start/" class="btn btn-outline" style="padding: 0.5rem; font-size: 0.75rem;">Start Task</a>
+                            {% elif assignment.status == 'IN_PROGRESS' %}
+                                <a href="/volunteer/assignment/{{ assignment.id }}/complete/" class="btn btn-success" style="padding: 0.5rem; font-size: 0.75rem;">Mark Complete</a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Active Assignments 🎉</h3>
+        <p>You're all caught up! Ready to take on new volunteer opportunities?</p>
+        <a href="/volunteer/opportunities/" class="btn btn-primary">Find New Opportunities</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Volunteer Performance & Growth -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Your Volunteer Journey</h2>
+        <p>Track your growth and impact as a valued community volunteer</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">⏰</span>
+                <h3>Service Hours Progress</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
+                    {{ service_hours_progress|default:89 }}/100
+                </div>
+                <p style="margin-bottom: 1rem;">Hours toward volunteer milestone</p>
+                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
+                    <div style="background: linear-gradient(90deg, var(--accent-emerald), #48bb78); height: 100%; width: {{ service_hours_progress|default:89 }}%; border-radius: 4px; transition: width 1s ease;"></div>
+                </div>
+                <small style="color: var(--text-muted); margin-top: 0.5rem; display: block;">Just {{ service_hours_remaining|default:11 }} hours to go!</small>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🌟</span>
+                <h3>Supervisor Rating</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
+                    {{ supervisor_rating|default:4.6 }}/5
+                </div>
+                <p style="margin-bottom: 1rem;">Average feedback from supervisors</p>
+                <div style="display: flex; justify-content: center; gap: 0.25rem; margin-top: 0.5rem;">
+                    {% for i in "12345"|make_list %}
+                        <span style="color: {% if forloop.counter0 < supervisor_rating|floatformat:0 %}var(--accent-gold){% else %}var(--surface-tertiary){% endif %}; font-size: 1.125rem;">⭐</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-card-header">
+                <span class="feature-card-icon">🏆</span>
+                <h3>Volunteer Level</h3>
+            </div>
+            <div class="feature-card-body">
+                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
+                    {{ volunteer_level|default:"Bronze" }}
+                </div>
+                <p style="margin-bottom: 1rem;">Current volunteer status level</p>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <span style="color: var(--accent-emerald); font-size: 0.875rem;">↗ Progress</span>
+                    <span style="color: var(--text-muted); font-size: 0.875rem;">toward Silver level</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Volunteer Resources & Community -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Volunteer Resources & Community</h2>
+        <p>Tools and connections to enhance your volunteer experience</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📚</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Volunteer Handbook</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Access guides and best practices for effective volunteering</p>
+            <a href="/volunteer/handbook/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Handbook</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🎓</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Skill Development</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Learn new skills through volunteer training programs</p>
+            <a href="/volunteer/training/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Training</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">👥</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Volunteer Network</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Connect with fellow volunteers and share experiences</p>
+            <a href="/volunteer/network/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Join Network</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--info);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📝</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Feedback Center</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Provide feedback on events and volunteer experiences</p>
+            <a href="/volunteer/feedback/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Give Feedback</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-purple);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🏅</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Recognition Program</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Track awards and recognition for outstanding service</p>
+            <a href="/volunteer/recognition/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Awards</a>
+        </div>
+
+        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-crimson);">
+            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📊</div>
+            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Service Records</h4>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Access complete history of your volunteer service</p>
+            <a href="/volunteer/records/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Records</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate volunteer statistics
+    const statNumbers = document.querySelectorAll('.stat-card .number');
+    statNumbers.forEach((number, index) => {
+        const finalValue = parseFloat(number.textContent);
+        let currentValue = 0;
+        const isDecimal = finalValue % 1 !== 0;
+        const increment = isDecimal ? finalValue / 40 : Math.ceil(finalValue / 40);
+        
+        const counter = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                number.textContent = finalValue;
+                clearInterval(counter);
+            } else {
+                number.textContent = isDecimal ? currentValue.toFixed(1) : Math.floor(currentValue);
+            }
+        }, 40);
+    });
+
+    // Assignment priority highlighting
+    document.querySelectorAll('.status-badge.status-error').forEach(badge => {
+        const row = badge.closest('tr');
+        if (badge.textContent.trim() === 'High' && row) {
+            row.style.borderLeft = '3px solid var(--error)';
+            row.style.background = 'rgba(245, 101, 101, 0.02)';
+            // Add gentle pulsing animation for high priority tasks
+            row.style.animation = 'subtle-pulse 3s ease-in-out infinite';
+        }
+    });
+
+    // Volunteer-specific interactions
+    const volunteerButtons = document.querySelectorAll('a[href*="/volunteer/"]');
+    volunteerButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            // Add volunteer service feedback
+            this.style.transform = 'scale(0.95)';
+            this.style.background = 'linear-gradient(135deg, var(--primary-light), var(--primary-main))';
+            setTimeout(() => {
+                this.style.transform = '';
+                this.style.background = '';
+            }, 200);
+        });
+    });
+
+    // Service hours progress animation
+    setTimeout(() => {
+        const progressBars = document.querySelectorAll('[style*="width:"][style*="%"]');
+        progressBars.forEach((bar, index) => {
+            const width = bar.style.width;
+            bar.style.width = '0%';
+            setTimeout(() => {
+                bar.style.width = width;
+            }, 600 * (index + 1));
+        });
+    }, 1500);
+
+    // Volunteer milestone celebrations
+    const serviceHours = {{ service_hours_progress|default:89 }};
+    if (serviceHours >= 90) {
+        setTimeout(() => {
+            // Celebratory animation for milestone achievement
+            const milestoneCard = document.querySelector('[style*="Service Hours Progress"]').closest('.feature-card');
+            if (milestoneCard) {
+                milestoneCard.style.background = 'linear-gradient(135deg, rgba(56, 161, 105, 0.1), rgba(72, 187, 120, 0.05))';
+                milestoneCard.style.border = '2px solid var(--accent-emerald)';
+            }
+        }, 2000);
+    }
+
+    // Task status updates
+    const taskButtons = document.querySelectorAll('a[href*="/assignment/"][href*="/start/"], a[href*="/assignment/"][href*="/complete/"]');
+    taskButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const row = this.closest('tr');
+            if (row && this.href.includes('/start/')) {
+                row.style.background = 'linear-gradient(90deg, rgba(66, 153, 225, 0.1), transparent)';
+            } else if (row && this.href.includes('/complete/')) {
+                row.style.background = 'linear-gradient(90deg, rgba(56, 161, 105, 0.1), transparent)';
+            }
+        });
+    });
+
+    // Add CSS for subtle pulse animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes subtle-pulse {
+            0%, 100% { box-shadow: 0 0 5px rgba(245, 101, 101, 0.3); }
+            50% { box-shadow: 0 0 15px rgba(245, 101, 101, 0.5); }
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

@@ -5,22 +5,41 @@ from django.contrib import messages
 from django.db.models import Count
 from users.models import Club, Department, User
 
+from django.core.paginator import Paginator
+from django.db.models import Count
+
+from django.core.paginator import Paginator
+from django.db.models import Count
+from django.shortcuts import render
+
+
 def club_list(request):
-    """List all clubs"""
-    clubs = Club.objects.all().prefetch_related('coordinators', 'members', 'events')
-    
-    # Add counts
+    """List all clubs with pagination and joined status"""
+    # Use the correct M2M reverse name: 'members'
+    clubs = Club.objects.all().prefetch_related('coordinators', 'events', 'members')
+
+    # Annotate counts
     clubs = clubs.annotate(
-        members_count=Count('members'),
+        members_count=Count('members'),  # Correct field name
         events_count=Count('events')
     )
-    
+
+    # Get IDs of clubs the current user has joined
+    joined_club_ids = []
+    if request.user.is_authenticated:
+        joined_club_ids = request.user.clubs.values_list('id', flat=True)
+
     # Pagination
     paginator = Paginator(clubs, 12)
     page_number = request.GET.get('page')
-    clubs = paginator.get_page(page_number)
-    
-    return render(request, 'clubs_list.html', {'clubs': clubs})
+    clubs_page = paginator.get_page(page_number)
+
+    return render(request, 'clubs_list.html', {
+        'clubs': clubs_page,
+        'joined_club_ids': joined_club_ids
+    })
+
+
 
 def club_detail(request, club_id):
     """Display club details"""

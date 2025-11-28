@@ -1,0 +1,1190 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <style>
+        .admin-dashboard {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .dashboard-header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .dashboard-header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #667eea;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 0.9em;
+            text-transform: uppercase;
+        }
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .management-section {
+            background: white;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .section-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.5em;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        .btn-secondary {
+            background: #48bb78;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        .btn-danger:hover {
+            background: #e53e3e;
+        }
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+        .btn-info:hover {
+            background: #3182ce;
+        }
+        
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+        }
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        table tr:hover {
+            background: #f9f9f9;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        .badge-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        .badge-danger {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        .badge-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 0.8em;
+        }
+        .dropdown-btn {
+            position: relative;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .dropdown-btn:hover {
+            background: #5568d3;
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 160px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            z-index: 1000;
+            border-radius: 5px;
+            top: 100%;
+            right: 0;
+            margin-top: 5px;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-menu a,
+        .dropdown-menu button {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+        .dropdown-menu a:hover,
+        .dropdown-menu button:hover {
+            background-color: #f1f1f1;
+        }
+        .dropdown-menu a:first-child {
+            border-radius: 5px 5px 0 0;
+        }
+        .dropdown-menu a:last-child {
+            border-radius: 0 0 5px 5px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.4);
+            animation: fadeIn 0.3s ease;
+        }
+        .modal.show {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-btn:hover {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: 600;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 0.95em;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        .empty-state p {
+            margin: 10px 0;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 0;
+            border-bottom: 2px solid #ddd;
+        }
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 0.95em;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: 600;
+        }
+        .tab:hover {
+            background: #f9f9f9;
+        }
+        
+        .alert {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid;
+        }
+        .alert-danger {
+            background: #fed7d7;
+            border-color: #f56565;
+            color: #742a2a;
+        }
+        .alert-success {
+            background: #c6f6d5;
+            border-color: #48bb78;
+            color: #22543d;
+        }
+    </style>
+
+    {% if error_message %}
+    <div class="alert alert-danger">
+        {{ error_message }}
+    </div>
+    {% else %}
+
+    <!-- Header -->
+    <div class="dashboard-header">
+        <h1>📊 Admin Dashboard</h1>
+        <p>Welcome back! Manage all aspects of the Student Activity Centre</p>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>👥 Total Users</h3>
+            <div class="number">{{ stats.total_users }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>🎯 Total Clubs</h3>
+            <div class="number">{{ stats.total_clubs }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>🏢 Departments</h3>
+            <div class="number">{{ stats.total_departments }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>📅 Events</h3>
+            <div class="number">{{ stats.total_events }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>⏳ Pending Events</h3>
+            <div class="number">{{ stats.pending_events }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>✅ Approved Events</h3>
+            <div class="number">{{ stats.approved_events }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>📋 Attendance Records</h3>
+            <div class="number">{{ stats.total_attendance_records }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>📆 Calendar Entries</h3>
+            <div class="number">{{ stats.total_calendar_entries }}</div>
+        </div>
+    </div>
+
+    <!-- USERS SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>👥 Users Management</h2>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="openUserModal('create')">+ Add User</button>
+                <a href="/admin/users/user/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if users %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Username</th>
+                        <th>Roles</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td><strong>{{ user.get_full_name }}</strong></td>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            {% for role in user.roles %}
+                            <span class="badge badge-info">{{ role }}</span>
+                            {% endfor %}
+                        </td>
+                        <td>{{ user.department|default:"N/A" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'user-{{ user.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="user-{{ user.id }}">
+                                    <button onclick="openUserModal('edit', {{ user.id }})">✏️ Edit</button>
+                                    <button onclick="openUserModal('view', {{ user.id }})">👁️ View</button>
+                                    <button onclick="deleteUser({{ user.id }}, '{{ user.get_full_name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No users found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CLUBS SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>🎯 Clubs Management</h2>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="openClubModal('create')">+ Add Club</button>
+                <a href="/admin/users/club/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if clubs %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Club Name</th>
+                        <th>Description</th>
+                        <th>Coordinators</th>
+                        <th>Members</th>
+                        <th>Advisor</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for club in clubs %}
+                    <tr>
+                        <td><strong>{{ club.name }}</strong></td>
+                        <td>{{ club.description|truncatewords:10 }}</td>
+                        <td>{{ club.coordinators.count }}</td>
+                        <td>{{ club.members.count }}</td>
+                        <td>{{ club.advisor.get_full_name|default:"Unassigned" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'club-{{ club.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="club-{{ club.id }}">
+                                    <button onclick="openClubModal('edit', {{ club.id }})">✏️ Edit</button>
+                                    <button onclick="openClubModal('view', {{ club.id }})">👁️ View</button>
+                                    <button onclick="deleteClub({{ club.id }}, '{{ club.name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No clubs found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DEPARTMENTS SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>🏢 Departments Management</h2>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="openDepartmentModal('create')">+ Add Department</button>
+                <a href="/admin/users/department/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if departments %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Department Name</th>
+                        <th>Description</th>
+                        <th>Users</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dept in departments %}
+                    <tr>
+                        <td><strong>{{ dept.name }}</strong></td>
+                        <td>{{ dept.description|truncatewords:10 }}</td>
+                        <td>{{ dept.users.count }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'dept-{{ dept.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="dept-{{ dept.id }}">
+                                    <button onclick="openDepartmentModal('edit', {{ dept.id }})">✏️ Edit</button>
+                                    <button onclick="openDepartmentModal('view', {{ dept.id }})">👁️ View</button>
+                                    <button onclick="deleteDepartment({{ dept.id }}, '{{ dept.name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No departments found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- EVENTS SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>📅 Events Management</h2>
+            <div class="btn-group">
+                <a href="/events/create/" class="btn btn-secondary">+ Create Event</a>
+                <a href="/events/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if events %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Date & Time</th>
+                        <th>Status</th>
+                        <th>Club</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                    <tr>
+                        <td><strong>{{ event.name }}</strong></td>
+                        <td>{{ event.date_time|date:"d M Y, H:i" }}</td>
+                        <td>
+                            {% if event.status == 'PENDING' %}
+                            <span class="badge badge-warning">Pending</span>
+                            {% elif event.status == 'APPROVED' %}
+                            <span class="badge badge-success">Approved</span>
+                            {% elif event.status == 'REJECTED' %}
+                            <span class="badge badge-danger">Rejected</span>
+                            {% elif event.status == 'COMPLETED' %}
+                            <span class="badge badge-success">Completed</span>
+                            {% else %}
+                            <span class="badge">{{ event.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ event.club.name }}</td>
+                        <td>{{ event.created_by.get_full_name|default:"Unknown" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'event-{{ event.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="event-{{ event.id }}">
+                                    <a href="/events/{{ event.id }}/">👁️ View</a>
+                                    <a href="/events/{{ event.id }}/edit/">✏️ Edit</a>
+                                    <button onclick="deleteEvent({{ event.id }}, '{{ event.name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No events found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ATTENDANCE SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>📋 Recent Attendance Records</h2>
+            <div class="btn-group">
+                <a href="/admin/attendance/attendance/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if attendances %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Event</th>
+                        <th>Status</th>
+                        <th>Timestamp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for attendance in attendances %}
+                    <tr>
+                        <td>{{ attendance.student.get_full_name }}</td>
+                        <td>{{ attendance.event.name }}</td>
+                        <td>
+                            {% if attendance.status == 'PRESENT' %}
+                            <span class="badge badge-success">Present</span>
+                            {% else %}
+                            <span class="badge badge-danger">Absent</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ attendance.timestamp|date:"d M Y, H:i" }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'att-{{ attendance.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="att-{{ attendance.id }}">
+                                    <a href="/admin/attendance/attendance/{{ attendance.id }}/change/">✏️ Edit</a>
+                                    <button onclick="deleteAttendance({{ attendance.id }}, '{{ attendance.student.get_full_name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No attendance records found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- CALENDAR SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>📆 Recent Calendar Entries</h2>
+            <div class="btn-group">
+                <a href="/admin/calendar_app/calendarentry/" class="btn btn-info">View All</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            {% if calendar_entries %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>Event</th>
+                        <th>Type</th>
+                        <th>Date & Time</th>
+                        <th>Visible To</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in calendar_entries %}
+                    <tr>
+                        <td>{{ entry.event.name }}</td>
+                        <td><span class="badge badge-info">{{ entry.entry_type }}</span></td>
+                        <td>{{ entry.date_time|date:"d M Y, H:i" }}</td>
+                        <td>{{ entry.visible_to }}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="dropdown-btn" onclick="toggleDropdown(event, 'cal-{{ entry.id }}')">⋯ Actions</button>
+                                <div class="dropdown-menu" id="cal-{{ entry.id }}">
+                                    <a href="/admin/calendar_app/calendarentry/{{ entry.id }}/change/">✏️ Edit</a>
+                                    <button onclick="deleteCalendar({{ entry.id }}, '{{ entry.event.name }}')">🗑️ Delete</button>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <p>No calendar entries found</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS SECTION -->
+    <div class="management-section">
+        <div class="section-header">
+            <h2>🔔 Your Recent Notifications</h2>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% if notifications %}
+                {% for notification in notifications %}
+                <div style="padding: 12px; background: #f9f9f9; border-left: 4px solid #667eea; border-radius: 4px;">
+                    <p style="margin: 0;">{{ notification.message }}</p>
+                    <small style="color: #999;">{{ notification.created_at|date:"d M Y, H:i" }}</small>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <p>No notifications</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% endif %}
+</div>
+
+<!-- MODALS -->
+
+<!-- Club Modal -->
+<div class="modal" id="clubModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="clubModalTitle">Add Club</h2>
+            <button class="close-btn" onclick="closeClubModal()">✕</button>
+        </div>
+        <form id="clubForm" onsubmit="saveClub(event)">
+            <div class="form-group">
+                <label>Club Name *</label>
+                <input type="text" id="clubName" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="clubDescription"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="closeClubModal()">Cancel</button>
+                <button type="submit" class="btn btn-secondary">Save Club</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal" id="userModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="userModalTitle">Add User</h2>
+            <button class="close-btn" onclick="closeUserModal()">✕</button>
+        </div>
+        <form id="userForm">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="userName">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="userEmail">
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="userUsername">
+            </div>
+            <div class="form-group">
+                <label>Roles</label>
+                <input type="text" id="userRoles" placeholder="STUDENT, ADMIN, FACULTY, etc.">
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="closeUserModal()">Cancel</button>
+                <button type="button" class="btn btn-secondary" onclick="redirectToUserAdmin()">Edit in Admin</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Department Modal -->
+<div class="modal" id="departmentModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="departmentModalTitle">Add Department</h2>
+            <button class="close-btn" onclick="closeDepartmentModal()">✕</button>
+        </div>
+        <form id="departmentForm" onsubmit="saveDepartment(event)">
+            <div class="form-group">
+                <label>Department Name *</label>
+                <input type="text" id="departmentName" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea id="departmentDescription"></textarea>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary" onclick="closeDepartmentModal()">Cancel</button>
+                <button type="submit" class="btn btn-secondary">Save Department</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Dropdown Toggle
+function toggleDropdown(event, dropdownId) {
+    event.stopPropagation();
+    const dropdown = document.getElementById(dropdownId);
+    
+    // Close all other dropdowns
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        if (menu.id !== dropdownId) {
+            menu.classList.remove('show');
+        }
+    });
+    
+    dropdown.classList.toggle('show');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function() {
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+    });
+});
+
+// Club Modal Functions
+function openClubModal(action, clubId) {
+    closeAllMenus();
+    const modal = document.getElementById('clubModal');
+    const title = document.getElementById('clubModalTitle');
+    
+    if (action === 'create') {
+        title.textContent = '➕ Add Club';
+        document.getElementById('clubForm').reset();
+        document.getElementById('clubForm').onsubmit = function(e) { saveClub(e, null); };
+    } else if (action === 'edit') {
+        title.textContent = '✏️ Edit Club';
+        // Load club data (in real app, fetch from server)
+        document.getElementById('clubForm').onsubmit = function(e) { saveClub(e, clubId); };
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeClubModal() {
+    document.getElementById('clubModal').classList.remove('show');
+}
+
+function saveClub(event, clubId) {
+    event.preventDefault();
+    const name = document.getElementById('clubName').value;
+    const description = document.getElementById('clubDescription').value;
+    
+    if (!name.trim()) {
+        alert('Club name is required');
+        return;
+    }
+    
+    const action = clubId ? 'update' : 'create';
+    
+    fetch('/api/admin/clubs/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            action: action,
+            id: clubId,
+            name: name,
+            description: description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeClubModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+function deleteClub(clubId, clubName) {
+    closeAllMenus();
+    if (confirm(`Are you sure you want to delete "${clubName}"?`)) {
+        fetch('/api/admin/clubs/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: clubId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+// User Modal Functions
+function openUserModal(action, userId) {
+    closeAllMenus();
+    const modal = document.getElementById('userModal');
+    const title = document.getElementById('userModalTitle');
+    
+    if (action === 'create') {
+        title.textContent = '➕ Add User';
+        document.getElementById('userForm').reset();
+    } else if (action === 'edit' || action === 'view') {
+        title.textContent = action === 'edit' ? '✏️ Edit User' : '👁️ View User';
+        // In real app, load user data from server
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeUserModal() {
+    document.getElementById('userModal').classList.remove('show');
+}
+
+function redirectToUserAdmin() {
+    window.location.href = '/admin/users/user/';
+}
+
+function deleteUser(userId, userName) {
+    closeAllMenus();
+    if (confirm(`Are you sure you want to delete user "${userName}"?`)) {
+        fetch('/api/admin/users/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: userId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+// Department Modal Functions
+function openDepartmentModal(action, departmentId) {
+    closeAllMenus();
+    const modal = document.getElementById('departmentModal');
+    const title = document.getElementById('departmentModalTitle');
+    
+    if (action === 'create') {
+        title.textContent = '➕ Add Department';
+        document.getElementById('departmentForm').reset();
+        document.getElementById('departmentForm').onsubmit = function(e) { saveDepartment(e, null); };
+    } else if (action === 'edit') {
+        title.textContent = '✏️ Edit Department';
+        document.getElementById('departmentForm').onsubmit = function(e) { saveDepartment(e, departmentId); };
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeDepartmentModal() {
+    document.getElementById('departmentModal').classList.remove('show');
+}
+
+function saveDepartment(event, departmentId) {
+    event.preventDefault();
+    const name = document.getElementById('departmentName').value;
+    const description = document.getElementById('departmentDescription').value;
+    
+    if (!name.trim()) {
+        alert('Department name is required');
+        return;
+    }
+    
+    const action = departmentId ? 'update' : 'create';
+    
+    fetch('/api/admin/departments/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            action: action,
+            id: departmentId,
+            name: name,
+            description: description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            closeDepartmentModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error: ' + error);
+    });
+}
+
+function deleteDepartment(departmentId, departmentName) {
+    closeAllMenus();
+    if (confirm(`Are you sure you want to delete "${departmentName}"?`)) {
+        fetch('/api/admin/departments/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                action: 'delete',
+                id: departmentId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error);
+        });
+    }
+}
+
+// Event Functions
+function deleteEvent(eventId, eventName) {
+    closeAllMenus();
+    if (confirm(`Delete event "${eventName}"?`)) {
+        fetch(`/events/${eventId}/delete/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                              document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1] || ''
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                alert('Event deleted successfully!');
+                location.reload();
+            } else {
+                alert('Error deleting event. You may not have permission.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting event');
+        });
+    }
+}
+
+// Attendance Functions
+function deleteAttendance(attendanceId, studentName) {
+    closeAllMenus();
+    if (confirm(`Delete attendance record for ${studentName}?`)) {
+        window.location.href = `/admin/attendance/attendance/${attendanceId}/delete/`;
+    }
+}
+
+// Calendar Functions
+function deleteCalendar(calendarId, eventName) {
+    closeAllMenus();
+    if (confirm(`Delete calendar entry for "${eventName}"?`)) {
+        window.location.href = `/admin/calendar_app/calendarentry/${calendarId}/delete/`;
+    }
+}
+
+// Utility Functions
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function closeAllMenus() {
+    document.querySelectorAll('.dropdown-menu.show').forEach(menu => {
+        menu.classList.remove('show');
+    });
+}
+
+// Close modals when clicking outside
+window.addEventListener('click', function(event) {
+    const clubModal = document.getElementById('clubModal');
+    const userModal = document.getElementById('userModal');
+    const departmentModal = document.getElementById('departmentModal');
+    
+    if (event.target == clubModal) {
+        closeClubModal();
+    }
+    if (event.target == userModal) {
+        closeUserModal();
+    }
+    if (event.target == departmentModal) {
+        closeDepartmentModal();
+    }
+});
+
+// Close modals on Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeClubModal();
+        closeUserModal();
+        closeDepartmentModal();
+    }
+});
+</script>
+
+</div>
+{% endblock %}

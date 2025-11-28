@@ -1,0 +1,200 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.name }} - SAC Hub{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen py-8">
+    <div class="container mx-auto px-4">
+
+        <!-- Event Hero -->
+        <div class="bg-white shadow-md rounded-xl p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">{{ event.name }}</h1>
+                <p class="text-gray-500 mt-1">
+                    <i class="bi bi-building me-1"></i>{{ event.club.name|default:"General Event" }}
+                </p>
+            </div>
+            <span class="mt-4 md:mt-0 px-4 py-2 rounded-full font-semibold text-sm
+                {% if event.status == 'APPROVED' %}bg-green-100 text-green-800
+                {% elif event.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                {% elif event.status == 'REJECTED' %}bg-red-100 text-red-800
+                {% elif event.status == 'COMPLETED' %}bg-purple-100 text-purple-800
+                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                {{ event.get_status_display }}
+            </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- Event Details -->
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4"><i class="bi bi-info-circle me-2"></i>Event Details</h2>
+
+                    <div class="space-y-3">
+                        <div class="flex items-start space-x-4">
+                            <div class="text-gray-600">
+                                <i class="bi bi-calendar-event text-xl"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase font-medium">Date & Time</p>
+                                <p class="text-gray-700">{{ event.date_time|date:"F d, Y" }} at {{ event.date_time|time:"g:i A" }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="text-gray-600"><i class="bi bi-geo-alt text-xl"></i></div>
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase font-medium">Venue</p>
+                                <p class="text-gray-700">{{ event.venue }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <div class="text-gray-600"><i class="bi bi-tag text-xl"></i></div>
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase font-medium">Event Type</p>
+                                <p class="text-gray-700">{{ event.event_type }}</p>
+                            </div>
+                        </div>
+
+                        {% if event.department %}
+                        <div class="flex items-start space-x-4">
+                            <div class="text-gray-600"><i class="bi bi-building text-xl"></i></div>
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase font-medium">Department</p>
+                                <p class="text-gray-700">{{ event.department.name }}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if event.created_by %}
+                        <div class="flex items-start space-x-4">
+                            <div class="text-gray-600"><i class="bi bi-person-check text-xl"></i></div>
+                            <div>
+                                <p class="text-gray-500 text-sm uppercase font-medium">Organized By</p>
+                                <p class="text-gray-700">
+                                    {{ event.created_by.get_full_name }}
+                                    <span class="text-gray-400 text-sm">
+                                        ({% if 'FACULTY' in event.created_by.roles %}Faculty Advisor{% elif 'CLUB_COORDINATOR' in event.created_by.roles %}Club Coordinator{% else %}Administrator{% endif %})
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                {% if event.status == 'PENDING' %}
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                    <p class="font-semibold text-yellow-800"><i class="bi bi-clock-history me-1"></i>Approval Pending</p>
+                    <p class="text-yellow-700 text-sm">This event is awaiting administrator approval before it goes live.</p>
+                </div>
+                {% elif event.status == 'REJECTED' %}
+                <div class="bg-red-50 border-l-4 border-red-400 p-4">
+                    <p class="font-semibold text-red-800"><i class="bi bi-x-circle me-1"></i>Event Rejected</p>
+                    <p class="text-red-700 text-sm">This event has been rejected by administrators.</p>
+                    {% if event.approval_notes %}
+                    <small class="text-red-600"><strong>Reason:</strong> {{ event.approval_notes }}</small>
+                    {% endif %}
+                </div>
+                {% elif event.status == 'APPROVED' %}
+                <div class="bg-green-50 border-l-4 border-green-400 p-4">
+                    <p class="font-semibold text-green-800"><i class="bi bi-check-circle me-1"></i>Event Approved</p>
+                    <p class="text-green-700 text-sm">This event has been approved and is ready for registration.</p>
+                    {% if event.approval_notes %}
+                    <small class="text-green-600"><strong>Admin Notes:</strong> {{ event.approval_notes }}</small>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3"><i class="bi bi-file-text me-2"></i>About This Event</h2>
+                    <p class="text-gray-600">{{ event.description|linebreaks }}</p>
+                </div>
+
+                {% if event.resources %}
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-3"><i class="bi bi-gear me-2"></i>Resources Required</h2>
+                    <p class="text-gray-600">{{ event.resources|linebreaks }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Organizers -->
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4"><i class="bi bi-people me-2"></i>Event Team</h2>
+                    <div class="space-y-3">
+                        {% for organizer in event.organizers.all %}
+                        <div class="flex items-center space-x-4">
+                            <i class="bi bi-person-badge text-gray-600 text-xl"></i>
+                            <p class="text-gray-700">{{ organizer.get_full_name }}</p>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-400 text-center py-2"><i class="bi bi-person-x me-1"></i>No organizers assigned yet</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+
+                <!-- Analytics -->
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4"><i class="bi bi-bar-chart me-2"></i>Event Analytics</h2>
+                    {% if event.status == 'APPROVED' or event.status == 'COMPLETED' %}
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-green-50 rounded-xl p-4">
+                            <i class="bi bi-person-check text-green-500 text-2xl mb-2"></i>
+                            <p class="font-semibold text-green-700 text-lg">{{ attendance_count.present|default:0 }}</p>
+                            <p class="text-sm text-green-600">Present</p>
+                        </div>
+                        <div class="bg-red-50 rounded-xl p-4">
+                            <i class="bi bi-person-x text-red-500 text-2xl mb-2"></i>
+                            <p class="font-semibold text-red-700 text-lg">{{ attendance_count.absent|default:0 }}</p>
+                            <p class="text-sm text-red-600">Absent</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-400 text-center">Attendance tracking available after event approval</p>
+                    {% endif %}
+                </div>
+
+                <!-- Approval Chain -->
+                {% if event.approval_chain %}
+                <div class="bg-white shadow rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-gray-700 mb-4"><i class="bi bi-diagram-3 me-2"></i>Approval Chain</h2>
+                    <div class="space-y-3">
+                        {% for approval in event.approval_chain %}
+                        <div class="flex items-center justify-between bg-gray-50 p-3 rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="bi bi-person-gear text-gray-500"></i>
+                                <p class="text-gray-700">{{ approval.role }} - {{ approval.approver }}</p>
+                            </div>
+                            <span class="px-3 py-1 rounded-full text-sm font-semibold
+                                {% if approval.status == 'approved' %}bg-green-100 text-green-800
+                                {% elif approval.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                {% else %}bg-red-100 text-red-800{% endif %}">
+                                {{ approval.status|title }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-6 text-center">
+            <a href="{% url 'event_list' %}" class="inline-block bg-gray-700 hover:bg-gray-800 text-white font-semibold px-6 py-2 rounded-lg">
+                <i class="bi bi-arrow-left me-1"></i>Back to Events
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

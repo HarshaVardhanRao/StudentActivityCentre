@@ -2,43 +2,50 @@
 {% load custom_filters %}
 
 {% block title %}
-    {{ club.name }} - SAC Hub
+    {% if event.club %}{{ event.club.name }} - {% endif %}{{ event.name }} - SAC Hub
 {% endblock %}
 
 {% block content %}
+
 <div class="container mx-auto px-6 md:px-12 space-y-12">
 
-    <!-- Hero Section -->
-    <section class="relative bg-gradient-to-r from-blue-800 via-indigo-900 to-purple-800 text-white rounded-b-3xl py-16 px-6 md:px-12 overflow-hidden">
+    <!-- Event Hero Section -->
+    <section class="bg-gray-50 rounded-xl shadow p-8">
         <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             <div class="lg:w-2/3">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">{{ club.name }}</h1>
-                <p class="text-lg md:text-xl opacity-90 leading-relaxed">
-                    {% if club.description %}
-                        {{ club.description|linebreaks }}
+                <h1 class="text-4xl font-bold text-gray-800 mb-4">{{ event.name }}</h1>
+                <p class="text-gray-600 mb-3 leading-relaxed">
+                    {% if event.description %}
+                        {{ event.description|linebreaks }}
                     {% else %}
-                        Discover what this amazing club has to offer.
+                        No description available for this event.
                     {% endif %}
                 </p>
+                <p class="text-gray-500 text-sm flex flex-wrap gap-4 items-center">
+                    <span class="flex items-center gap-1"><i class="bi bi-geo-alt"></i> {{ event.venue }}</span>
+                    <span class="flex items-center gap-1"><i class="bi bi-calendar"></i> {{ event.date_time|date:"M d, Y H:i" }}</span>
+                </p>
             </div>
-            <div class="lg:w-1/3 flex flex-col gap-3 mt-6 lg:mt-0">
-                {% if user.is_authenticated %}
-                    {% if user in club.coordinators.all or user|has_role:"ADMIN" %}
-                        <a href="{% url 'club_edit' club.id %}" class="w-full py-3 bg-yellow-400 rounded-full text-white font-semibold text-center hover:scale-105 transition-transform">
-                            <i class="bi bi-pencil"></i> Edit Club
-                        </a>
-                    {% endif %}
-                    {% if user not in club.members.all %}
-                        <a href="{% url 'club_join' club.id %}" class="w-full py-3 bg-green-500 rounded-full text-white font-semibold text-center hover:scale-105 transition-transform">
-                            <i class="bi bi-person-plus"></i> Join Club
-                        </a>
-                    {% else %}
-                        <a href="{% url 'club_leave' club.id %}" class="w-full py-3 bg-red-500 rounded-full text-white font-semibold text-center hover:scale-105 transition-transform">
-                            <i class="bi bi-person-dash"></i> Leave Club
-                        </a>
-                    {% endif %}
+
+            {% if event.club and user.is_authenticated %}
+            <div class="lg:w-1/3 flex flex-col gap-3">
+                {% if user in event.club.coordinators.all or user|has_role:"ADMIN" %}
+                    <a href="{% url 'club_edit' event.club.id %}" class="w-full py-3 bg-yellow-400 rounded-full text-white font-semibold text-center hover:bg-yellow-500 transition">
+                        <i class="bi bi-pencil"></i> Edit Club
+                    </a>
+                {% endif %}
+
+                {% if user not in event.club.members.all %}
+                    <a href="{% url 'club_join' event.club.id %}" class="w-full py-3 bg-green-500 rounded-full text-white font-semibold text-center hover:bg-green-600 transition">
+                        <i class="bi bi-person-plus"></i> Join Club
+                    </a>
+                {% else %}
+                    <a href="{% url 'club_leave' event.club.id %}" class="w-full py-3 bg-red-500 rounded-full text-white font-semibold text-center hover:bg-red-600 transition">
+                        <i class="bi bi-person-dash"></i> Leave Club
+                    </a>
                 {% endif %}
             </div>
+            {% endif %}
         </div>
     </section>
 
@@ -48,24 +55,25 @@
         <!-- Left Column -->
         <div class="lg:col-span-2 space-y-8">
 
-            <!-- Stats Section -->
+            {% if event.club %}
+            <!-- Club Stats -->
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                <div class="bg-blue-500 text-white rounded-xl p-6 text-center shadow-lg">
-                    <span class="text-3xl font-bold block">{{ club.members.count }}</span>
-                    <span class="opacity-90 text-sm">Members</span>
+                <div class="bg-white shadow rounded-xl p-6 text-center">
+                    <span class="text-3xl font-bold text-gray-800 block">{{ event.club.members.count }}</span>
+                    <span class="text-gray-500 text-sm">Members</span>
                 </div>
-                <div class="bg-pink-500 text-white rounded-xl p-6 text-center shadow-lg">
-                    <span class="text-3xl font-bold block">{{ club.events.count }}</span>
-                    <span class="opacity-90 text-sm">Events</span>
+                <div class="bg-white shadow rounded-xl p-6 text-center">
+                    <span class="text-3xl font-bold text-gray-800 block">{{ event.club.events.count }}</span>
+                    <span class="text-gray-500 text-sm">Events</span>
                 </div>
-                <div class="bg-purple-500 text-white rounded-xl p-6 text-center shadow-lg">
-                    <span class="text-3xl font-bold block">{{ club.coordinators.count }}</span>
-                    <span class="opacity-90 text-sm">Coordinators</span>
+                <div class="bg-white shadow rounded-xl p-6 text-center">
+                    <span class="text-3xl font-bold text-gray-800 block">{{ event.club.coordinators.count }}</span>
+                    <span class="text-gray-500 text-sm">Coordinators</span>
                 </div>
             </div>
 
-            <!-- Leadership Section -->
-            <div class="bg-white rounded-xl shadow p-6 space-y-6">
+            <!-- Club Leadership -->
+            <div class="bg-white shadow rounded-xl p-6 space-y-6">
                 <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                     <i class="bi bi-people-fill"></i> Club Leadership
                 </h3>
@@ -76,7 +84,7 @@
                             <i class="bi bi-person-gear"></i> Coordinators
                         </h4>
                         <div class="mt-2 flex flex-wrap gap-2">
-                            {% for coordinator in club.coordinators.all %}
+                            {% for coordinator in event.club.coordinators.all %}
                                 <span class="bg-purple-500 text-white px-4 py-1 rounded-full text-sm">{{ coordinator.get_full_name }}</span>
                             {% empty %}
                                 <span class="text-gray-400 italic text-sm">No coordinators assigned</span>
@@ -90,8 +98,8 @@
                             <i class="bi bi-mortarboard"></i> Advisor
                         </h4>
                         <div class="mt-2">
-                            {% if club.advisor %}
-                                <span class="bg-green-400 text-white px-4 py-1 rounded-full text-sm">{{ club.advisor.get_full_name }}</span>
+                            {% if event.club.advisor %}
+                                <span class="bg-green-400 text-white px-4 py-1 rounded-full text-sm">{{ event.club.advisor.get_full_name }}</span>
                             {% else %}
                                 <span class="text-gray-400 italic text-sm">No advisor assigned</span>
                             {% endif %}
@@ -99,6 +107,7 @@
                     </div>
                 </div>
             </div>
+            {% endif %}
 
             <!-- Recent Events -->
             <div class="space-y-4">
@@ -106,19 +115,19 @@
                     <i class="bi bi-calendar-event"></i> Recent Events
                 </h3>
                 {% if recent_events %}
-                    {% for event in recent_events %}
-                        <a href="{% url 'event_detail' event.id %}" class="block bg-white p-4 rounded-xl shadow hover:shadow-lg transition">
+                    {% for e in recent_events %}
+                        <a href="{% url 'event_detail' e.id %}" class="block bg-white p-4 rounded-xl shadow hover:shadow-md transition">
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h6 class="font-semibold text-gray-800">{{ event.name }}</h6>
-                                    <p class="text-gray-500 text-sm">{{ event.description|truncatewords:15 }}</p>
+                                    <h6 class="font-semibold text-gray-800">{{ e.name }}</h6>
+                                    <p class="text-gray-500 text-sm">{{ e.description|truncatewords:15 }}</p>
                                     <small class="text-gray-400 flex items-center gap-1">
-                                        <i class="bi bi-geo-alt"></i> {{ event.venue }} • 
-                                        <i class="bi bi-info-circle"></i> {{ event.get_status_display }}
+                                        <i class="bi bi-geo-alt"></i> {{ e.venue }} • 
+                                        <i class="bi bi-info-circle"></i> {{ e.get_status_display }}
                                     </small>
                                 </div>
-                                <div class="bg-pink-400 text-white px-3 py-1 rounded-full text-xs font-semibold">
-                                    {{ event.date_time|date:"M d, Y" }}
+                                <div class="bg-indigo-500 text-white px-3 py-1 rounded-full text-xs font-semibold">
+                                    {{ e.date_time|date:"M d, Y" }}
                                 </div>
                             </div>
                         </a>
@@ -130,22 +139,24 @@
                     </div>
                 {% endif %}
             </div>
+
         </div>
 
         <!-- Right Sidebar -->
         <div class="space-y-6">
 
-            <!-- Club Members -->
+            {% if event.club %}
+            <!-- Members -->
             <div class="bg-white rounded-xl shadow p-6">
                 <h4 class="font-semibold text-gray-700 flex items-center gap-2"><i class="bi bi-people"></i> Recent Members</h4>
                 <div class="mt-4 space-y-3">
-                    {% for member in club.members.all|slice:":8" %}
+                    {% for member in event.club.members.all|slice:":8" %}
                         <div class="flex items-center gap-3">
                             <div class="w-10 h-10 rounded-full bg-purple-500 flex items-center justify-center text-white font-semibold uppercase">
                                 {{ member.get_full_name|first }}
                             </div>
                             <div>
-                                <div class="font-semibold">{{ member.get_full_name }}</div>
+                                <div class="font-semibold text-gray-800">{{ member.get_full_name }}</div>
                                 {% if member.roll_no %}
                                     <small class="text-gray-400">{{ member.roll_no }}</small>
                                 {% endif %}
@@ -158,27 +169,30 @@
                             <small>Be the first to join!</small>
                         </div>
                     {% endfor %}
-                    {% if club.members.count > 8 %}
+                    {% if event.club.members.count > 8 %}
                         <div class="text-center mt-3 pt-3 border-t border-gray-200 text-gray-400 text-sm">
-                            <i class="bi bi-plus"></i> {{ club.members.count|add:"-8" }} more members
+                            <i class="bi bi-plus"></i> {{ event.club.members.count|add:"-8" }} more members
                         </div>
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Quick Actions -->
             <div class="bg-white rounded-xl shadow p-6 space-y-3">
                 <h4 class="font-semibold text-gray-700 flex items-center gap-2"><i class="bi bi-lightning"></i> Quick Actions</h4>
-                {% if user.is_authenticated %}
-                {% if user in club.coordinators.all or club.advisor == user or user|has_role:"ADMIN" or user|has_role:"SAC_COORDINATOR" %}
-                    <a href="{% url 'event_create' %}?club={{ club.id }}" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-400 text-white font-semibold hover:bg-pink-500 transition">
-                        <i class="bi bi-plus-circle"></i> Create Event
-                    </a>
+                {% if user.is_authenticated and event.club %}
+                    {% if user in event.club.coordinators.all or event.club.advisor == user or user|has_role:"ADMIN" or user|has_role:"SAC_COORDINATOR" %}
+                        <a href="{% url 'event_create' %}?club={{ event.club.id }}" class="block w-full text-center px-4 py-3 rounded-lg bg-pink-400 text-white font-semibold hover:bg-pink-500 transition">
+                            <i class="bi bi-plus-circle"></i> Create Event
+                        </a>
+                    {% endif %}
                 {% endif %}
-                {% endif %}
-                <a href="{% url 'event_list' %}?club={{ club.id }}" class="block w-full text-center px-4 py-3 rounded-lg border border-indigo-600 text-indigo-600 font-semibold hover:bg-indigo-600 hover:text-white transition">
+                {% if event.club %}
+                <a href="{% url 'event_list' %}?club={{ event.club.id }}" class="block w-full text-center px-4 py-3 rounded-lg border border-indigo-600 text-indigo-600 font-semibold hover:bg-indigo-600 hover:text-white transition">
                     <i class="bi bi-calendar-event"></i> View Events
                 </a>
+                {% endif %}
                 <a href="{% url 'club_list' %}" class="block w-full text-center px-4 py-3 rounded-lg border border-gray-500 text-gray-500 font-semibold hover:bg-gray-500 hover:text-white transition">
                     <i class="bi bi-arrow-left"></i> Back to Clubs
                 </a>
@@ -186,5 +200,7 @@
 
         </div>
     </div>
+
 </div>
+
 {% endblock %}

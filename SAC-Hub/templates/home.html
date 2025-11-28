@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Welcome to MITS Student Activity Centre{% endblock %}
+
+{% block content %}
+
+<script>
+// Trigger confirmation popup for joining & registering
+function confirmAction(url, message) {
+    if (confirm(message)) {
+        window.location.href = url;
+    }
+}
+</script>
+
+<!-- HERO SECTION -->
+<section class="relative w-full h-[450px]">
+    <img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac"
+        class="w-full h-full object-cover brightness-75" />
+    <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
+        <h1 class="text-4xl md:text-5xl font-extrabold">YOUR CAMPUS LIFE STARTS HERE</h1>
+        <p class="mt-3 text-lg max-w-2xl">Welcome to MITS — Simplify, explore events, join clubs & connect.</p>
+
+        <div class="mt-6 flex gap-4">
+            <a href="{% url 'event_list' %}" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold">
+                Explore Events
+            </a>
+            <a href="{% url 'club_list' %}" class="px-6 py-3 bg-white text-red-600 hover:bg-gray-100 rounded-lg font-semibold">
+                Find a Club
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- UPCOMING EVENTS -->
+<section class="max-w-7xl mx-auto mt-12 px-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Upcoming Events This Week?</h2>
+        <a href="{% url 'calendar_view' %}" class="hidden md:block text-red-600 font-semibold hover:underline">
+            View Full Calendar →
+        </a>
+    </div>
+
+    <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory">
+
+        {% for event in upcoming_events %}
+        <div class="bg-white p-5 min-w-[280px] md:min-w-0 rounded-xl shadow hover:shadow-md duration-150 snap-center">
+
+            {% if event.thumbnail %}
+            <img src="{{ event.thumbnail.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+
+            {% elif event.club and event.club.logo %}
+            <img src="{{ event.club.logo.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+
+            {% else %}
+            <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">No Image</div>
+            {% endif %}
+
+            <span class="text-xs text-gray-500">
+                {{ event.date_time|date:"M d"|upper }} • {{ event.date_time|date:"h:i A" }}
+            </span>
+
+            <h3 class="text-lg font-semibold mt-2">{{ event.name }}</h3>
+            <p class="text-gray-600 text-sm mt-1">{{ event.description }}</p>
+
+            <!-- EVENT REGISTRATION BUTTON -->
+            {% if user in event.registered_users.all %}
+                <div class="mt-4 w-full bg-green-600 text-white text-center py-2 rounded-lg font-medium">
+                    Registered
+                </div>
+            {% else %}
+                <button onclick="confirmAction('{% url 'event_register' event.id %}', 'Do you want to register for this event?')"
+                        class="mt-4 w-full bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 duration-150">
+                    Register
+                </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Last card button -->
+        <a href="{% url 'calendar_view' %}"
+           class="min-w-[280px] md:hidden flex items-center justify-center bg-white text-red-600 rounded-xl shadow font-semibold py-12 text-lg hover:bg-gray-200 snap-center">
+            View Full Calendar →
+        </a>
+    </div>
+</section>
+
+<!-- COMPLETED EVENTS -->
+<section class="max-w-7xl mx-auto mt-12 px-6">
+    <h2 class="text-2xl font-bold mb-6">Completed Events</h2>
+
+    <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory">
+
+        {% for event in completed_events %}
+        <div class="bg-white p-5 min-w-[280px] md:min-w-0 rounded-xl shadow hover:shadow-md duration-150 snap-center">
+
+            {% if event.thumbnail %}
+            <img src="{{ event.thumbnail.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+            {% elif event.club.logo %}
+            <img src="{{ event.club.logo.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+            {% else %}
+            <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">No Image</div>
+            {% endif %}
+
+            <span class="text-xs text-gray-500">
+                {{ event.date_time|date:"M d"|upper }} • {{ event.date_time|date:"h:i A" }}
+            </span>
+
+            <h3 class="text-lg font-semibold mt-2">{{ event.name }}</h3>
+            <p class="text-gray-600 text-sm mt-1">{{ event.description }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- CLUBS -->
+<section class="max-w-7xl mx-auto mt-12 px-6">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Student Clubs</h2>
+        <a href="{% url 'club_list' %}" class="hidden md:block text-red-600 font-semibold hover:underline">
+            View all clubs →
+        </a>
+    </div>
+
+    <div class="md:grid md:grid-cols-3 md:gap-6 flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory">
+
+        {% for club in clubs %}
+        <div class="bg-white p-5 min-w-[280px] md:min-w-0 rounded-xl shadow hover:shadow-md duration-150 snap-center">
+
+            {% if club.logo %}
+            <img src="{{ club.logo.url }}" class="w-full h-36 object-cover rounded-lg mb-3">
+            {% else %}
+            <div class="w-full h-36 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">No Logo</div>
+            {% endif %}
+
+            <h3 class="font-semibold text-lg">{{ club.name }}</h3>
+            <p class="text-sm text-gray-600 mt-2">{{ club.description }}</p>
+
+            <!-- JOIN CLUB BUTTON -->
+            {% if club in user.clubs.all %}
+                <div class="mt-4 w-full bg-green-600 text-white text-center py-2 rounded-lg font-medium">
+                    Joined
+                </div>
+            {% else %}
+                <button onclick="confirmAction('{% url 'club_join' club.id %}', 'Do you want to join this club?')"
+                        class="mt-4 w-full bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 duration-150">
+                    Join Club
+                </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <!-- Last card mobile -->
+        <a href="{% url 'club_list' %}"
+           class="min-w-[280px] md:hidden flex items-center justify-center bg-white text-red-600 rounded-xl shadow font-semibold py-12 text-lg hover:bg-gray-200 snap-center">
+            View All Clubs →
+        </a>
+    </div>
+</section>
+
+{% endblock %}

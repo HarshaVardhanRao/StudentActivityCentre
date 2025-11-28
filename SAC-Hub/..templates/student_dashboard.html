@@ -1,0 +1,275 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Student Dashboard - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<!-- Welcome Hero Section -->
+<div class="dashboard-welcome">
+    <h1>Welcome Back, {{ user.get_full_name|default:user.username }}! 👋</h1>
+    <p>Ready to dive into campus life? Explore clubs, join exciting events, and connect with your fellow students.</p>
+</div>
+
+<!-- Quick Stats Overview -->
+<div class="stats-showcase">
+    <div class="stat-card">
+        <h3>Your Clubs</h3>
+        <div class="number">{{ user_clubs_count|default:0 }}</div>
+        <div class="label">Active Memberships</div>
+    </div>
+    <div class="stat-card">
+        <h3>Events Attended</h3>
+        <div class="number">{{ events_attended|default:0 }}</div>
+        <div class="label">This Semester</div>
+    </div>
+    <div class="stat-card">
+        <h3>Upcoming Events</h3>
+        <div class="number">{{ upcoming_events_count|default:0 }}</div>
+        <div class="label">This Month</div>
+    </div>
+    <div class="stat-card">
+        <h3>Activity Score</h3>
+        <div class="number">{{ activity_score|default:0 }}</div>
+        <div class="label">Points Earned</div>
+    </div>
+</div>
+
+<!-- Main Dashboard Features -->
+<div class="card-grid">
+    <!-- Explore Clubs Card -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🎯</span>
+            <h3>Explore Clubs</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Discover amazing clubs that match your interests. From technical societies to cultural groups, find your perfect community.</p>
+            <a href="/clubs/" class="btn btn-primary">
+                <span>Browse Clubs</span>
+                <span>→</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Upcoming Events Card -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📅</span>
+            <h3>Upcoming Events</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Stay updated with the latest events happening on campus. Register early to secure your spot!</p>
+            <a href="/events/" class="btn btn-accent">
+                <span>View Events</span>
+                <span>🎉</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- My Activities Card -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">📊</span>
+            <h3>My Activities</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Track your participation, view attendance records, and monitor your involvement in various activities.</p>
+            <a href="/my-activities/" class="btn btn-success">
+                <span>View Progress</span>
+                <span>📈</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- Notifications Card -->
+    <div class="feature-card">
+        <div class="feature-card-header">
+            <span class="feature-card-icon">🔔</span>
+            <h3>Notifications</h3>
+        </div>
+        <div class="feature-card-body">
+            <p>Stay informed about club updates, event reminders, and important announcements.</p>
+            <a href="/notifications/" class="btn btn-outline">
+                <span>Check Updates</span>
+                <span class="status-badge status-warning">{{ unread_notifications|default:0 }}</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activities Section -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Your Recent Activities</h2>
+        <p>Keep track of your latest engagements and achievements</p>
+    </div>
+
+    <!-- Recent Events Registered -->
+    {% if recent_registrations %}
+    <div class="modern-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Event Name</th>
+                    <th>Club</th>
+                    <th>Date & Time</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for registration in recent_registrations %}
+                <tr>
+                    <td>
+                        <strong>{{ registration.event.name }}</strong>
+                    </td>
+                    <td>{{ registration.event.club.name }}</td>
+                    <td>{{ registration.event.date_time|date:"M d, Y - H:i" }}</td>
+                    <td>
+                        {% if registration.event.date_time > now %}
+                            <span class="status-badge status-success">Registered</span>
+                        {% else %}
+                            <span class="status-badge status-warning">Completed</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/events/{{ registration.event.id }}/" class="btn btn-outline" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                            View Details
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <h3>No Recent Activities</h3>
+        <p>Start exploring clubs and events to see your activity history here!</p>
+        <a href="/events/" class="btn btn-primary">Explore Events</a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Quick Actions Section -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Quick Actions</h2>
+        <p>Common tasks you might want to perform</p>
+    </div>
+    
+    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+        <div class="feature-card" style="text-align: center; padding: 2rem;">
+            <span class="feature-card-icon" style="font-size: 2.5rem; margin-bottom: 1rem;">✉️</span>
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Contact Club</h3>
+            <p style="margin-bottom: 1.5rem; font-size: 0.9rem;">Need to get in touch with a specific club? Send them a message directly.</p>
+            <a href="/contact-club/" class="btn btn-outline" style="width: 100%;">Send Message</a>
+        </div>
+        
+        <div class="feature-card" style="text-align: center; padding: 2rem;">
+            <span class="feature-card-icon" style="font-size: 2.5rem; margin-bottom: 1rem;">📝</span>
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Feedback</h3>
+            <p style="margin-bottom: 1.5rem; font-size: 0.9rem;">Share your thoughts about events or suggest improvements.</p>
+            <a href="/feedback/" class="btn btn-outline" style="width: 100%;">Give Feedback</a>
+        </div>
+        
+        <div class="feature-card" style="text-align: center; padding: 2rem;">
+            <span class="feature-card-icon" style="font-size: 2.5rem; margin-bottom: 1rem;">🏆</span>
+            <h3 style="font-size: 1.25rem; margin-bottom: 1rem;">Achievements</h3>
+            <p style="margin-bottom: 1.5rem; font-size: 0.9rem;">View your certificates, badges, and participation records.</p>
+            <a href="/achievements/" class="btn btn-outline" style="width: 100%;">View Achievements</a>
+        </div>
+    </div>
+</div>
+
+<!-- Campus News & Announcements -->
+<div class="interactive-section">
+    <div class="section-header">
+        <h2>Campus Buzz 📢</h2>
+        <p>Stay updated with the latest happenings around campus</p>
+    </div>
+    
+    {% if announcements %}
+        <div style="display: grid; gap: 1rem;">
+            {% for announcement in announcements %}
+            <div style="background: var(--surface-secondary); padding: 1.5rem; border-radius: var(--radius-lg); border-left: 4px solid var(--primary-main);">
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                    <h4 style="color: var(--text-primary); margin: 0; font-weight: 600;">{{ announcement.title }}</h4>
+                    <small style="color: var(--text-muted);">{{ announcement.created_at|date:"M d" }}</small>
+                </div>
+                <p style="color: var(--text-secondary); margin: 0; line-height: 1.6;">{{ announcement.content }}</p>
+                {% if announcement.action_url %}
+                <div style="margin-top: 1rem;">
+                    <a href="{{ announcement.action_url }}" class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
+                        Learn More
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>All Caught Up! 🎉</h3>
+            <p>No new announcements at the moment. Check back later for updates!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Add some interactive features
+document.addEventListener('DOMContentLoaded', function() {
+    // Animate stats on page load
+    const statNumbers = document.querySelectorAll('.stat-card .number');
+    statNumbers.forEach(number => {
+        const finalValue = parseInt(number.textContent);
+        let currentValue = 0;
+        const increment = Math.ceil(finalValue / 30);
+        
+        const counter = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                number.textContent = finalValue;
+                clearInterval(counter);
+            } else {
+                number.textContent = currentValue;
+            }
+        }, 50);
+    });
+
+    // Add hover effects to cards
+    const cards = document.querySelectorAll('.feature-card');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-8px) scale(1.02)';
+        });
+        
+        card.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+    });
+
+    // Progress bar animation for activity score
+    const activityScore = {{ activity_score|default:0 }};
+    if (activityScore > 0) {
+        // Create a subtle progress indicator
+        console.log('Activity Score:', activityScore);
+    }
+});
+
+// Add click tracking for analytics (optional)
+function trackAction(action, element) {
+    console.log(`User action: ${action} on ${element}`);
+    // Here you could send analytics data to your backend
+}
+
+// Add event listeners for tracking
+document.querySelectorAll('.btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        trackAction('button_click', this.textContent.trim());
+    });
+});
+</script>
+{% endblock %}

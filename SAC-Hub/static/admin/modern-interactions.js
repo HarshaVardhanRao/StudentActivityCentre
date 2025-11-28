@@ -241,15 +241,6 @@
             });
         });
 
-        // Skip links for better accessibility
-        if (!document.querySelector('.skip-link')) {
-            const skipLink = document.createElement('a');
-            skipLink.className = 'skip-link';
-            skipLink.href = '#main-content';
-            skipLink.textContent = 'Skip to main content';
-            document.body.insertBefore(skipLink, document.body.firstChild);
-        }
-
         // Announce page changes to screen readers
         const announcer = document.createElement('div');
         announcer.className = 'sr-announcer';

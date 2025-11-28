@@ -1,290 +1,133 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Clubs - MITS SAC Hub{% endblock %}
+{% block title %}Clubs - SAC Hub{% endblock %}
 
-{% block description %}Explore and join student clubs at MITS. Connect with like-minded peers and enhance your college experience.{% endblock %}
+{% block extra_css %}
+<style>
+.card {
+    @apply bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition;
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="page-header" style="background: linear-gradient(135deg, var(--primary-deep) 0%, var(--accent-royal) 100%); color: var(--text-inverse); padding: 4rem 0; border-radius: var(--radius-xl); margin-bottom: 3rem; text-align: center; position: relative; overflow: hidden;">
-    <div style="position: absolute; top: -10%; right: -10%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-    <div style="position: absolute; bottom: -10%; left: -10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(214,158,46,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-    
-    <h1 style="font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; position: relative; z-index: 2;">
-        🏛️ Student Clubs
-    </h1>
-    <p style="font-size: 1.25rem; opacity: 0.9; max-width: 600px; margin: 0 auto; position: relative; z-index: 2;">
-        Discover vibrant communities, build lasting friendships, and develop your skills through our diverse range of student clubs.
-    </p>
-    
-    {% if user.is_authenticated and 'ADMIN' in user.roles %}
-    <div style="margin-top: 2rem; position: relative; z-index: 2;">
-        <a href="{% url 'club_create' %}" class="btn btn-accent" style="background: var(--accent-gold); color: var(--text-inverse); padding: 1rem 2rem; border-radius: var(--radius-lg); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: var(--shadow-lg); transition: var(--transition-normal);">
-            ➕ Create New Club
-        </a>
-    </div>
-    {% endif %}
-</div>
+<div class="max-w-7xl mx-auto px-6 py-10">
 
-<!-- Search and Filter Section -->
-<div class="search-filter-section" style="background: var(--surface-primary); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 3rem; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05);">
-    <div style="display: grid; grid-template-columns: 1fr auto; gap: 1.5rem; align-items: center;">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <div style="position: relative; flex: 1; max-width: 400px;">
-                <input type="text" placeholder="Search clubs..." id="clubSearch" style="width: 100%; padding: 1rem 1rem 1rem 3rem; border: 2px solid var(--surface-tertiary); border-radius: var(--radius-lg); font-size: 1rem; transition: var(--transition-normal);">
-                <span style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); font-size: 1.1rem;">🔍</span>
-            </div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 1rem; color: var(--text-secondary);">
-            <span style="font-weight: 600;">{{ clubs.paginator.count }} Clubs</span>
-        </div>
-    </div>
-</div>
+    <h1 class="text-3xl font-bold mb-6">Clubs</h1>
 
-<!-- Clubs Grid -->
-<div class="clubs-grid" id="clubsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+    <!-- Filters -->
+    <form method="get" class="flex flex-wrap gap-4 mb-8 items-end">
+        <!-- Department Filter -->
+        <div>
+            <label class="block text-sm font-medium mb-1">Department</label>
+            <select name="department" class="border rounded-lg px-3 py-2">
+                <option value="">All Departments</option>
+                {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if request.GET.department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Advisor Filter -->
+        <div>
+            <label class="block text-sm font-medium mb-1">Advisor</label>
+            <select name="advisor" class="border rounded-lg px-3 py-2">
+                <option value="">All Advisors</option>
+                {% for advisor in advisors %}
+                    <option value="{{ advisor.id }}" {% if request.GET.advisor == advisor.id|stringformat:"s" %}selected{% endif %}>
+                        {{ advisor.get_full_name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit"
+                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Filter</button>
+    </form>
+
+    <!-- Club List -->
+<div class="grid md:grid-cols-3 gap-6">
     {% for club in clubs %}
-    <div class="club-card" style="background: var(--surface-primary); border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05); transition: var(--transition-normal); position: relative;" data-club-name="{{ club.name|lower }}">
-        
-        <!-- Club Header with Gradient -->
-        <div class="club-header" style="background: linear-gradient(135deg, var(--primary-main) 0%, var(--accent-emerald) 100%); color: var(--text-inverse); padding: 2rem 1.5rem 4rem; position: relative; overflow: hidden;">
-            <div style="position: absolute; top: -20px; right: -20px; width: 100px; height: 100px; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%); border-radius: 50%;"></div>
-            <div style="position: absolute; bottom: -30px; left: -30px; width: 120px; height: 120px; background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%); border-radius: 50%;"></div>
-            
-            <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; position: relative; z-index: 2;">
-                {{ club.name }}
-            </h3>
-            
-            <!-- Club Stats -->
-            <div style="display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; margin-top: 1rem;">
-                <div style="display: flex; gap: 1.5rem;">
-                    <div style="text-align: center;">
-                        <div style="font-size: 1.25rem; font-weight: 700;">{{ club.members_count }}</div>
-                        <div style="font-size: 0.75rem; opacity: 0.8;">Members</div>
-                    </div>
-                    <div style="text-align: center;">
-                        <div style="font-size: 1.25rem; font-weight: 700;">{{ club.events_count }}</div>
-                        <div style="font-size: 0.75rem; opacity: 0.8;">Events</div>
-                    </div>
-                </div>
-                
-                <!-- Club Status Badge -->
-                <div class="status-badge status-success" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; font-size: 0.75rem; font-weight: 600; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px; background: rgba(255,255,255,0.2); color: var(--text-inverse);">
-                    <span style="width: 8px; height: 8px; background: #4ade80; border-radius: 50%;"></span>
-                    Active
-                </div>
-            </div>
-        </div>
-        
-        <!-- Club Body -->
-        <div class="club-body" style="padding: 1.5rem;">
-            <div style="margin-bottom: 1.5rem;">
-                <p style="color: var(--text-secondary); line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; min-height: 4.5rem;">
-                    {{ club.description|default:"A dynamic student club fostering community engagement and personal growth." }}
-                </p>
-            </div>
-            
-            <!-- Club Coordinators -->
-            {% if club.coordinators.all %}
-            <div style="margin-bottom: 1.5rem;">
-                <h4 style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.5px;">Coordinators</h4>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                    {% for coordinator in club.coordinators.all|slice:":3" %}
-                    <span style="background: var(--surface-secondary); color: var(--text-secondary); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 500;">
-                        {{ coordinator.get_full_name|default:coordinator.username }}
-                    </span>
-                    {% endfor %}
-                    {% if club.coordinators.all|length > 3 %}
-                    <span style="background: var(--primary-lighter); color: var(--primary-main); padding: 0.25rem 0.75rem; border-radius: var(--radius-full); font-size: 0.75rem; font-weight: 500;">
-                        +{{ club.coordinators.all|length|add:"-3" }} more
-                    </span>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-            
-            <!-- Action Buttons -->
-            <div style="display: flex; gap: 1rem; margin-top: auto;">
-                <a href="{% url 'club_detail' club.id %}" style="flex: 1; background: linear-gradient(135deg, var(--primary-main), var(--primary-light)); color: var(--text-inverse); padding: 0.875rem 1.5rem; border-radius: var(--radius-lg); text-decoration: none; font-weight: 600; text-align: center; transition: var(--transition-normal); box-shadow: var(--shadow-sm);">
-                    View Details
-                </a>
-                
-                {% if user.is_authenticated %}
-                    {% if user in club.members.all %}
-                    <a href="{% url 'club_leave' club.id %}" onclick="return confirm('Are you sure you want to leave {{ club.name }}?')" style="background: var(--surface-tertiary); color: var(--text-secondary); padding: 0.875rem 1rem; border-radius: var(--radius-lg); text-decoration: none; font-weight: 500; transition: var(--transition-normal);">
-                        ✓ Joined
-                    </a>
-                    {% else %}
-                    <a href="{% url 'club_join' club.id %}" onclick="return confirm('Join {{ club.name }}?')" style="background: var(--accent-emerald); color: var(--text-inverse); padding: 0.875rem 1rem; border-radius: var(--radius-lg); text-decoration: none; font-weight: 500; transition: var(--transition-normal);">
-                        + Join
-                    </a>
-                    {% endif %}
-                {% endif %}
-            </div>
-        </div>
-        
-        <!-- Hover Effect Overlay -->
-        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(44,90,160,0.05), rgba(214,158,46,0.05)); opacity: 0; transition: var(--transition-normal); pointer-events: none;"></div>
-    </div>
-    {% empty %}
-    <!-- Empty State -->
-    <div style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; background: var(--surface-primary); border-radius: var(--radius-xl); border: 2px dashed var(--surface-tertiary);">
-        <div style="font-size: 4rem; margin-bottom: 1rem; opacity: 0.3;">🏛️</div>
-        <h3 style="font-size: 1.5rem; font-weight: 600; color: var(--text-primary); margin-bottom: 1rem;">No Clubs Found</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 400px; margin-left: auto; margin-right: auto;">
-            {% if user.is_authenticated and 'ADMIN' in user.roles %}
-                Get started by creating the first club for your institution.
-            {% else %}
-                Be the first to discover amazing clubs when they become available.
-            {% endif %}
-        </p>
-        {% if user.is_authenticated and 'ADMIN' in user.roles %}
-        <a href="{% url 'club_create' %}" class="btn btn-primary" style="background: var(--primary-main); color: var(--text-inverse); padding: 1rem 2rem; border-radius: var(--radius-lg); text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem;">
-            ➕ Create First Club
+    <div class="card p-4 flex flex-col justify-between h-full">
+      
+      <!-- Club Image -->
+      {% if club.logo %}
+          <img src="{{ club.logo.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+      {% else %}
+          <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+              No Image
+          </div>
+      {% endif %}
+
+      <!-- Club Info -->
+      <h3 class="text-lg font-semibold mt-2">{{ club.name }}</h3>
+      <p class="text-gray-600 text-sm mt-1 line-clamp-3">{{ club.description }}</p>
+
+      <p class="text-sm text-gray-600 mt-2">
+          Advisor: {% if club.advisor %}{{ club.advisor.get_full_name }}{% else %}N/A{% endif %}
+      </p>
+      <p class="text-sm text-gray-600 mt-1">
+          Coordinators: 
+          {% if club.coordinators.all %}
+              {% for coordinator in club.coordinators.all %}
+                  {{ coordinator.get_full_name }}{% if not forloop.last %}, {% endif %}
+              {% endfor %}
+          {% else %}
+              N/A
+          {% endif %}
+      </p>
+      <p class="text-sm text-gray-600 mt-1">Members: {{ club.members.count }}</p>
+
+      <!-- Buttons -->
+<div class="mt-4 flex flex-col gap-2">
+    <a href="{% url 'club_detail' club.id %}"
+       class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+        Visit Club Page
+    </a>
+
+    {% if user.is_authenticated %}
+    {% if club.id in joined_club_ids %}
+        <button class="w-full text-center bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
+            Joined
+        </button>
+    {% else %}
+        <a href="{% url 'club_join' club.id %}" 
+           class="w-full text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+           Join
         </a>
-        {% endif %}
-    </div>
+    {% endif %}
+{% endif %}
+
+</div>
+
+  </div>
+
+    {% empty %}
+        <p class="text-gray-500 col-span-full">No clubs found.</p>
     {% endfor %}
 </div>
 
-<!-- Enhanced JavaScript for Interactions -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Search functionality
-    const searchInput = document.getElementById('clubSearch');
-    const clubCards = document.querySelectorAll('.club-card');
-    
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            let visibleCount = 0;
-            
-            clubCards.forEach(card => {
-                const clubName = card.getAttribute('data-club-name') || '';
-                const clubDescription = card.querySelector('.club-body p')?.textContent.toLowerCase() || '';
-                
-                if (clubName.includes(searchTerm) || clubDescription.includes(searchTerm)) {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Update visible count
-            const countSpan = document.querySelector('.search-filter-section span');
-            if (countSpan) {
-                countSpan.textContent = `${visibleCount} Club${visibleCount !== 1 ? 's' : ''}`;
-            }
-        });
-        
-        // Enhanced search input effects
-        searchInput.addEventListener('focus', function() {
-            this.style.borderColor = 'var(--primary-main)';
-            this.style.boxShadow = '0 0 0 3px rgba(44, 90, 160, 0.1)';
-        });
-        
-        searchInput.addEventListener('blur', function() {
-            this.style.borderColor = 'var(--surface-tertiary)';
-            this.style.boxShadow = 'none';
-        });
-    }
-    
-    // Enhanced hover effects
-    clubCards.forEach(card => {
-        const overlay = card.querySelector('div[style*="pointer-events: none"]');
-        
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-8px)';
-            this.style.boxShadow = 'var(--shadow-xl)';
-            if (overlay) overlay.style.opacity = '1';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'var(--shadow-md)';
-            if (overlay) overlay.style.opacity = '0';
-        });
-    });
-});
-</script>
 
-<style>
-/* Responsive Design */
-@media (max-width: 768px) {
-    .clubs-grid {
-        grid-template-columns: 1fr !important;
-        gap: 1.5rem !important;
-    }
-    
-    .page-header h1 {
-        font-size: 2.5rem !important;
-    }
-    
-    .page-header p {
-        font-size: 1rem !important;
-    }
-    
-    .search-filter-section {
-        padding: 1.5rem !important;
-    }
-    
-    .search-filter-section > div {
-        grid-template-columns: 1fr !important;
-        gap: 1rem !important;
-    }
-    
-    .club-header {
-        padding: 1.5rem 1rem 3rem !important;
-    }
-    
-    .club-body {
-        padding: 1rem !important;
-    }
-    
-    .club-body > div:last-child {
-        flex-direction: column !important;
-    }
-    
-    .club-body > div:last-child a {
-        flex: none !important;
-    }
-}
+    <!-- Pagination -->
+    <div class="mt-8 flex justify-center items-center gap-3">
+        {% if clubs.has_previous %}
+            <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
+                       {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
+                       page={{ clubs.previous_page_number }}"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">&laquo; Prev</a>
+        {% endif %}
 
-@media (max-width: 480px) {
-    .page-header {
-        padding: 3rem 0 !important;
-    }
-    
-    .page-header h1 {
-        font-size: 2rem !important;
-    }
-    
-    .clubs-grid {
-        grid-template-columns: 1fr !important;
-    }
-}
+        <span class="px-3 py-1 bg-gray-100 rounded">{{ clubs.number }} / {{ clubs.paginator.num_pages }}</span>
 
-/* Loading animation for club cards */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+        {% if clubs.has_next %}
+            <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
+                       {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
+                       page={{ clubs.next_page_number }}"
+               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next &raquo;</a>
+        {% endif %}
+    </div>
 
-.club-card {
-    animation: fadeInUp 0.6s ease-out;
-}
-
-.club-card:nth-child(1) { animation-delay: 0.1s; }
-.club-card:nth-child(2) { animation-delay: 0.2s; }
-.club-card:nth-child(3) { animation-delay: 0.3s; }
-.club-card:nth-child(4) { animation-delay: 0.4s; }
-.club-card:nth-child(5) { animation-delay: 0.5s; }
-.club-card:nth-child(6) { animation-delay: 0.6s; }
-</style>
+</div>
 {% endblock %}
+ 

@@ -1,397 +1,65 @@
 {% extends 'base.html' %}
-{% load static %}
-
-{% block title %}Treasurer Dashboard - MITS SAC Hub{% endblock %}
-
 {% block content %}
-<!-- Treasurer Welcome Section -->
-<div class="dashboard-welcome">
-    <h1>Welcome, Treasurer {{ user.get_full_name|default:user.username }}! 💰</h1>
-    <p>Steward our financial resources with precision. Manage budgets, track expenses, and ensure fiscal responsibility across all organizational activities.</p>
+<div class="container">
+	<h2 class="mb-4">Treasurer Dashboard</h2>
+	<div class="row mb-4">
+		<div class="col-md-4">
+			<div class="card text-bg-info mb-3">
+				<div class="card-header">Budget Approvals</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_budgets }}</h5>
+					<p class="card-text">Event budgets pending approval. <a href="#">Review Budgets</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-warning mb-3">
+				<div class="card-header">Financial Reports</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_reports }}</h5>
+					<p class="card-text">Financial reports to be generated. <a href="#">Generate Reports</a></p>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-4">
+			<div class="card text-bg-primary mb-3">
+				<div class="card-header">Pending Requisitions</div>
+				<div class="card-body">
+					<h5 class="card-title">{{ pending_requisitions }}</h5>
+					<p class="card-text">Funding requests awaiting action. <a href="#">Review Requests</a></p>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="row mb-4">
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Notifications</div>
+				<div class="card-body">
+					<ul class="list-group">
+						{% for note in notifications %}
+						<li class="list-group-item d-flex justify-content-between align-items-center">
+							{{ note.message }}
+							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
+						</li>
+						{% empty %}
+						<li class="list-group-item">No urgent notifications.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="card mb-3">
+				<div class="card-header">Treasurer Actions</div>
+				<div class="card-body">
+					<a href="#" class="btn btn-success me-2">Approve Budgets</a>
+					<a href="#" class="btn btn-primary me-2">Manage Finances</a>
+					<a href="#" class="btn btn-outline-secondary me-2">Generate Reports</a>
+					<a href="#" class="btn btn-outline-info">Track Expenses</a>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
-
-<!-- Financial Overview Stats -->
-<div class="stats-showcase">
-    <div class="stat-card">
-        <h3>Total Budget</h3>
-        <div class="number">₹{{ total_budget|default:"2,45,000" }}</div>
-        <div class="label">Annual Allocation</div>
-    </div>
-    <div class="stat-card">
-        <h3>Expenses YTD</h3>
-        <div class="number">₹{{ expenses_ytd|default:"1,67,500" }}</div>
-        <div class="label">Year to Date</div>
-    </div>
-    <div class="stat-card">
-        <h3>Remaining Budget</h3>
-        <div class="number">₹{{ remaining_budget|default:"77,500" }}</div>
-        <div class="label">Available Funds</div>
-    </div>
-    <div class="stat-card">
-        <h3>Budget Utilization</h3>
-        <div class="number">{{ budget_utilization|default:68 }}%</div>
-        <div class="label">Efficiency Rate</div>
-    </div>
-</div>
-
-<!-- Financial Management Tools -->
-<div class="card-grid">
-    <!-- Budget Management -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">💼</span>
-            <h3>Budget Management</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Plan and allocate budgets for various activities, track spending patterns, and ensure optimal resource utilization.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/treasurer/budgets/" class="btn btn-primary" style="flex: 1;">Manage Budgets</a>
-                <a href="/treasurer/allocations/" class="btn btn-outline" style="flex: 1;">Allocations</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Expense Tracking -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">📊</span>
-            <h3>Expense Tracking</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Monitor expenses in real-time, categorize spending, and maintain detailed financial records for transparency.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/treasurer/expenses/" class="btn btn-success" style="flex: 1;">Track Expenses</a>
-                <a href="/treasurer/receipts/" class="btn btn-outline" style="flex: 1;">Manage Receipts</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Financial Reports -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">📈</span>
-            <h3>Financial Reports</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Generate comprehensive financial reports, analyze spending trends, and prepare statements for stakeholders.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/treasurer/reports/" class="btn btn-accent" style="flex: 1;">Generate Reports</a>
-                <a href="/treasurer/analytics/" class="btn btn-outline" style="flex: 1;">Analytics</a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Reimbursements -->
-    <div class="feature-card">
-        <div class="feature-card-header">
-            <span class="feature-card-icon">🧾</span>
-            <h3>Reimbursements</h3>
-        </div>
-        <div class="feature-card-body">
-            <p>Process reimbursement requests, verify documentation, and manage timely payments to club members and vendors.</p>
-            <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                <a href="/treasurer/reimbursements/" class="btn btn-primary" style="flex: 1;">Process Claims</a>
-                <a href="/treasurer/payments/" class="btn btn-outline" style="flex: 1;">Payment Status</a>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Recent Financial Transactions -->
-<div class="interactive-section">
-    <div class="section-header">
-        <h2>Recent Financial Transactions</h2>
-        <p>Monitor recent financial activities and maintain accurate records</p>
-    </div>
-
-    {% if recent_transactions %}
-    <div class="modern-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Description</th>
-                    <th>Category</th>
-                    <th>Type</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transaction in recent_transactions %}
-                <tr>
-                    <td>{{ transaction.date|date:"M d, Y" }}</td>
-                    <td><strong>{{ transaction.description }}</strong></td>
-                    <td>
-                        {% if transaction.category == 'EVENT' %}
-                            <span class="status-badge" style="background: rgba(44, 90, 160, 0.1); color: var(--primary-main);">🎪 Event</span>
-                        {% elif transaction.category == 'EQUIPMENT' %}
-                            <span class="status-badge" style="background: rgba(214, 158, 46, 0.1); color: var(--accent-gold);">🛠️ Equipment</span>
-                        {% elif transaction.category == 'TRAVEL' %}
-                            <span class="status-badge" style="background: rgba(56, 161, 105, 0.1); color: var(--accent-emerald);">✈️ Travel</span>
-                        {% else %}
-                            <span class="status-badge">{{ transaction.category }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if transaction.type == 'EXPENSE' %}
-                            <span style="color: var(--error); font-weight: 600;">↗ Expense</span>
-                        {% else %}
-                            <span style="color: var(--accent-emerald); font-weight: 600;">↙ Income</span>
-                        {% endif %}
-                    </td>
-                    <td style="font-weight: 600; color: {% if transaction.type == 'EXPENSE' %}var(--error){% else %}var(--accent-emerald){% endif %};">
-                        ₹{{ transaction.amount|floatformat:2 }}
-                    </td>
-                    <td>
-                        {% if transaction.status == 'APPROVED' %}
-                            <span class="status-badge status-success">Approved</span>
-                        {% elif transaction.status == 'PENDING' %}
-                            <span class="status-badge status-warning">Pending</span>
-                        {% elif transaction.status == 'REJECTED' %}
-                            <span class="status-badge status-error">Rejected</span>
-                        {% else %}
-                            <span class="status-badge">{{ transaction.status }}</span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        <div style="display: flex; gap: 0.5rem;">
-                            <a href="/treasurer/transaction/{{ transaction.id }}/" class="btn btn-primary" style="padding: 0.5rem; font-size: 0.75rem;">Review</a>
-                            <a href="/treasurer/transaction/{{ transaction.id }}/receipt/" class="btn btn-outline" style="padding: 0.5rem; font-size: 0.75rem;">Receipt</a>
-                        </div>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="empty-state">
-        <h3>No Recent Transactions 📊</h3>
-        <p>Financial records are up to date. Ready to process new transactions!</p>
-        <a href="/treasurer/transaction/new/" class="btn btn-primary">Add Transaction</a>
-    </div>
-    {% endif %}
-</div>
-
-<!-- Financial Health Dashboard -->
-<div class="interactive-section">
-    <div class="section-header">
-        <h2>Financial Health Indicators</h2>
-        <p>Monitor key financial metrics and ensure fiscal responsibility</p>
-    </div>
-    
-    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">📊</span>
-                <h3>Budget Utilization Trend</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--primary-main); margin-bottom: 0.5rem;">
-                    {{ budget_utilization_trend|default:68 }}%
-                </div>
-                <p style="margin-bottom: 1rem;">Budget utilized this fiscal year</p>
-                <div style="background: var(--surface-tertiary); height: 8px; border-radius: 4px; overflow: hidden;">
-                    <div style="background: linear-gradient(90deg, var(--primary-main), var(--primary-light)); height: 100%; width: {{ budget_utilization_trend|default:68 }}%; border-radius: 4px; transition: width 1s ease;"></div>
-                </div>
-                <div style="display: flex; justify-content: space-between; margin-top: 0.5rem;">
-                    <small style="color: var(--text-muted);">Target: 85%</small>
-                    <small style="color: var(--primary-main);">On Track</small>
-                </div>
-            </div>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">💡</span>
-                <h3>Cost Efficiency</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-emerald); margin-bottom: 0.5rem;">
-                    {{ cost_efficiency|default:87 }}%
-                </div>
-                <p style="margin-bottom: 1rem;">Cost-effective spending rate</p>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <span style="color: var(--accent-emerald); font-size: 0.875rem;">↗ +5%</span>
-                    <span style="color: var(--text-muted); font-size: 0.875rem;">improvement vs last year</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-card-header">
-                <span class="feature-card-icon">⚠️</span>
-                <h3>Financial Compliance</h3>
-            </div>
-            <div class="feature-card-body">
-                <div style="font-size: 2.5rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 0.5rem;">
-                    {{ financial_compliance|default:94 }}%
-                </div>
-                <p style="margin-bottom: 1rem;">Compliance with financial policies</p>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <span style="color: var(--accent-gold); font-size: 0.875rem;">🎯 Excellent</span>
-                    <span style="color: var(--text-muted); font-size: 0.875rem;">audit readiness</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Quick Financial Actions -->
-<div class="interactive-section">
-    <div class="section-header">
-        <h2>Treasurer Toolkit</h2>
-        <p>Essential financial management tools and resources</p>
-    </div>
-    
-    <div class="card-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--primary-main);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📋</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Budget Planner</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Create and manage budget allocations</p>
-            <a href="/treasurer/budget-planner/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Plan Budgets</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-emerald);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🧾</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Expense Tracker</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Record and categorize all expenses</p>
-            <a href="/treasurer/expense-tracker/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Track Expenses</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-gold);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📊</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Financial Analytics</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Analyze spending patterns and trends</p>
-            <a href="/treasurer/analytics/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Analytics</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--info);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">📄</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Financial Reports</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Generate comprehensive financial statements</p>
-            <a href="/treasurer/report-generator/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Generate Reports</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-crimson);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">🔍</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Audit Trail</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Maintain detailed transaction history</p>
-            <a href="/treasurer/audit-trail/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">View Audit Trail</a>
-        </div>
-
-        <div style="background: var(--surface-primary); padding: 1.5rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); text-align: center; border-left: 4px solid var(--accent-purple);">
-            <div style="font-size: 2rem; margin-bottom: 0.75rem;">⚖️</div>
-            <h4 style="margin-bottom: 0.5rem; color: var(--text-primary);">Compliance Check</h4>
-            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">Ensure policy compliance and audit readiness</p>
-            <a href="/treasurer/compliance/" class="btn btn-outline" style="width: 100%; padding: 0.75rem;">Check Compliance</a>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Animate financial statistics with currency formatting
-    const statNumbers = document.querySelectorAll('.stat-card .number');
-    statNumbers.forEach((number, index) => {
-        let finalText = number.textContent;
-        let finalValue;
-        
-        if (finalText.includes('₹')) {
-            finalValue = parseInt(finalText.replace(/[₹,]/g, ''));
-            let currentValue = 0;
-            const increment = Math.ceil(finalValue / 60);
-            
-            const counter = setInterval(() => {
-                currentValue += increment;
-                if (currentValue >= finalValue) {
-                    number.textContent = '₹' + finalValue.toLocaleString();
-                    clearInterval(counter);
-                } else {
-                    number.textContent = '₹' + currentValue.toLocaleString();
-                }
-            }, 25);
-        } else if (finalText.includes('%')) {
-            finalValue = parseInt(finalText.replace('%', ''));
-            let currentValue = 0;
-            const increment = Math.ceil(finalValue / 50);
-            
-            const counter = setInterval(() => {
-                currentValue += increment;
-                if (currentValue >= finalValue) {
-                    number.textContent = finalValue + '%';
-                    clearInterval(counter);
-                } else {
-                    number.textContent = currentValue + '%';
-                }
-            }, 30);
-        }
-    });
-
-    // Financial transaction highlighting based on amount
-    document.querySelectorAll('tr').forEach(row => {
-        const amountCell = row.querySelector('[style*="font-weight: 600"]');
-        if (amountCell) {
-            const amount = parseFloat(amountCell.textContent.replace(/[₹,]/g, ''));
-            if (amount > 10000) {
-                row.style.borderLeft = '3px solid var(--accent-gold)';
-                row.style.background = 'rgba(214, 158, 46, 0.02)';
-            }
-        }
-    });
-
-    // Treasurer-specific financial management features
-    const financeButtons = document.querySelectorAll('a[href*="/treasurer/"]');
-    financeButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            // Add financial transaction feedback
-            this.style.transform = 'scale(0.96)';
-            this.style.boxShadow = 'inset 0 2px 4px rgba(0,0,0,0.1)';
-            setTimeout(() => {
-                this.style.transform = '';
-                this.style.boxShadow = '';
-            }, 200);
-        });
-    });
-
-    // Progress bars for financial metrics
-    setTimeout(() => {
-        const progressBars = document.querySelectorAll('[style*="width:"][style*="%"]');
-        progressBars.forEach((bar, index) => {
-            const width = bar.style.width;
-            bar.style.width = '0%';
-            setTimeout(() => {
-                bar.style.width = width;
-            }, 400 * (index + 1));
-        });
-    }, 1200);
-
-    // Budget warning system
-    const budgetUtilization = {{ budget_utilization_trend|default:68 }};
-    if (budgetUtilization > 80) {
-        console.log('Budget Alert: High utilization detected');
-        // In a real application, this would trigger alerts
-    }
-
-    // Real-time financial calculations
-    function calculateRemainingBudget() {
-        const totalBudget = {{ total_budget|default:245000 }};
-        const expensesYtd = {{ expenses_ytd|default:167500 }};
-        const remaining = totalBudget - expensesYtd;
-        
-        console.log('Financial Status:', {
-            total: totalBudget,
-            spent: expensesYtd,
-            remaining: remaining,
-            utilization: ((expensesYtd / totalBudget) * 100).toFixed(1) + '%'
-        });
-    }
-    
-    calculateRemainingBudget();
-});
-</script>
 {% endblock %}
