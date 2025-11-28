@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MITS Student Activity Center Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --mits-red: #C8102E;
+            --mits-white: #fff;
+            --mits-gray: #f5f5f5;
+            --mits-dark: #222;
+            --mits-light: #fafafa;
+            --mits-accent: #C8102E;
+            --mits-green: #2ecc40;
+        }
+        body {
+            margin: 0;
+            font-family: 'Roboto', Arial, sans-serif;
+            background: var(--mits-white);
+            color: var(--mits-dark);
+        }
+        header {
+            background: var(--mits-white);
+            border-bottom: 1px solid var(--mits-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            height: 80px;
+        }
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+        .logo img {
+            height: 48px;
+            margin-right: 1rem;
+        }
+        nav {
+            display: flex;
+            gap: 2rem;
+        }
+        nav a {
+            text-decoration: none;
+            color: var(--mits-dark);
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        nav a:hover {
+            color: var(--mits-accent);
+        }
+        .header-btn {
+            background: var(--mits-accent);
+            color: var(--mits-white);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(200,16,46,0.08);
+            transition: background 0.2s;
+        }
+        .header-btn:hover {
+            background: #a60d24;
+        }
+        .hero {
+            position: relative;
+            background: url('https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=1500&q=80') center/cover no-repeat;
+            min-height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(200,16,46,0.7);
+            z-index: 1;
+        }
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            color: var(--mits-white);
+            text-align: center;
+            max-width: 600px;
+        }
+        .hero-content h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .hero-content p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+        .hero-content .hero-btn {
+            background: var(--mits-white);
+            color: var(--mits-accent);
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: background 0.2s;
+        }
+        .hero-content .hero-btn:hover {
+            background: #f5f5f5;
+        }
+        .section {
+            padding: 3rem 2rem;
+            background: var(--mits-light);
+        }
+        .section-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--mits-accent);
+            margin-bottom: 2rem;
+        }
+        .events-cards {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .event-card {
+            background: var(--mits-white);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            width: 320px;
+            overflow: hidden;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+        .event-card img {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+        }
+        .event-card-content {
+            padding: 1.2rem;
+        }
+        .event-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .event-date {
+            font-size: 0.95rem;
+            color: var(--mits-accent);
+            margin-bottom: 0.5rem;
+        }
+        .event-status {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: var(--mits-green);
+            color: var(--mits-white);
+            font-size: 0.85rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            box-shadow: 0 1px 4px rgba(44,204,64,0.12);
+        }
+        .features-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+        }
+        .feature-col {
+            background: var(--mits-white);
+            border-radius: 16px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+            flex: 1;
+            min-width: 220px;
+            max-width: 320px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--mits-accent);
+            margin-bottom: 1rem;
+        }
+        .feature-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .feature-text {
+            font-size: 1rem;
+            color: #444;
+        }
+        .dashboard-mockup-section {
+            background: var(--mits-white);
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .dashboard-mockup-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--mits-accent);
+            margin-bottom: 2rem;
+        }
+        .dashboard-mockup {
+            display: inline-block;
+            background: var(--mits-gray);
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+            width: 480px;
+            height: 260px;
+            position: relative;
+            overflow: hidden;
+        }
+        .dashboard-sidebar {
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 80px;
+            background: var(--mits-accent);
+            color: var(--mits-white);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 2rem;
+        }
+        .dashboard-sidebar i {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .dashboard-main {
+            margin-left: 80px;
+            padding: 2rem 1.5rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+        .pending-events-widget {
+            background: var(--mits-white);
+            color: var(--mits-accent);
+            border-radius: 10px;
+            padding: 0.7rem 1.2rem;
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            box-shadow: 0 1px 6px rgba(200,16,46,0.10);
+        }
+        .dashboard-graph {
+            width: 180px;
+            height: 80px;
+            background: linear-gradient(90deg, var(--mits-accent) 60%, var(--mits-gray) 100%);
+            border-radius: 8px;
+            margin-top: 1rem;
+            position: relative;
+        }
+        .dashboard-graph::after {
+            content: '';
+            position: absolute;
+            left: 20px; top: 30px;
+            width: 140px; height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 6px;
+        }
+        footer {
+            background: var(--mits-accent);
+            color: var(--mits-white);
+            padding: 3rem 2rem 2rem 2rem;
+        }
+        .footer-grid {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .footer-col {
+            flex: 1;
+            min-width: 180px;
+            max-width: 260px;
+        }
+        .footer-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .footer-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .footer-links li {
+            margin-bottom: 0.7rem;
+        }
+        .footer-links a {
+            color: var(--mits-white);
+            text-decoration: none;
+            font-size: 0.98rem;
+            transition: text-decoration 0.2s;
+        }
+        .footer-links a:hover {
+            text-decoration: underline;
+        }
+        .footer-social {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .footer-social a {
+            color: var(--mits-white);
+            font-size: 1.3rem;
+            transition: color 0.2s;
+        }
+        .footer-social a:hover {
+            color: #fff7f7;
+        }
+        @media (max-width: 900px) {
+            .events-cards, .features-grid, .footer-grid {
+                flex-direction: column;
+                align-items: center;
+            }
+            .dashboard-mockup {
+                width: 98vw;
+                max-width: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="https://mits.ac.in/images/logo.png" alt="MITS Logo">
+        </div>
+        <nav>
+            <a href="#">Home</a>
+            <a href="#events">Events Calendar</a>
+            <a href="#clubs">Club Directory</a>
+            <a href="#notifications">Notifications</a>
+        </nav>
+        <button class="header-btn">Student & Staff Login</button>
+    </header>
+    <section class="hero">
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1>Your Campus Life, Centralized.</h1>
+            <p>The official hub to manage clubs, events, attendance, and approvals. Log in to access your personal dashboard.</p>
+            <button class="hero-btn">Login to Dashboard</button>
+        </div>
+    </section>
+    <section class="section" id="events">
+        <div class="section-title">What's Happening on Campus?</div>
+        <div class="events-cards">
+            <div class="event-card">
+                <img src="https://mits.ac.in/images/events/event1.jpg" alt="Event Poster 1">
+                <div class="event-status"><i class="fas fa-check-circle"></i> Approved</div>
+                <div class="event-card-content">
+                    <div class="event-title">Tech Symposium 2025</div>
+                    <div class="event-date">Nov 20, 2025</div>
+                </div>
+            </div>
+            <div class="event-card">
+                <img src="https://mits.ac.in/images/events/event2.jpg" alt="Event Poster 2">
+                <div class="event-status"><i class="fas fa-check-circle"></i> Approved</div>
+                <div class="event-card-content">
+                    <div class="event-title">Cultural Fest</div>
+                    <div class="event-date">Nov 25, 2025</div>
+                </div>
+            </div>
+            <div class="event-card">
+                <img src="https://mits.ac.in/images/events/event3.jpg" alt="Event Poster 3">
+                <div class="event-status"><i class="fas fa-check-circle"></i> Approved</div>
+                <div class="event-card-content">
+                    <div class="event-title">Sports Meet</div>
+                    <div class="event-date">Dec 2, 2025</div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section" id="features">
+        <div class="section-title">A Purpose-Built Dashboard for Every Role.</div>
+        <div class="features-grid">
+            <div class="feature-col">
+                <div class="feature-icon"><i class="fas fa-user"></i></div>
+                <div class="feature-title">For Students & Volunteers</div>
+                <div class="feature-text">Join clubs, see upcoming events, track your attendance, and receive instant notifications.</div>
+            </div>
+            <div class="feature-col">
+                <div class="feature-icon"><i class="fas fa-users"></i></div>
+                <div class="feature-title">For Club Coordinators</div>
+                <div class="feature-text">Propose new events, manage your club's member list, and view your club's status from your dedicated dashboard.</div>
+            </div>
+            <div class="feature-col">
+                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="feature-title">For SAC Admins & Faculty</div>
+                <div class="feature-text">Approve/reject pending events, manage all users, oversee club compliance, and track campus-wide analytics from the Admin Dashboard.</div>
+            </div>
+        </div>
+    </section>
+    <section class="dashboard-mockup-section">
+        <div class="dashboard-mockup-title">Streamline Every Workflow.</div>
+        <div class="dashboard-mockup">
+            <div class="dashboard-sidebar">
+                <i class="fas fa-tachometer-alt"></i>
+                <i class="fas fa-calendar-check"></i>
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="dashboard-main">
+                <div class="pending-events-widget">Pending Events: 5</div>
+                <div class="dashboard-graph"></div>
+            </div>
+        </div>
+    </section>
+    <footer>
+        <div class="footer-grid">
+            <div class="footer-col">
+                <div class="footer-title">Explore</div>
+                <ul class="footer-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#events">Events Calendar</a></li>
+                    <li><a href="#clubs">Club Directory</a></li>
+                    <li><a href="#features">Features</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-title">Resources for Clubs</div>
+                <ul class="footer-links">
+                    <li><a href="#">Club Guidelines</a></li>
+                    <li><a href="#">Event Proposal Form</a></li>
+                    <li><a href="#">Attendance Tracker</a></li>
+                    <li><a href="#">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-title">Contact SAC</div>
+                <ul class="footer-links">
+                    <li><a href="mailto:sac@mits.ac.in">sac@mits.ac.in</a></li>
+                    <li><a href="tel:+918123456789">+91 81234 56789</a></li>
+                    <li><a href="#">Location: MITS Campus</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <div class="footer-title">Follow MITS</div>
+                <div class="footer-social">
+                    <a href="https://facebook.com/mitsmadanapalle" target="_blank"><i class="fab fa-facebook"></i></a>
+                    <a href="https://twitter.com/mitsmp" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://instagram.com/mitsmp" target="_blank"><i class="fab fa-instagram"></i></a>
+                    <a href="https://linkedin.com/school/mitsmp" target="_blank"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
