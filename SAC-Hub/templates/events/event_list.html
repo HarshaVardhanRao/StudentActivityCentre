@@ -54,73 +54,61 @@
     <!-- Event List -->
     <div class="grid md:grid-cols-3 gap-6">
         {% for event in events %}
-<div class="card p-4 flex flex-col justify-between h-full">
-    <!-- Image -->
-    {% if event.thumbnail %}
-        <img src="{{ event.thumbnail.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover rounded-md mb-3">
-    {% elif event.club and event.club.logo %}
-        <img src="{{ event.club.logo.url }}" alt="{{ event.club.name }}" class="w-full h-48 object-cover rounded-md mb-3">
-    {% else %}
-        <div class="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 mb-3">
-            No Image
-        </div>
-    {% endif %}
-
-    <div>
-        <h2 class="text-xl font-semibold mb-1">{{ event.name }}</h2>
-        <p class="text-sm text-gray-500 mb-2">{{ event.date_time|date:"D, d M Y H:i" }} | {{ event.venue }}</p>
-        <p class="text-gray-700 mb-2 line-clamp-3">{{ event.description }}</p>
-
-        <p class="text-sm text-gray-600 mb-2">
-            Club: {% if event.club %}{{ event.club.name }}{% else %}N/A{% endif %}
-        </p>
-        <p class="text-sm text-gray-600 mb-2">Status: {{ event.get_status_display }}</p>
-
-        {% if user.is_authenticated %}
-            <p class="text-sm text-gray-600 mb-2">
-                Registrations: {{ event.registration_count }} |
-                {% if event.user_registered %}
-                    <span class="text-green-600 font-medium">Registered</span>
+            <div class="card p-4 flex flex-col justify-between h-full">
+                <!-- Image -->
+                {% if event.thumbnail %}
+                    <img src="{{ event.thumbnail.url }}" alt="{{ event.name }}" class="w-full h-48 object-cover rounded-md mb-3">
+                {% elif event.club and event.club.logo %}
+                    <img src="{{ event.club.logo.url }}" alt="{{ event.club.name }}" class="w-full h-48 object-cover rounded-md mb-3">
                 {% else %}
-                    <span class="text-gray-600">Not Registered</span>
+                    <div class="w-full h-48 bg-gray-200 rounded-md flex items-center justify-center text-gray-400 mb-3">
+                        No Image
+                    </div>
                 {% endif %}
-            </p>
-        {% endif %}
-    </div>
 
-    <!-- Buttons at the bottom -->
-    <div class="mt-4 flex flex-col gap-2">
-        {% if user.is_authenticated %}
-            {% if event.user_registered %}
-                <button onclick="alert('You are already registered for {{ event.name }}!');"
-                        class="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
-                    Registered
-                </button>
-            {% elif event.status == 'APPROVED' %}
-                <button onclick="alert('Successfully registered for {{ event.name }}!');"
-                        class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
-                    Register
-                </button>
-            {% else %}
-                <button onclick="alert('Event not open for registration.');"
-                        class="w-full bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed">
-                    Register
-                </button>
-            {% endif %}
-        {% else %}
-            <a href="{% url 'login' %}" class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
-                Login to Register
-            </a>
-        {% endif %}
+                <div>
+                    <h2 class="text-xl font-semibold mb-1">{{ event.name }}</h2>
+                    <p class="text-sm text-gray-500 mb-2">{{ event.date_time|date:"D, d M Y H:i" }} | {{ event.venue }}</p>
+                    <p class="text-gray-700 mb-2 line-clamp-3">{{ event.description }}</p>
 
-        <a href="{% url 'event_detail' event.id %}"
-           class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
-            View Details
-        </a>
-    </div>
-</div>
-{% endfor %}
+                    <p class="text-sm text-gray-600 mb-2">
+                        Club: {% if event.club %}{{ event.club.name }}{% else %}N/A{% endif %}
+                    </p>
+                    <p class="text-sm text-gray-600 mb-2">Status: {{ event.get_status_display }}</p>
+                </div>
 
+                <!-- Buttons at the bottom -->
+                <div class="mt-4 flex flex-col gap-2">
+                    {% if user.is_authenticated %}
+                        {% if event.user_registered %}
+                            <button onclick="alert('You are already registered for {{ event.name }}!');"
+                                    class="w-full bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
+                                Registered
+                            </button>
+                        {% elif event.status == 'APPROVED' %}
+                            <button onclick="register_for_event({{ event.id }})"
+                                    class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                                Register
+                            </button>
+                        {% else %}
+                            <button onclick="alert('Event not open for registration.');"
+                                    class="w-full bg-gray-300 text-gray-600 py-2 rounded-lg cursor-not-allowed">
+                                Register
+                            </button>
+                        {% endif %}
+                    {% else %}
+                        <a href="{% url 'login' %}" class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+                            Login to Register
+                        </a>
+                    {% endif %}
+
+                    <a href="{% url 'event_detail' event.id %}"
+                    class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
     </div>
 
     <!-- Pagination -->
@@ -145,4 +133,16 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function register_for_event(event_id){
+        let user_choice = confirm("Do you want to register for this event?");
+
+        if (user_choice){
+            window.location.href = `/events/${event_id}/register`;
+        }
+    }
+</script>
 {% endblock %}

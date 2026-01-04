@@ -2,72 +2,110 @@
 
 {% block title %}Register for {{ event.name }} - SAC Hub{% endblock %}
 
+{% block extra_css %}
+<style>
+  :root { --mits-red: #C8102E; }
+  .ring-red { box-shadow: 0 0 0 3px rgba(200,16,46,0.15); }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-header">
-                <h3>Register for Event</h3>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+
+    {# Flash messages (scoped to this page) #}
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for message in messages %}
+          {% if 'error' in message.tags %}
+            <div class="rounded-md border border-red-200 bg-red-50 text-red-700 px-4 py-3">{{ message }}</div>
+          {% elif 'success' in message.tags %}
+            <div class="rounded-md border border-green-200 bg-green-50 text-green-700 px-4 py-3">{{ message }}</div>
+          {% elif 'warning' in message.tags %}
+            <div class="rounded-md border border-yellow-200 bg-yellow-50 text-yellow-800 px-4 py-3">{{ message }}</div>
+          {% else %}
+            <div class="rounded-md border border-blue-200 bg-blue-50 text-blue-700 px-4 py-3">{{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <p class="text-xs uppercase tracking-wider text-gray-500">Register for</p>
+                <h1 class="text-2xl font-semibold text-gray-900">{{ event.name }}</h1>
+                <p class="text-sm text-gray-500 mt-1">
+                    {{ event.event_type }}
+                    {% if event.club %}
+                      • {{ event.club.name }}
+                    {% elif event.department %}
+                      • {{ event.department.name }}
+                    {% endif %}
+                </p>
             </div>
-            <div class="card-body">
-                <!-- Event Information -->
-                <div class="row mb-4">
-                    <div class="col-md-8">
-                        <h4>{{ event.name }}</h4>
-                        <p class="text-muted">{{ event.event_type }} | {{ event.club.name }}</p>
-                    </div>
-                    <div class="col-md-4 text-end">
-                        <span class="badge bg-success fs-6">{{ event.get_status_display }}</span>
-                    </div>
-                </div>
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">
+                {{ event.get_status_display }}
+            </span>
+        </div>
 
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <strong>Date & Time:</strong><br>
-                        {{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}
-                    </div>
-                    <div class="col-md-6">
-                        <strong>Venue:</strong><br>
-                        {{ event.venue }}
-                    </div>
-                </div>
-
-                {% if event.description %}
-                <div class="mb-4">
-                    <strong>Description:</strong>
-                    <p class="mt-2">{{ event.description|linebreaks }}</p>
-                </div>
-                {% endif %}
-
-                <hr>
-
-                <!-- Registration Form -->
-                <form method="post">
-                    {% csrf_token %}
-                    
-                    <div class="alert alert-info">
-                        <i class="bi bi-info-circle"></i>
-                        <strong>Registration Confirmation:</strong> By registering for this event, you confirm your interest and intent to participate. You will receive notifications about event updates.
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Additional Notes (Optional)</label>
-                        <textarea name="notes" id="notes" class="form-control" rows="3" 
-                                  placeholder="Any questions or special requirements you'd like to mention..."></textarea>
-                        <div class="form-text">These notes will be visible to the event organizers.</div>
-                    </div>
-
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-person-plus"></i> Register for Event
-                            </button>
-                            <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-secondary">Cancel</a>
-                        </div>
-                    </div>
-                </form>
+        <!-- Event meta -->
+        <div class="px-6 py-5 grid sm:grid-cols-2 gap-4">
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-medium text-gray-500 uppercase">Date & Time</p>
+                <p class="mt-1 text-gray-900 font-medium">{{ event.date_time|date:"M d, Y" }} at {{ event.date_time|time:"g:i A" }}</p>
+            </div>
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100">
+                <p class="text-xs font-medium text-gray-500 uppercase">Venue</p>
+                <p class="mt-1 text-gray-900 font-medium">{{ event.venue }}</p>
             </div>
         </div>
+
+        {% if event.description %}
+        <div class="px-6 pb-2">
+            <div class="p-4 rounded-xl bg-white border border-gray-100">
+                <p class="text-xs font-medium text-gray-500 uppercase">Description</p>
+                <div class="prose max-w-none mt-2 text-gray-700">{{ event.description|linebreaks }}</div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Registration form -->
+        <div class="px-6 pt-2 pb-6">
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+
+                <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-blue-800">
+                    <p class="text-sm"><span class="font-semibold">Registration Confirmation:</span> By registering for this event, you confirm your interest and intent to participate. You will receive notifications about event updates.</p>
+                </div>
+
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">Additional Notes (optional)</label>
+                    <textarea id="notes" name="notes" rows="4"
+                              class="mt-2 w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition resize-y p-3"
+                              placeholder="Any questions or special requirements you'd like to mention..."></textarea>
+                    <p class="mt-2 text-xs text-gray-500">These notes will be visible to the event organizers.</p>
+                </div>
+
+                <div class="flex items-center justify-between pt-2">
+                    <div class="flex items-center gap-3">
+                        <button type="submit"
+                                class="inline-flex items-center gap-2 bg-[var(--mits-red)] text-white font-medium px-5 py-2.5 rounded-lg shadow-sm hover:brightness-95 active:brightness-90 transition">
+                            <!-- plus icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5"><path d="M12 4.5a.75.75 0 0 1 .75.75V11h5.75a.75.75 0 0 1 0 1.5H12.75v5.75a.75.75 0 0 1-1.5 0V12.5H5.5a.75.75 0 0 1 0-1.5h5.75V5.25A.75.75 0 0 1 12 4.5z"/></svg>
+                            Register for Event
+                        </button>
+                        <a href="{% url 'event_detail' event.id %}"
+                           class="inline-flex items-center px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition">Cancel</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Subtle brand footer ribbon -->
+    <div class="mt-6 text-center text-xs text-gray-500">
+        Powered by <span class="font-semibold text-[var(--mits-red)]">MITS SAC Hub</span>
     </div>
 </div>
 {% endblock %}

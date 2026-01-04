@@ -24,7 +24,7 @@ from .dashboard_views import (
     PresidentDashboardView, SVPDashboardView, SecretaryDashboardView, TreasurerDashboardView, ClubAdvisorDashboardView
 )
 from .student_views import student_dashboard
-from .home_views import home
+from .home_views import home, about
 from .role_dashboards import (
     club_coordinator_dashboard, svp_dashboard, secretary_dashboard,
     treasurer_dashboard, department_admin_dashboard, club_advisor_dashboard, event_organizer_dashboard,
@@ -59,6 +59,7 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("", home, name="home"),
+    path("about/", about, name="about"),
     path("dashboard/", student_dashboard, name="student-dashboard"),
     
     # Custom Admin functions (must come before admin.site.urls)

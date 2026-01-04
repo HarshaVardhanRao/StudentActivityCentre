@@ -1,79 +1,94 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container">
-	<h2 class="mb-4">SAC Admin Dashboard</h2>
-	
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+	<h2 class="text-2xl font-bold text-gray-800 mb-6">SAC Admin Dashboard</h2>
+
 	{% if error_message %}
-		<div class="alert alert-danger">{{ error_message }}</div>
+	<div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+		<p class="text-red-700">{{ error_message }}</p>
+	</div>
 	{% else %}
-	
-	<div class="row mb-4">
-		<div class="col-md-4">
-			<div class="card text-bg-warning mb-3">
-				<div class="card-header">Event Approvals</div>
-				<div class="card-body">
-					<h5 class="card-title">{{ pending_event_proposals }}</h5>
-					<p class="card-text">Events from Faculty/Coordinators pending approval.</p>
-					<a href="{% url 'event_approval_list' %}" class="btn btn-light">
-						<i class="bi bi-calendar-check"></i> Review Events
-					</a>
-				</div>
+
+	<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+		<div class="bg-white rounded-xl shadow-sm border border-yellow-100 overflow-hidden">
+			<div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100">
+				<h3 class="font-semibold text-yellow-800">Event Approvals</h3>
+			</div>
+			<div class="p-6">
+				<h5 class="text-3xl font-bold text-gray-800 mb-2">{{ pending_event_proposals }}</h5>
+				<p class="text-gray-600 mb-4">Events from Faculty/Coordinators pending approval.</p>
+				<a href="{% url 'event_approval_list' %}"
+					class="inline-flex items-center px-4 py-2 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition-colors">
+					<i class="bi bi-calendar-check me-2"></i> Review Events
+				</a>
 			</div>
 		</div>
-		<div class="col-md-4">
-			<div class="card text-bg-info mb-3">
-				<div class="card-header">Collaboration Requests</div>
-				<div class="card-body">
-					<h5 class="card-title">{{ pending_collaborations }}</h5>
-					<p class="card-text">Department collaboration requests pending approval. <a href="#">View Requests</a></p>
-				</div>
+
+		<div class="bg-white rounded-xl shadow-sm border border-blue-100 overflow-hidden">
+			<div class="bg-blue-50 px-6 py-4 border-b border-blue-100">
+				<h3 class="font-semibold text-blue-800">Collaboration Requests</h3>
+			</div>
+			<div class="p-6">
+				<h5 class="text-3xl font-bold text-gray-800 mb-2">{{ pending_collaborations }}</h5>
+				<p class="text-gray-600 mb-4">Department collaboration requests pending approval.</p>
+				<a href="#" class="text-blue-600 hover:text-blue-800 font-medium">View Requests &rarr;</a>
 			</div>
 		</div>
-		<div class="col-md-4">
-			<div class="card text-bg-primary mb-3">
-				<div class="card-header">Event Calendar</div>
-				<div class="card-body">
-					<h5 class="card-title">{{ approved_events }}</h5>
-					<p class="card-text">All approved events. <a href="#">View Calendar</a></p>
-				</div>
+
+		<div class="bg-white rounded-xl shadow-sm border border-indigo-100 overflow-hidden">
+			<div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100">
+				<h3 class="font-semibold text-indigo-800">Event Calendar</h3>
+			</div>
+			<div class="p-6">
+				<h5 class="text-3xl font-bold text-gray-800 mb-2">{{ approved_events }}</h5>
+				<p class="text-gray-600 mb-4">All approved events.</p>
+				<a href="#" class="text-indigo-600 hover:text-indigo-800 font-medium">View Calendar &rarr;</a>
 			</div>
 		</div>
 	</div>
-	<div class="row mb-4">
-		<div class="col-md-6">
-			<div class="card mb-3">
-				<div class="card-header">Notifications</div>
-				<div class="card-body">
-					<ul class="list-group">
-						{% for note in notifications %}
-						<li class="list-group-item d-flex justify-content-between align-items-center">
-							{{ note.message }}
-							{% if not note.read %}<span class="badge bg-danger">New</span>{% endif %}
-						</li>
-						{% empty %}
-						<li class="list-group-item">No urgent notifications.</li>
-						{% endfor %}
-					</ul>
-				</div>
+
+	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+		<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+			<div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+				<h3 class="font-semibold text-gray-800">Notifications</h3>
+			</div>
+			<div class="p-6">
+				<ul class="space-y-3">
+					{% for note in notifications %}
+					<li class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+						<span class="text-gray-700">{{ note.message }}</span>
+						{% if not note.read %}
+						<span class="px-2 py-1 text-xs font-semibold bg-red-100 text-red-800 rounded-full">New</span>
+						{% endif %}
+					</li>
+					{% empty %}
+					<li class="text-gray-500 text-center py-4">No urgent notifications.</li>
+					{% endfor %}
+				</ul>
 			</div>
 		</div>
-		<div class="col-md-6">
-			<div class="card mb-3">
-				<div class="card-header">Administrative Actions</div>
-				<div class="card-body">
-					<a href="{% url 'event_approval_list' %}" class="btn btn-warning me-2">
-						<i class="bi bi-calendar-check"></i> Event Approvals
-					</a>
-					<a href="{% url 'assign_club_coordinator' %}" class="btn btn-primary me-2">
-						<i class="bi bi-people"></i> Assign Coordinators
-					</a>
-					<a href="#" class="btn btn-outline-secondary me-2">
-						<i class="bi bi-chat-dots"></i> Communications
-					</a>
-					<a href="{% url 'reports_dashboard' %}" class="btn btn-outline-info">
-						<i class="bi bi-graph-up"></i> Reports
-					</a>
-				</div>
+
+		<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+			<div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+				<h3 class="font-semibold text-gray-800">Administrative Actions</h3>
+			</div>
+			<div class="p-6 flex flex-wrap gap-3">
+				<a href="{% url 'event_approval_list' %}"
+					class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm">
+					<i class="bi bi-calendar-check me-2"></i> Event Approvals
+				</a>
+				<a href="{% url 'assign_club_coordinator' %}"
+					class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+					<i class="bi bi-people me-2"></i> Assign Coordinators
+				</a>
+				<a href="#"
+					class="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+					<i class="bi bi-chat-dots me-2"></i> Communications
+				</a>
+				<a href="{% url 'reports_dashboard' %}"
+					class="inline-flex items-center px-4 py-2 border border-blue-200 text-blue-700 rounded-lg hover:bg-blue-50 transition-colors">
+					<i class="bi bi-graph-up me-2"></i> Reports
+				</a>
 			</div>
 		</div>
 	</div>

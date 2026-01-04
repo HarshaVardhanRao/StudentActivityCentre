@@ -7,144 +7,137 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Reports Dashboard</h2>
-    <div class="btn-group" role="group">
-        <button type="button" class="btn btn-outline-primary" onclick="exportReport('pdf')">
-            <i class="bi bi-file-earmark-pdf"></i> Export PDF
-        </button>
-        <button type="button" class="btn btn-outline-success" onclick="exportReport('excel')">
-            <i class="bi bi-file-earmark-excel"></i> Export Excel
-        </button>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">Reports Dashboard</h2>
+        <div class="flex gap-2">
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                onclick="exportReport('pdf')">
+                <i class="bi bi-file-earmark-pdf me-2"></i> Export PDF
+            </button>
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 border border-green-600 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                onclick="exportReport('excel')">
+                <i class="bi bi-file-earmark-excel me-2"></i> Export Excel
+            </button>
+        </div>
     </div>
-</div>
 
-<!-- Date Range Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3">
-            <div class="col-md-3">
-                <label for="start_date" class="form-label">Start Date</label>
-                <input type="date" name="start_date" id="start_date" class="form-control" 
-                       value="{{ request.GET.start_date|default:'' }}">
+    <!-- Date Range Filter -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                <input type="date" name="start_date" id="start_date"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                    value="{{ request.GET.start_date|default:'' }}">
             </div>
-            <div class="col-md-3">
-                <label for="end_date" class="form-label">End Date</label>
-                <input type="date" name="end_date" id="end_date" class="form-control" 
-                       value="{{ request.GET.end_date|default:'' }}">
+            <div>
+                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                <input type="date" name="end_date" id="end_date"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                    value="{{ request.GET.end_date|default:'' }}">
             </div>
-            <div class="col-md-3">
-                <label for="club_filter" class="form-label">Club</label>
-                <select name="club_filter" id="club_filter" class="form-select">
+            <div>
+                <label for="club_filter" class="block text-sm font-medium text-gray-700 mb-1">Club</label>
+                <select name="club_filter" id="club_filter"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white">
                     <option value="">All Clubs</option>
                     {% for club in clubs %}
-                        <option value="{{ club.id }}" {% if request.GET.club_filter|stringformat:"s" == club.id|stringformat:"s" %}selected{% endif %}>
-                            {{ club.name }}
-                        </option>
+                    <option value="{{ club.id }}" {% if
+                        request.GET.club_filter|stringformat:"s"==club.id|stringformat:"s" %}selected{% endif %}>
+                        {{ club.name }}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
-                <label class="form-label">&nbsp;</label>
-                <div>
-                    <button type="submit" class="btn btn-primary">Apply Filters</button>
-                    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-secondary">Reset</a>
-                </div>
+            <div class="flex items-end gap-2">
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm">Apply
+                    Filters</button>
+                <a href="{% url 'reports_dashboard' %}"
+                    class="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">Reset</a>
             </div>
         </form>
     </div>
-</div>
 
-<!-- Summary Cards -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center bg-primary text-white">
-            <div class="card-body">
-                <h3>{{ stats.total_events }}</h3>
-                <p>Total Events</p>
-            </div>
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-blue-600 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ stats.total_events }}</h3>
+            <p class="text-blue-100 font-medium">Total Events</p>
+        </div>
+        <div class="bg-green-600 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ stats.total_participants }}</h3>
+            <p class="text-green-100 font-medium">Total Participants</p>
+        </div>
+        <div class="bg-cyan-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ stats.active_clubs }}</h3>
+            <p class="text-cyan-100 font-medium">Active Clubs</p>
+        </div>
+        <div class="bg-yellow-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ stats.avg_attendance|floatformat:1 }}%</h3>
+            <p class="text-yellow-100 font-medium">Avg Attendance</p>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-success text-white">
-            <div class="card-body">
-                <h3>{{ stats.total_participants }}</h3>
-                <p>Total Participants</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-info text-white">
-            <div class="card-body">
-                <h3>{{ stats.active_clubs }}</h3>
-                <p>Active Clubs</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-warning text-white">
-            <div class="card-body">
-                <h3>{{ stats.avg_attendance|floatformat:1 }}%</h3>
-                <p>Avg Attendance</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="row">
-    <!-- Left Column -->
-    <div class="col-lg-8">
-        <!-- Events Over Time Chart -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-graph-up"></i> Events Over Time</h5>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column -->
+        <div class="lg:col-span-2 space-y-8">
+            <!-- Events Over Time Chart -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-graph-up me-2"></i> Events Over Time
+                    </h5>
+                </div>
+                <div class="p-6">
+                    <canvas id="eventsChart" height="100"></canvas>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="eventsChart" height="100"></canvas>
-            </div>
-        </div>
 
-        <!-- Top Performing Clubs -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-trophy"></i> Top Performing Clubs</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-hover">
+            <!-- Top Performing Clubs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-trophy me-2"></i> Top Performing Clubs
+                    </h5>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th>Rank</th>
-                                <th>Club</th>
-                                <th>Events</th>
-                                <th>Participants</th>
-                                <th>Avg Attendance</th>
-                                <th>Score</th>
+                            <tr
+                                class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                                <th class="px-6 py-4">Rank</th>
+                                <th class="px-6 py-4">Club</th>
+                                <th class="px-6 py-4">Events</th>
+                                <th class="px-6 py-4">Participants</th>
+                                <th class="px-6 py-4">Avg Attendance</th>
+                                <th class="px-6 py-4">Score</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-100">
                             {% for club in top_clubs %}
-                            <tr>
-                                <td>
-                                    {% if forloop.counter <= 3 %}
-                                        <span class="badge bg-warning">{{ forloop.counter }}</span>
-                                    {% else %}
-                                        {{ forloop.counter }}
-                                    {% endif %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    {% if forloop.counter <= 3 %} <span
+                                        class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-100 text-yellow-800 text-xs font-bold">
+                                        {{ forloop.counter }}</span>
+                                        {% else %}
+                                        <span class="text-gray-600">{{ forloop.counter }}</span>
+                                        {% endif %}
                                 </td>
-                                <td>{{ club.name }}</td>
-                                <td>{{ club.events_count }}</td>
-                                <td>{{ club.participants_count }}</td>
-                                <td>{{ club.avg_attendance|floatformat:1 }}%</td>
-                                <td>
-                                    <div class="progress" style="width: 100px;">
-                                        <div class="progress-bar" role="progressbar" 
-                                             style="width: {{ club.score }}%" 
-                                             aria-valuenow="{{ club.score }}" 
-                                             aria-valuemin="0" aria-valuemax="100">
-                                            {{ club.score|floatformat:0 }}
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ club.name }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ club.events_count }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ club.participants_count }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ club.avg_attendance|floatformat:1 }}%</td>
+                                <td class="px-6 py-4">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ club.score }}%">
                                         </div>
                                     </div>
+                                    <span class="text-xs text-gray-500 mt-1 block">{{ club.score|floatformat:0 }}</span>
                                 </td>
                             </tr>
                             {% endfor %}
@@ -152,43 +145,49 @@
                     </table>
                 </div>
             </div>
-        </div>
 
-        <!-- Recent Events -->
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-calendar-event"></i> Recent Events</h5>
-            </div>
-            <div class="card-body">
-                <div class="table-responsive">
-                    <table class="table table-sm">
+            <!-- Recent Events -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-calendar-event me-2"></i> Recent Events
+                    </h5>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr>
-                                <th>Event</th>
-                                <th>Club</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Attendance</th>
+                            <tr
+                                class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                                <th class="px-6 py-4">Event</th>
+                                <th class="px-6 py-4">Club</th>
+                                <th class="px-6 py-4">Date</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Attendance</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-gray-100">
                             {% for event in recent_events %}
-                            <tr>
-                                <td>
-                                    <a href="{% url 'event_detail' event.id %}">{{ event.name }}</a>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <a href="{% url 'event_detail' event.id %}"
+                                        class="text-blue-600 hover:text-blue-800 font-medium">{{ event.name }}</a>
                                 </td>
-                                <td>{{ event.club.name }}</td>
-                                <td>{{ event.date_time|date:"M d, Y" }}</td>
-                                <td>
-                                    <span class="badge bg-{{ event.status|lower }}">
+                                <td class="px-6 py-4 text-gray-600">{{ event.club.name }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ event.date_time|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if event.status == 'APPROVED' %}bg-green-100 text-green-800
+                                        {% elif event.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                        {% elif event.status == 'REJECTED' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
                                         {{ event.get_status_display }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="px-6 py-4 text-gray-600">
                                     {% if event.attendance_rate %}
-                                        {{ event.attendance_rate|floatformat:1 }}%
+                                    {{ event.attendance_rate|floatformat:1 }}%
                                     {% else %}
-                                        N/A
+                                    <span class="text-gray-400">N/A</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -198,52 +197,56 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Right Column -->
-    <div class="col-lg-4">
-        <!-- Event Status Distribution -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-pie-chart"></i> Event Status</h5>
+        <!-- Right Column -->
+        <div class="space-y-8">
+            <!-- Event Status Distribution -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-pie-chart me-2"></i> Event Status
+                    </h5>
+                </div>
+                <div class="p-6">
+                    <canvas id="statusChart" height="200"></canvas>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="statusChart" height="200"></canvas>
-            </div>
-        </div>
 
-        <!-- Attendance Trends -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5><i class="bi bi-people"></i> Attendance Trends</h5>
+            <!-- Attendance Trends -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-people me-2"></i> Attendance Trends
+                    </h5>
+                </div>
+                <div class="p-6">
+                    <canvas id="attendanceChart" height="200"></canvas>
+                </div>
             </div>
-            <div class="card-body">
-                <canvas id="attendanceChart" height="200"></canvas>
-            </div>
-        </div>
 
-        <!-- Department Participation -->
-        <div class="card">
-            <div class="card-header">
-                <h5><i class="bi bi-building"></i> Department Participation</h5>
-            </div>
-            <div class="card-body">
-                {% for dept in department_stats %}
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>{{ dept.name }}</span>
-                        <div>
-                            <span class="badge bg-primary">{{ dept.events_count }}</span>
-                            <small class="text-muted">events</small>
+            <!-- Department Participation -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h5 class="font-semibold text-gray-800 flex items-center">
+                        <i class="bi bi-building me-2"></i> Department Participation
+                    </h5>
+                </div>
+                <div class="p-6 space-y-4">
+                    {% for dept in department_stats %}
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-sm font-medium text-gray-700">{{ dept.name }}</span>
+                            <div class="text-xs text-gray-500">
+                                <span class="font-semibold text-blue-600">{{ dept.events_count }}</span> events
+                            </div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full"
+                                style="width: {{ dept.participation_percentage }}%"></div>
                         </div>
                     </div>
-                    <div class="progress mb-3" style="height: 5px;">
-                        <div class="progress-bar" role="progressbar" 
-                             style="width: {{ dept.participation_percentage }}%" 
-                             aria-valuenow="{{ dept.participation_percentage }}" 
-                             aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -253,21 +256,21 @@
 
 {% block extra_js %}
 <script>
-// Events Over Time Chart
-const eventsCtx = document.getElementById('eventsChart').getContext('2d');
-new Chart(eventsCtx, {
-    type: 'line',
-    data: {
-        labels: {{ events_timeline.labels|safe }},
+    // Events Over Time Chart
+    const eventsCtx = document.getElementById('eventsChart').getContext('2d');
+    new Chart(eventsCtx, {
+        type: 'line',
+        data: {
+            labels: {{ events_timeline.labels | safe }},
         datasets: [{
             label: 'Events Created',
-            data: {{ events_timeline.data|safe }},
-            borderColor: 'rgb(75, 192, 192)',
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            tension: 0.1
+            data: {{ events_timeline.data | safe }},
+        borderColor: 'rgb(75, 192, 192)',
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        tension: 0.1
         }]
     },
-    options: {
+        options: {
         responsive: true,
         scales: {
             y: {
@@ -277,24 +280,24 @@ new Chart(eventsCtx, {
     }
 });
 
-// Event Status Pie Chart
-const statusCtx = document.getElementById('statusChart').getContext('2d');
-new Chart(statusCtx, {
-    type: 'doughnut',
-    data: {
-        labels: {{ status_distribution.labels|safe }},
+    // Event Status Pie Chart
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ status_distribution.labels | safe }},
         datasets: [{
-            data: {{ status_distribution.data|safe }},
-            backgroundColor: [
-                '#28a745',
-                '#ffc107',
-                '#dc3545',
-                '#17a2b8',
-                '#6c757d'
-            ]
+            data: {{ status_distribution.data | safe }},
+        backgroundColor: [
+            '#28a745',
+            '#ffc107',
+            '#dc3545',
+            '#17a2b8',
+            '#6c757d'
+        ]
         }]
     },
-    options: {
+        options: {
         responsive: true,
         plugins: {
             legend: {
@@ -304,21 +307,21 @@ new Chart(statusCtx, {
     }
 });
 
-// Attendance Trends Chart
-const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
-new Chart(attendanceCtx, {
-    type: 'bar',
-    data: {
-        labels: {{ attendance_trends.labels|safe }},
+    // Attendance Trends Chart
+    const attendanceCtx = document.getElementById('attendanceChart').getContext('2d');
+    new Chart(attendanceCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ attendance_trends.labels | safe }},
         datasets: [{
             label: 'Attendance %',
-            data: {{ attendance_trends.data|safe }},
-            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-            borderColor: 'rgba(54, 162, 235, 1)',
-            borderWidth: 1
+            data: {{ attendance_trends.data | safe }},
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
         }]
     },
-    options: {
+        options: {
         responsive: true,
         scales: {
             y: {
@@ -329,10 +332,10 @@ new Chart(attendanceCtx, {
     }
 });
 
-function exportReport(format) {
-    const params = new URLSearchParams(window.location.search);
-    params.set('format', format);
-    window.location.href = `/reports/export/?${params.toString()}`;
-}
+    function exportReport(format) {
+        const params = new URLSearchParams(window.location.search);
+        params.set('format', format);
+        window.location.href = `/reports/export/?${params.toString()}`;
+    }
 </script>
 {% endblock %}

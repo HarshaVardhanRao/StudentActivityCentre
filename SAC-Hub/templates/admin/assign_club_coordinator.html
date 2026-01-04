@@ -4,149 +4,146 @@
 {% block title %}Assign Club Coordinators - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2><i class="bi bi-person-plus"></i> Assign Club Coordinators</h2>
-    <a href="{% url 'reports_dashboard' %}" class="btn btn-outline-primary">
-        <i class="bi bi-arrow-left"></i> Back to Admin Dashboard
-    </a>
-</div>
-
-<!-- Assignment Form -->
-<div class="card mb-4">
-    <div class="card-header">
-        <h5><i class="bi bi-plus-circle"></i> New Assignment</h5>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800 flex items-center">
+            <i class="bi bi-person-plus me-2"></i> Assign Club Coordinators
+        </h2>
+        <a href="{% url 'reports_dashboard' %}"
+            class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+            <i class="bi bi-arrow-left me-2"></i> Back to Admin Dashboard
+        </a>
     </div>
-    <div class="card-body">
-        <form method="post" id="assignmentForm">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add">
-            
-            <div class="row">
-                <div class="col-md-5">
-                    <label for="student_id" class="form-label">Select Student</label>
-                    <select name="student_id" id="student_id" class="form-select" required>
-                        <option value="">Choose a student...</option>
-                        {% for student in students %}
+
+    <!-- Assignment Form -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h5 class="font-semibold text-gray-800 flex items-center">
+                <i class="bi bi-plus-circle me-2"></i> New Assignment
+            </h5>
+        </div>
+        <div class="p-6">
+            <form method="post" id="assignmentForm">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add">
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                    <div class="md:col-span-5">
+                        <label for="student_id" class="block text-sm font-medium text-gray-700 mb-1">Select
+                            Student</label>
+                        <select name="student_id" id="student_id"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white"
+                            required>
+                            <option value="">Choose a student...</option>
+                            {% for student in students %}
                             <option value="{{ student.id }}">
-                                {{ student.get_full_name }} 
+                                {{ student.get_full_name }}
                                 {% if student.roll_no %}({{ student.roll_no }}){% endif %}
                             </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-5">
-                    <label for="club_id" class="form-label">Select Club</label>
-                    <select name="club_id" id="club_id" class="form-select" required>
-                        <option value="">Choose a club...</option>
-                        {% for club in clubs %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="md:col-span-5">
+                        <label for="club_id" class="block text-sm font-medium text-gray-700 mb-1">Select Club</label>
+                        <select name="club_id" id="club_id"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white"
+                            required>
+                            <option value="">Choose a club...</option>
+                            {% for club in clubs %}
                             <option value="{{ club.id }}">{{ club.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">&nbsp;</label>
-                    <div>
-                        <button type="submit" class="btn btn-success w-100">
-                            <i class="bi bi-plus"></i> Assign
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="md:col-span-2">
+                        <button type="submit"
+                            class="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm flex items-center justify-center">
+                            <i class="bi bi-plus me-1"></i> Assign
                         </button>
                     </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Current Assignments -->
-<div class="card">
-    <div class="card-header">
-        <h5><i class="bi bi-people"></i> Current Club Coordinator Assignments</h5>
-    </div>
-    <div class="card-body">
-        {% if coordinator_assignments %}
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Club</th>
-                            <th>Coordinator</th>
-                            <th>Roll Number</th>
-                            <th>Email</th>
-                            <th>Department</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for assignment in coordinator_assignments %}
-                        <tr>
-                            <td>
-                                <strong>{{ assignment.club.name }}</strong>
-                                {% if assignment.club.description %}
-                                    <br><small class="text-muted">{{ assignment.club.description|truncatewords:10 }}</small>
-                                {% endif %}
-                            </td>
-                            <td>{{ assignment.coordinator.get_full_name }}</td>
-                            <td>{{ assignment.coordinator.roll_no|default:"N/A" }}</td>
-                            <td>{{ assignment.coordinator.email }}</td>
-                            <td>{{ assignment.coordinator.department.name|default:"N/A" }}</td>
-                            <td>
-                                <form method="post" style="display: inline;" 
-                                      onsubmit="return confirm('Are you sure you want to remove {{ assignment.coordinator.get_full_name }} as coordinator of {{ assignment.club.name }}?')">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="action" value="remove">
-                                    <input type="hidden" name="student_id" value="{{ assignment.coordinator.id }}">
-                                    <input type="hidden" name="club_id" value="{{ assignment.club.id }}">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                        <i class="bi bi-x-circle"></i> Remove
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+    <!-- Current Assignments -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h5 class="font-semibold text-gray-800 flex items-center">
+                <i class="bi bi-people me-2"></i> Current Club Coordinator Assignments
+            </h5>
+        </div>
+        <div class="overflow-x-auto">
+            {% if coordinator_assignments %}
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                        <th class="px-6 py-4">Club</th>
+                        <th class="px-6 py-4">Coordinator</th>
+                        <th class="px-6 py-4">Roll Number</th>
+                        <th class="px-6 py-4">Email</th>
+                        <th class="px-6 py-4">Department</th>
+                        <th class="px-6 py-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for assignment in coordinator_assignments %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <strong class="text-gray-800 block">{{ assignment.club.name }}</strong>
+                            {% if assignment.club.description %}
+                            <small class="text-gray-500 block mt-1">{{ assignment.club.description|truncatewords:10
+                                }}</small>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ assignment.coordinator.get_full_name }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ assignment.coordinator.roll_no|default:"N/A" }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ assignment.coordinator.email }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ assignment.coordinator.department.name|default:"N/A" }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <form method="post" class="inline-block"
+                                onsubmit="return confirm('Are you sure you want to remove {{ assignment.coordinator.get_full_name }} as coordinator of {{ assignment.club.name }}?')">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove">
+                                <input type="hidden" name="student_id" value="{{ assignment.coordinator.id }}">
+                                <input type="hidden" name="club_id" value="{{ assignment.club.id }}">
+                                <button type="submit"
+                                    class="px-3 py-1 border border-red-200 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors flex items-center">
+                                    <i class="bi bi-x-circle me-1"></i> Remove
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center py-12">
+                <i class="bi bi-person-x text-gray-300 text-6xl mb-4"></i>
+                <h5 class="text-xl font-bold text-gray-500">No Club Coordinators Assigned</h5>
+                <p class="text-gray-400 mt-2">Start by assigning students as club coordinators using the form above.</p>
             </div>
-        {% else %}
-            <div class="text-center py-4">
-                <i class="bi bi-person-x" style="font-size: 3rem; color: #6c757d;"></i>
-                <h5 class="text-muted mt-3">No Club Coordinators Assigned</h5>
-                <p class="text-muted">Start by assigning students as club coordinators using the form above.</p>
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     </div>
-</div>
 
-<!-- Summary Statistics -->
-<div class="row mt-4">
-    <div class="col-md-3">
-        <div class="card text-center bg-primary text-white">
-            <div class="card-body">
-                <h3>{{ clubs.count }}</h3>
-                <p class="mb-0">Total Clubs</p>
-            </div>
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+        <div class="bg-blue-600 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ clubs.count }}</h3>
+            <p class="text-blue-100 font-medium">Total Clubs</p>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-success text-white">
-            <div class="card-body">
-                <h3>{{ coordinator_assignments|length }}</h3>
-                <p class="mb-0">Assigned Coordinators</p>
-            </div>
+        <div class="bg-green-600 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ coordinator_assignments|length }}</h3>
+            <p class="text-green-100 font-medium">Assigned Coordinators</p>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-info text-white">
-            <div class="card-body">
-                <h3>{{ students|length }}</h3>
-                <p class="mb-0">Available Students</p>
-            </div>
+        <div class="bg-cyan-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ students|length }}</h3>
+            <p class="text-cyan-100 font-medium">Available Students</p>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-warning text-white">
-            <div class="card-body">
-                <h3>{{ clubs.count|subtract:coordinator_assignments|length }}</h3>
-                <p class="mb-0">Clubs Without Coordinators</p>
-            </div>
+        <div class="bg-yellow-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1">{{ clubs.count|subtract:coordinator_assignments|length }}</h3>
+            <p class="text-yellow-100 font-medium">Clubs Without Coordinators</p>
         </div>
     </div>
 </div>
@@ -154,49 +151,47 @@
 {% endblock %}
 
 {% block extra_js %}
+<!-- Select2 CDN and initialization for nicer select UI -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-// Enhanced select functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const studentSelect = document.getElementById('student_id');
-    const clubSelect = document.getElementById('club_id');
-    
-    // Add search functionality to select boxes
-    function addSearchToSelect(selectElement) {
-        selectElement.addEventListener('focus', function() {
-            this.setAttribute('data-live-search', 'true');
-        });
-    }
-    
-    addSearchToSelect(studentSelect);
-    addSearchToSelect(clubSelect);
-    
-    // Form validation
-    document.getElementById('assignmentForm').addEventListener('submit', function(e) {
-        const studentId = studentSelect.value;
-        const clubId = clubSelect.value;
-        
-        if (!studentId || !clubId) {
-            e.preventDefault();
-            alert('Please select both a student and a club.');
-            return false;
-        }
-        
-        // Check if assignment already exists
-        const existingAssignments = document.querySelectorAll('tbody tr');
-        for (let row of existingAssignments) {
-            const rowStudentName = row.cells[1].textContent.trim();
-            const rowClubName = row.cells[0].querySelector('strong').textContent.trim();
-            const selectedStudentName = studentSelect.options[studentSelect.selectedIndex].text;
-            const selectedClubName = clubSelect.options[clubSelect.selectedIndex].text;
-            
-            if (rowStudentName.includes(selectedStudentName.split('(')[0].trim()) && 
-                rowClubName === selectedClubName) {
+    // Enhanced select functionality
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initialize Select2
+        $('#student_id').select2({ placeholder: 'Choose a student...', width: '100%' });
+        $('#club_id').select2({ placeholder: 'Choose a club...', width: '100%' });
+
+        // Form validation
+        document.getElementById('assignmentForm').addEventListener('submit', function (e) {
+            const studentSelect = document.getElementById('student_id');
+            const clubSelect = document.getElementById('club_id');
+            const studentId = studentSelect.value;
+            const clubId = clubSelect.value;
+
+            if (!studentId || !clubId) {
                 e.preventDefault();
-                alert('This student is already assigned as coordinator for this club.');
+                alert('Please select both a student and a club.');
                 return false;
             }
-        }
+
+            // Check if assignment already exists
+            const existingAssignments = document.querySelectorAll('tbody tr');
+            for (let row of existingAssignments) {
+                const rowStudentName = row.cells[1].textContent.trim();
+                const rowClubName = row.cells[0].querySelector('strong').textContent.trim();
+                const selectedStudentName = studentSelect.options[studentSelect.selectedIndex].text;
+                const selectedClubName = clubSelect.options[clubSelect.selectedIndex].text;
+
+                if (rowStudentName.includes(selectedStudentName.split('(')[0].trim()) &&
+                    rowClubName === selectedClubName) {
+                    e.preventDefault();
+                    alert('This student is already assigned as coordinator for this club.');
+                    return false;
+                }
+            }
+        });
     });
-});
 </script>
 {% endblock %}

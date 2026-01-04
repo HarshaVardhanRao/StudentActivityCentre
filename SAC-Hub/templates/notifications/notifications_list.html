@@ -3,232 +3,291 @@
 {% block title %}Notifications - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Notifications</h2>
-    <div>
-        {% if can_send_notifications %}
-            <a href="{% url 'send_notification' %}" class="btn btn-primary me-2">
-                <i class="bi bi-plus-lg"></i> Create
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">Notifications</h2>
+        <div class="flex flex-wrap gap-2">
+            {% if can_send_notifications %}
+            <a href="{% url 'send_notification' %}"
+                class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i> Create
             </a>
-        {% else %}
-            <button type="button" class="btn btn-primary me-2" disabled title="You do not have permission to create notifications">
-                <i class="bi bi-plus-lg"></i> Create
+            {% else %}
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-500 rounded-lg cursor-not-allowed"
+                disabled title="You do not have permission to create notifications">
+                <i class="bi bi-plus-lg me-2"></i> Create
             </button>
-        {% endif %}
-        <button type="button" class="btn btn-outline-primary" onclick="markAllRead()">Mark All Read</button>
-        <button type="button" class="btn btn-outline-danger" onclick="clearAll()">Clear All</button>
+            {% endif %}
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                onclick="markAllRead()">Mark All Read</button>
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 border border-red-600 text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                onclick="clearAll()">Clear All</button>
+        </div>
     </div>
-</div>
 
-<!-- Hidden CSRF form so JS can read the token value -->
-<form id="csrfForm" style="display:none;">{% csrf_token %}</form>
+    <!-- Hidden CSRF form so JS can read the token value -->
+    <form id="csrfForm" style="display:none;">{% csrf_token %}</form>
 
-<!-- Filter Tabs -->
-<ul class="nav nav-tabs mb-4">
-    <li class="nav-item">
-        <a class="nav-link {% if not filter or filter == 'all' %}active{% endif %}" 
-           href="?filter=all">All ({{ total_count }})</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {% if filter == 'unread' %}active{% endif %}" 
-           href="?filter=unread">Unread ({{ unread_count }})</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link {% if filter == 'read' %}active{% endif %}" 
-           href="?filter=read">Read ({{ read_count }})</a>
-    </li>
-</ul>
+    <!-- Filter Tabs -->
+    <div class="border-b border-gray-200 mb-6">
+        <ul class="flex flex-wrap -mb-px text-sm font-medium text-center text-gray-500">
+            <li class="mr-2">
+                <a href="?filter=all"
+                    class="inline-block p-4 border-b-2 rounded-t-lg {% if not filter or filter == 'all' %}text-blue-600 border-blue-600 active{% else %}border-transparent hover:text-gray-600 hover:border-gray-300{% endif %}">
+                    All ({{ total_count }})
+                </a>
+            </li>
+            <li class="mr-2">
+                <a href="?filter=unread"
+                    class="inline-block p-4 border-b-2 rounded-t-lg {% if filter == 'unread' %}text-blue-600 border-blue-600 active{% else %}border-transparent hover:text-gray-600 hover:border-gray-300{% endif %}">
+                    Unread ({{ unread_count }})
+                </a>
+            </li>
+            <li class="mr-2">
+                <a href="?filter=read"
+                    class="inline-block p-4 border-b-2 rounded-t-lg {% if filter == 'read' %}text-blue-600 border-blue-600 active{% else %}border-transparent hover:text-gray-600 hover:border-gray-300{% endif %}">
+                    Read ({{ read_count }})
+                </a>
+            </li>
+        </ul>
+    </div>
 
-<!-- Notifications List -->
-<div class="card">
-    <div class="card-body">
-        {% if notifications %}
+    <!-- Notifications List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="divide-y divide-gray-100">
+            {% if notifications %}
             {% for notification in notifications %}
-                <div class="notification-item d-flex justify-content-between align-items-start p-3 
-                     {% if not notification.read %}bg-light border-start border-primary border-4{% endif %} 
-                     {% if not forloop.last %}border-bottom{% endif %}" 
-                     data-notification-id="{{ notification.id }}">
-                    <div class="flex-grow-1">
-                        <div class="d-flex align-items-center mb-2">
-                            {% if notification.important %}
-                                <span class="badge bg-warning text-dark me-2">Important</span>
-                            {% endif %}
-                            {% if not notification.read %}
-                                <span class="badge bg-primary me-2">New</span>
-                            {% endif %}
-                            <small class="text-muted">{{ notification.created_at|date:"M d, Y g:i A" }}</small>
-                        </div>
-                        <p class="mb-0">{{ notification.message }}</p>
+            <div class="notification-item flex justify-between items-start p-4 hover:bg-gray-50 transition-colors
+                         {% if not notification.read %}bg-blue-50/50 border-l-4 border-l-blue-500{% else %}border-l-4 border-l-transparent{% endif %}"
+                data-notification-id="{{ notification.id }}">
+                <div class="flex-grow pr-4">
+                    <div class="flex items-center flex-wrap gap-2 mb-1">
+                        {% if notification.important %}
+                        <span
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Important</span>
+                        {% endif %}
+                        {% if not notification.read %}
+                        <span
+                            class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">New</span>
+                        {% endif %}
+                        <small class="text-gray-500">{{ notification.created_at|date:"M d, Y g:i A" }}</small>
                     </div>
-                    <div class="dropdown">
-                        <button class="btn btn-link text-muted" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots-vertical"></i>
-                        </button>
-                        <ul class="dropdown-menu">
-                            {% if not notification.read %}
-                                <li><a class="dropdown-item" href="#" onclick="markAsRead({{ notification.id }})">
-                                    <i class="bi bi-check"></i> Mark as Read
-                                </a></li>
-                            {% else %}
-                                <li><a class="dropdown-item" href="#" onclick="markAsUnread({{ notification.id }})">
-                                    <i class="bi bi-envelope"></i> Mark as Unread
-                                </a></li>
-                            {% endif %}
-                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteNotification({{ notification.id }})">
-                                <i class="bi bi-trash"></i> Delete
-                            </a></li>
-                        </ul>
-                    </div>
+                    <p class="text-gray-800">{{ notification.message }}</p>
                 </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5">
-                <i class="bi bi-bell" style="font-size: 3rem; color: #6c757d;"></i>
-                <h4 class="text-muted mt-3">No notifications</h4>
-                <p class="text-muted">You're all caught up!</p>
-            </div>
-        {% endif %}
-    </div>
-</div>
+                <div class="relative group">
+                    <button class="text-gray-400 hover:text-gray-600 p-1 rounded-full hover:bg-gray-100" type="button"
+                        data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <!-- Custom dropdown using Tailwind group-hover or JS would be better, but sticking to simple structure -->
+                    <div
+                        class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block border border-gray-100">
+                        {% if not notification.read %}
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onclick="markAsRead({{ notification.id }}); return false;">
+                            <i class="bi bi-check me-2"></i> Mark as Read
+                        </a>
+                        {% else %}
+                        <a href="#" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            onclick="markAsUnread({{ notification.id }}); return false;">
+                            <i class="bi bi-envelope me-2"></i> Mark as Unread
+                        </a>
+                        {% endif %}
+                        <a href="#" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            onclick="deleteNotification({{ notification.id }}); return false;">
+                            <i class="bi bi-trash me-2"></i> Delete
+                        </a>
+                    </div>
+                    <!-- Fallback for click-based dropdown if needed, but for now simple hover or JS toggle -->
+                </div>
 
-<!-- Pagination -->
-{% if notifications.has_other_pages %}
-    <nav aria-label="Notifications pagination" class="mt-4">
-        <ul class="pagination justify-content-center">
+                <!-- Dropdown using standard Bootstrap classes if JS is present, or custom JS. 
+                             Since we are moving to Tailwind, we should probably replace the Bootstrap dropdown with a simple Tailwind one or keep using Bootstrap JS if it's loaded globally (which it is in base.html).
+                             However, mixing Bootstrap JS with Tailwind CSS can be tricky for dropdown positioning.
+                             Let's use a simple inline style or rely on the fact that base.html might still have Bootstrap JS.
+                             Actually, let's use a cleaner approach: plain buttons for actions if dropdown is hard.
+                             OR, use the existing structure but style it with Tailwind classes.
+                        -->
+                <div class="dropdown">
+                    <button class="text-gray-400 hover:text-gray-600 p-1" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-lg">
+                        {% if not notification.read %}
+                        <li><a class="dropdown-item py-2" href="#" onclick="markAsRead({{ notification.id }})">
+                                <i class="bi bi-check me-2"></i> Mark as Read
+                            </a></li>
+                        {% else %}
+                        <li><a class="dropdown-item py-2" href="#" onclick="markAsUnread({{ notification.id }})">
+                                <i class="bi bi-envelope me-2"></i> Mark as Unread
+                            </a></li>
+                        {% endif %}
+                        <li><a class="dropdown-item py-2 text-red-600 hover:bg-red-50" href="#"
+                                onclick="deleteNotification({{ notification.id }})">
+                                <i class="bi bi-trash me-2"></i> Delete
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="text-center py-12">
+                <i class="bi bi-bell text-gray-300 text-6xl mb-4"></i>
+                <h4 class="text-xl font-bold text-gray-500">No notifications</h4>
+                <p class="text-gray-400 mt-2">You're all caught up!</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if notifications.has_other_pages %}
+    <nav aria-label="Notifications pagination" class="mt-8 flex justify-center">
+        <ul class="inline-flex items-center -space-x-px">
             {% if notifications.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ notifications.previous_page_number }}{% if filter %}&filter={{ filter }}{% endif %}">Previous</a>
-                </li>
+            <li>
+                <a href="?page={{ notifications.previous_page_number }}{% if filter %}&filter={{ filter }}{% endif %}"
+                    class="block px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700">Previous</a>
+            </li>
             {% endif %}
 
             {% for num in notifications.paginator.page_range %}
-                {% if notifications.number == num %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ num }}</span>
-                    </li>
-                {% elif num > notifications.number|add:'-3' and num < notifications.number|add:'3' %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ num }}{% if filter %}&filter={{ filter }}{% endif %}">{{ num }}</a>
-                    </li>
-                {% endif %}
-            {% endfor %}
-
-            {% if notifications.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ notifications.next_page_number }}{% if filter %}&filter={{ filter }}{% endif %}">Next</a>
+            {% if notifications.number == num %}
+            <li>
+                <span
+                    class="block px-3 py-2 leading-tight text-blue-600 bg-blue-50 border border-blue-300 hover:bg-blue-100 hover:text-blue-700">{{
+                    num }}</span>
+            </li>
+            {% elif num > notifications.number|add:'-3' and num < notifications.number|add:'3' %} <li>
+                <a href="?page={{ num }}{% if filter %}&filter={{ filter }}{% endif %}"
+                    class="block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 hover:bg-gray-100 hover:text-gray-700">{{
+                    num }}</a>
                 </li>
-            {% endif %}
+                {% endif %}
+                {% endfor %}
+
+                {% if notifications.has_next %}
+                <li>
+                    <a href="?page={{ notifications.next_page_number }}{% if filter %}&filter={{ filter }}{% endif %}"
+                        class="block px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700">Next</a>
+                </li>
+                {% endif %}
         </ul>
     </nav>
-{% endif %}
+    {% endif %}
+</div>
 
 {% endblock %}
 
 {% block extra_js %}
 <script>
-function markAsRead(notificationId) {
-    updateNotificationStatus(notificationId, 'read');
-}
-
-function markAsUnread(notificationId) {
-    updateNotificationStatus(notificationId, 'unread');
-}
-
-function updateNotificationStatus(notificationId, status) {
-    const url = status === 'read' ?
-        `{% url 'mark_notification_read' 0 %}`.replace('/0/', `/${notificationId}/`) :
-        `{% url 'mark_notification_unread' 0 %}`.replace('/0/', `/${notificationId}/`);
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error updating notification status');
-        }
-    })
-    .catch(error => {
-        alert('Error updating notification status');
-    });
-}
-
-function deleteNotification(notificationId) {
-    if (!confirm('Are you sure you want to delete this notification?')) {
-        return;
+    function markAsRead(notificationId) {
+        updateNotificationStatus(notificationId, 'read');
     }
-    
-    const url = `{% url 'delete_notification' 0 %}`.replace('/0/', `/${notificationId}/`);
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            document.querySelector(`[data-notification-id="${notificationId}"]`).remove();
-            location.reload();
-        } else {
-            alert('Error deleting notification');
-        }
-    })
-    .catch(error => {
-        alert('Error deleting notification');
-    });
-}
 
-function markAllRead() {
-    if (!confirm('Mark all notifications as read?')) {
-        return;
+    function markAsUnread(notificationId) {
+        updateNotificationStatus(notificationId, 'unread');
     }
-    
-    fetch(`{% url 'mark_all_read' %}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error marking notifications as read');
-        }
-    })
-    .catch(error => {
-        alert('Error marking notifications as read');
-    });
-}
 
-function clearAll() {
-    if (!confirm('Are you sure you want to clear all notifications? This action cannot be undone.')) {
-        return;
+    function updateNotificationStatus(notificationId, status) {
+        const url = status === 'read' ?
+            `{% url 'mark_notification_read' 0 %}`.replace('/0/', `/${notificationId}/`) :
+            `{% url 'mark_notification_unread' 0 %}`.replace('/0/', `/${notificationId}/`);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error updating notification status');
+                }
+            })
+            .catch(error => {
+                alert('Error updating notification status');
+            });
     }
-    
-    fetch(`{% url 'clear_all_notifications' %}`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+
+    function deleteNotification(notificationId) {
+        if (!confirm('Are you sure you want to delete this notification?')) {
+            return;
         }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            location.reload();
-        } else {
-            alert('Error clearing notifications');
+
+        const url = `{% url 'delete_notification' 0 %}`.replace('/0/', `/${notificationId}/`);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.querySelector(`[data-notification-id="${notificationId}"]`).remove();
+                    location.reload();
+                } else {
+                    alert('Error deleting notification');
+                }
+            })
+            .catch(error => {
+                alert('Error deleting notification');
+            });
+    }
+
+    function markAllRead() {
+        if (!confirm('Mark all notifications as read?')) {
+            return;
         }
-    })
-    .catch(error => {
-        alert('Error clearing notifications');
-    });
-}
+
+        fetch(`{% url 'mark_all_read' %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error marking notifications as read');
+                }
+            })
+            .catch(error => {
+                alert('Error marking notifications as read');
+            });
+    }
+
+    function clearAll() {
+        if (!confirm('Are you sure you want to clear all notifications? This action cannot be undone.')) {
+            return;
+        }
+
+        fetch(`{% url 'clear_all_notifications' %}`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                } else {
+                    alert('Error clearing notifications');
+                }
+            })
+            .catch(error => {
+                alert('Error clearing notifications');
+            });
+    }
 </script>
 {% endblock %}

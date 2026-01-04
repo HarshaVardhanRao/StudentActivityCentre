@@ -32,6 +32,15 @@ def club_coordinator_dashboard(request):
     ).order_by('date_time')[:6]
 
     context = {
+        'page_title': 'Club Coordinator Dashboard',
+        'stats': {
+            'total_clubs': coordinator_clubs.count(),
+            'pending_events': pending_approvals_count,
+            'total_users': participant_count, # Using participant count as proxy for students
+        },
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': coordinator_clubs,
+        'dashboard_members': [], # Populate if available
         'coordinator_clubs': coordinator_clubs,
         'club_events': club_events_count,
         'pending_approvals': pending_approvals_count,
@@ -40,7 +49,7 @@ def club_coordinator_dashboard(request):
         'notifications': notifications,
         'upcoming_events': upcoming_events,
     }
-    return render(request, "club_coordinator_dashboard.html", context)
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 
 @login_required
@@ -50,7 +59,15 @@ def svp_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "svp_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'SVP Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def secretary_dashboard(request):
@@ -59,7 +76,15 @@ def secretary_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "secretary_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Secretary Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def treasurer_dashboard(request):
@@ -68,7 +93,15 @@ def treasurer_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "treasurer_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Treasurer Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def department_admin_dashboard(request):
@@ -77,7 +110,15 @@ def department_admin_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "department_admin_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Department Admin Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def club_advisor_dashboard(request):
@@ -86,7 +127,15 @@ def club_advisor_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "club_advisor_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Club Advisor Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def event_organizer_dashboard(request):
@@ -95,7 +144,15 @@ def event_organizer_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "event_organizer_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Event Organizer Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def student_volunteer_dashboard(request):
@@ -104,7 +161,15 @@ def student_volunteer_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "student_volunteer_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Student Volunteer Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def faculty_dashboard(request):
@@ -113,7 +178,15 @@ def faculty_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
-    return render(request, "faculty_dashboard.html", {'upcoming_events': upcoming_events})
+    context = {
+        'page_title': 'Faculty Dashboard',
+        'stats': {},
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': [],
+        'dashboard_members': [],
+        'upcoming_events': upcoming_events
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def dashboard_redirect(request, role):
@@ -179,7 +252,12 @@ def admin_dashboard(request):
     ).order_by('date_time')[:6]
     
     context = {
+        'page_title': 'Admin Dashboard',
         'stats': stats,
+        'dashboard_events': Event.objects.filter(status='PENDING').order_by('date_time')[:5], # Pending events for "My Club Dashboards" (Approvals)
+        'all_events': events, # All events for "My Club's Events" (Status list)
+        'dashboard_clubs': clubs,
+        'dashboard_members': users,
         'users': users,
         'clubs': clubs,
         'departments': departments,
@@ -190,4 +268,4 @@ def admin_dashboard(request):
         'upcoming_events': upcoming_events,
     }
     
-    return render(request, "admin_dashboard.html", context)
+    return render(request, "dashboard/unified_dashboard.html", context)

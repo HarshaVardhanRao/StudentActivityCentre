@@ -3,182 +3,208 @@
 {% block title %}Association & Collaboration Approvals - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Association & Collaboration Approvals</h2>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'student-dashboard' %}">Dashboard</a></li>
-                <li class="breadcrumb-item active">Approvals</li>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <h2 class="text-2xl font-bold text-gray-800">Association & Collaboration Approvals</h2>
+        <nav class="flex" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'student-dashboard' %}" class="text-gray-500 hover:text-gray-700">Dashboard</a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="bi bi-chevron-right text-gray-400 mx-1"></i>
+                        <span class="text-gray-700 font-medium">Approvals</span>
+                    </div>
+                </li>
             </ol>
         </nav>
     </div>
 
     <!-- Summary Cards -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card text-bg-warning">
-                <div class="card-body">
-                    <h5 class="card-title">Pending Associations</h5>
-                    <h2 class="card-text">{{ pending_associations|length }}</h2>
-                    <p class="card-text">Requests awaiting your approval</p>
-                </div>
-            </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="bg-yellow-500 rounded-xl shadow-md p-6 text-white">
+            <h5 class="text-yellow-100 font-medium mb-1">Pending Associations</h5>
+            <h2 class="text-4xl font-bold mb-1">{{ pending_associations|length }}</h2>
+            <p class="text-yellow-100 text-sm">Requests awaiting your approval</p>
         </div>
-        <div class="col-md-6">
-            <div class="card text-bg-info">
-                <div class="card-body">
-                    <h5 class="card-title">Pending Collaborations</h5>
-                    <h2 class="card-text">{{ pending_collaborations|length }}</h2>
-                    <p class="card-text">Collaboration requests awaiting approval</p>
-                </div>
-            </div>
+        <div class="bg-blue-500 rounded-xl shadow-md p-6 text-white">
+            <h5 class="text-blue-100 font-medium mb-1">Pending Collaborations</h5>
+            <h2 class="text-4xl font-bold mb-1">{{ pending_collaborations|length }}</h2>
+            <p class="text-blue-100 text-sm">Collaboration requests awaiting approval</p>
         </div>
     </div>
 
     <!-- Pending Associations -->
     {% if pending_associations %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">Event Associations Pending Approval</h4>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h4 class="font-semibold text-gray-800">Event Associations Pending Approval</h4>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Event</th>
-                            <th>Association Type</th>
-                            <th>Entity</th>
-                            <th>Requested By</th>
-                            <th>Date Requested</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for association in pending_associations %}
-                        <tr>
-                            <td>
-                                <strong>{{ association.event.name }}</strong><br>
-                                <small class="text-muted">{{ association.event.date_time|date:"M d, Y" }}</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary">{{ association.get_association_type_display }}</span>
-                            </td>
-                            <td>
-                                <strong>{{ association.get_associated_entity.name }}</strong>
-                            </td>
-                            <td>{{ association.requested_by.get_full_name }}</td>
-                            <td>{{ association.created_at|date:"M d, Y g:i A" }}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-success" 
-                                            onclick="approveAssociation({{ association.id }}, '{{ association.event.name|escapejs }}', '{{ association.get_associated_entity.name|escapejs }}')">
-                                        Approve
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            onclick="rejectAssociation({{ association.id }}, '{{ association.event.name|escapejs }}', '{{ association.get_associated_entity.name|escapejs }}')">
-                                        Reject
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                        <th class="px-6 py-4">Event</th>
+                        <th class="px-6 py-4">Association Type</th>
+                        <th class="px-6 py-4">Entity</th>
+                        <th class="px-6 py-4">Requested By</th>
+                        <th class="px-6 py-4">Date Requested</th>
+                        <th class="px-6 py-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for association in pending_associations %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <strong class="text-gray-800 block">{{ association.event.name }}</strong>
+                            <small class="text-gray-500">{{ association.event.date_time|date:"M d, Y" }}</small>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ association.get_association_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <strong class="text-gray-800">{{ association.get_associated_entity.name }}</strong>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ association.requested_by.get_full_name }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ association.created_at|date:"M d, Y g:i A" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <button type="button"
+                                    class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-sm font-medium transition-colors"
+                                    onclick="approveAssociation({{ association.id }}, '{{ association.event.name|escapejs }}', '{{ association.get_associated_entity.name|escapejs }}')">
+                                    Approve
+                                </button>
+                                <button type="button"
+                                    class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
+                                    onclick="rejectAssociation({{ association.id }}, '{{ association.event.name|escapejs }}', '{{ association.get_associated_entity.name|escapejs }}')">
+                                    Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
 
     <!-- Pending Collaborations -->
     {% if pending_collaborations %}
-    <div class="card mb-4">
-        <div class="card-header">
-            <h4 class="mb-0">Event Collaborations Pending Approval</h4>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h4 class="font-semibold text-gray-800">Event Collaborations Pending Approval</h4>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Event</th>
-                            <th>Collaboration Type</th>
-                            <th>Entity</th>
-                            <th>Details</th>
-                            <th>Requested By</th>
-                            <th>Date Requested</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for collaboration in pending_collaborations %}
-                        <tr>
-                            <td>
-                                <strong>{{ collaboration.event.name }}</strong><br>
-                                <small class="text-muted">{{ collaboration.event.date_time|date:"M d, Y" }}</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-info">{{ collaboration.get_collaboration_type_display }}</span>
-                            </td>
-                            <td>
-                                <strong>{{ collaboration.get_collaborating_entity.name }}</strong>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-sm btn-outline-info" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#collaborationModal{{ collaboration.id }}">
-                                    View Details
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                        <th class="px-6 py-4">Event</th>
+                        <th class="px-6 py-4">Collaboration Type</th>
+                        <th class="px-6 py-4">Entity</th>
+                        <th class="px-6 py-4">Details</th>
+                        <th class="px-6 py-4">Requested By</th>
+                        <th class="px-6 py-4">Date Requested</th>
+                        <th class="px-6 py-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for collaboration in pending_collaborations %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <strong class="text-gray-800 block">{{ collaboration.event.name }}</strong>
+                            <small class="text-gray-500">{{ collaboration.event.date_time|date:"M d, Y" }}</small>
+                        </td>
+                        <td class="px-6 py-4">
+                            <span
+                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {{ collaboration.get_collaboration_type_display }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <strong class="text-gray-800">{{ collaboration.get_collaborating_entity.name }}</strong>
+                        </td>
+                        <td class="px-6 py-4">
+                            <button type="button" class="text-blue-600 hover:text-blue-800 font-medium text-sm"
+                                onclick="document.getElementById('collaborationModal{{ collaboration.id }}').classList.remove('hidden')">
+                                View Details
+                            </button>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">{{ collaboration.requested_by.get_full_name }}</td>
+                        <td class="px-6 py-4 text-gray-600">{{ collaboration.created_at|date:"M d, Y g:i A" }}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <button type="button"
+                                    class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-sm font-medium transition-colors"
+                                    onclick="approveCollaboration({{ collaboration.id }}, '{{ collaboration.event.name|escapejs }}', '{{ collaboration.get_collaborating_entity.name|escapejs }}')">
+                                    Approve
                                 </button>
-                            </td>
-                            <td>{{ collaboration.requested_by.get_full_name }}</td>
-                            <td>{{ collaboration.created_at|date:"M d, Y g:i A" }}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-success" 
-                                            onclick="approveCollaboration({{ collaboration.id }}, '{{ collaboration.event.name|escapejs }}', '{{ collaboration.get_collaborating_entity.name|escapejs }}')">
-                                        Approve
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            onclick="rejectCollaboration({{ collaboration.id }}, '{{ collaboration.event.name|escapejs }}', '{{ collaboration.get_collaborating_entity.name|escapejs }}')">
-                                        Reject
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                                <button type="button"
+                                    class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
+                                    onclick="rejectCollaboration({{ collaboration.id }}, '{{ collaboration.event.name|escapejs }}', '{{ collaboration.get_collaborating_entity.name|escapejs }}')">
+                                    Reject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
     {% endif %}
 
     {% if not pending_associations and not pending_collaborations %}
-    <div class="text-center py-5">
-        <i class="bi bi-check-circle text-success" style="font-size: 4rem;"></i>
-        <h4 class="mt-3">No Pending Approvals</h4>
-        <p class="text-muted">All association and collaboration requests have been processed.</p>
+    <div class="text-center py-12">
+        <i class="bi bi-check-circle text-green-500 text-6xl mb-4"></i>
+        <h4 class="text-xl font-bold text-gray-800">No Pending Approvals</h4>
+        <p class="text-gray-500 mt-2">All association and collaboration requests have been processed.</p>
     </div>
     {% endif %}
 </div>
 
 <!-- Collaboration Detail Modals -->
 {% for collaboration in pending_collaborations %}
-<div class="modal fade" id="collaborationModal{{ collaboration.id }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Collaboration Details</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+<div id="collaborationModal{{ collaboration.id }}" class="fixed inset-0 z-50 hidden overflow-y-auto"
+    aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="this.parentElement.parentElement.classList.add('hidden')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">Collaboration Details
+                        </h3>
+                        <div class="mt-4 space-y-3">
+                            <h6 class="font-semibold text-gray-800">Event: {{ collaboration.event.name }}</h6>
+                            <p class="text-sm text-gray-600"><strong>Collaborating Entity:</strong> {{
+                                collaboration.get_collaborating_entity.name }}</p>
+                            <div>
+                                <p class="text-sm font-semibold text-gray-700 mb-1">Collaboration Details:</p>
+                                <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-600 border border-gray-100">{{
+                                    collaboration.collaboration_details|linebreaks }}</div>
+                            </div>
+                            <p class="text-sm text-gray-600"><strong>Requested by:</strong> {{
+                                collaboration.requested_by.get_full_name }}</p>
+                            <p class="text-sm text-gray-600"><strong>Date:</strong> {{ collaboration.created_at|date:"M
+                                d, Y g:i A" }}</p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="modal-body">
-                <h6>Event: {{ collaboration.event.name }}</h6>
-                <p><strong>Collaborating Entity:</strong> {{ collaboration.get_collaborating_entity.name }}</p>
-                <p><strong>Collaboration Details:</strong></p>
-                <div class="alert alert-light">{{ collaboration.collaboration_details|linebreaks }}</div>
-                <p><strong>Requested by:</strong> {{ collaboration.requested_by.get_full_name }}</p>
-                <p><strong>Date:</strong> {{ collaboration.created_at|date:"M d, Y g:i A" }}</p>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button"
+                    class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    onclick="document.getElementById('collaborationModal{{ collaboration.id }}').classList.add('hidden')">
+                    Close
+                </button>
             </div>
         </div>
     </div>
@@ -186,29 +212,49 @@
 {% endfor %}
 
 <!-- Approval/Rejection Modal -->
-<div class="modal fade" id="approvalModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
+<div id="approvalModal" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+    aria-modal="true">
+    <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true"
+            onclick="document.getElementById('approvalModal').classList.add('hidden')"></div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        <div
+            class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
             <form method="post" id="approvalForm">
                 {% csrf_token %}
-                <div class="modal-header">
-                    <h5 class="modal-title" id="approvalModalTitle">Approve Request</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" id="action" name="action">
-                    
-                    <p id="approvalMessage">Are you sure you want to approve this request?</p>
-                    
-                    <div class="mb-3">
-                        <label for="notes" class="form-label">Notes (Optional)</label>
-                        <textarea class="form-control" name="notes" id="notes" rows="3" 
-                                  placeholder="Add any notes about this decision..."></textarea>
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 class="text-lg leading-6 font-medium text-gray-900" id="approvalModalTitle">Approve
+                                Request</h3>
+                            <div class="mt-2">
+                                <input type="hidden" id="action" name="action">
+                                <p class="text-sm text-gray-500" id="approvalMessage">Are you sure you want to approve
+                                    this request?</p>
+
+                                <div class="mt-4">
+                                    <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Notes
+                                        (Optional)</label>
+                                    <textarea
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                                        name="notes" id="notes" rows="3"
+                                        placeholder="Add any notes about this decision..."></textarea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn" id="confirmButton">Confirm</button>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
+                    <button type="submit"
+                        class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm"
+                        id="confirmButton">
+                        Confirm
+                    </button>
+                    <button type="button"
+                        class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                        onclick="document.getElementById('approvalModal').classList.add('hidden')">
+                        Cancel
+                    </button>
                 </div>
             </form>
         </div>
@@ -216,48 +262,52 @@
 </div>
 
 <script>
-function approveAssociation(associationId, eventName, entityName) {
-    document.getElementById('approvalForm').action = `/events/associations/${associationId}/approve/`;
-    document.getElementById('action').value = 'approve';
-    document.getElementById('approvalModalTitle').textContent = 'Approve Association';
-    document.getElementById('approvalMessage').textContent = `Are you sure you want to approve the association between "${eventName}" and "${entityName}"?`;
-    document.getElementById('confirmButton').className = 'btn btn-success';
-    document.getElementById('confirmButton').textContent = 'Approve';
-    document.getElementById('notes').placeholder = 'Add any approval notes...';
-    new bootstrap.Modal(document.getElementById('approvalModal')).show();
-}
+    function approveAssociation(associationId, eventName, entityName) {
+        document.getElementById('approvalForm').action = `/events/associations/${associationId}/approve/`;
+        document.getElementById('action').value = 'approve';
+        document.getElementById('approvalModalTitle').textContent = 'Approve Association';
+        document.getElementById('approvalMessage').textContent = `Are you sure you want to approve the association between "${eventName}" and "${entityName}"?`;
+        const btn = document.getElementById('confirmButton');
+        btn.className = 'w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm';
+        btn.textContent = 'Approve';
+        document.getElementById('notes').placeholder = 'Add any approval notes...';
+        document.getElementById('approvalModal').classList.remove('hidden');
+    }
 
-function rejectAssociation(associationId, eventName, entityName) {
-    document.getElementById('approvalForm').action = `/events/associations/${associationId}/approve/`;
-    document.getElementById('action').value = 'reject';
-    document.getElementById('approvalModalTitle').textContent = 'Reject Association';
-    document.getElementById('approvalMessage').textContent = `Are you sure you want to reject the association between "${eventName}" and "${entityName}"?`;
-    document.getElementById('confirmButton').className = 'btn btn-danger';
-    document.getElementById('confirmButton').textContent = 'Reject';
-    document.getElementById('notes').placeholder = 'Add reason for rejection...';
-    new bootstrap.Modal(document.getElementById('approvalModal')).show();
-}
+    function rejectAssociation(associationId, eventName, entityName) {
+        document.getElementById('approvalForm').action = `/events/associations/${associationId}/approve/`;
+        document.getElementById('action').value = 'reject';
+        document.getElementById('approvalModalTitle').textContent = 'Reject Association';
+        document.getElementById('approvalMessage').textContent = `Are you sure you want to reject the association between "${eventName}" and "${entityName}"?`;
+        const btn = document.getElementById('confirmButton');
+        btn.className = 'w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm';
+        btn.textContent = 'Reject';
+        document.getElementById('notes').placeholder = 'Add reason for rejection...';
+        document.getElementById('approvalModal').classList.remove('hidden');
+    }
 
-function approveCollaboration(collaborationId, eventName, entityName) {
-    document.getElementById('approvalForm').action = `/events/collaborations/${collaborationId}/approve/`;
-    document.getElementById('action').value = 'approve';
-    document.getElementById('approvalModalTitle').textContent = 'Approve Collaboration';
-    document.getElementById('approvalMessage').textContent = `Are you sure you want to approve the collaboration between "${eventName}" and "${entityName}"?`;
-    document.getElementById('confirmButton').className = 'btn btn-success';
-    document.getElementById('confirmButton').textContent = 'Approve';
-    document.getElementById('notes').placeholder = 'Add any approval notes...';
-    new bootstrap.Modal(document.getElementById('approvalModal')).show();
-}
+    function approveCollaboration(collaborationId, eventName, entityName) {
+        document.getElementById('approvalForm').action = `/events/collaborations/${collaborationId}/approve/`;
+        document.getElementById('action').value = 'approve';
+        document.getElementById('approvalModalTitle').textContent = 'Approve Collaboration';
+        document.getElementById('approvalMessage').textContent = `Are you sure you want to approve the collaboration between "${eventName}" and "${entityName}"?`;
+        const btn = document.getElementById('confirmButton');
+        btn.className = 'w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-green-600 text-base font-medium text-white hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 sm:ml-3 sm:w-auto sm:text-sm';
+        btn.textContent = 'Approve';
+        document.getElementById('notes').placeholder = 'Add any approval notes...';
+        document.getElementById('approvalModal').classList.remove('hidden');
+    }
 
-function rejectCollaboration(collaborationId, eventName, entityName) {
-    document.getElementById('approvalForm').action = `/events/collaborations/${collaborationId}/approve/`;
-    document.getElementById('action').value = 'reject';
-    document.getElementById('approvalModalTitle').textContent = 'Reject Collaboration';
-    document.getElementById('approvalMessage').textContent = `Are you sure you want to reject the collaboration between "${eventName}" and "${entityName}"?`;
-    document.getElementById('confirmButton').className = 'btn btn-danger';
-    document.getElementById('confirmButton').textContent = 'Reject';
-    document.getElementById('notes').placeholder = 'Add reason for rejection...';
-    new bootstrap.Modal(document.getElementById('approvalModal')).show();
-}
+    function rejectCollaboration(collaborationId, eventName, entityName) {
+        document.getElementById('approvalForm').action = `/events/collaborations/${collaborationId}/approve/`;
+        document.getElementById('action').value = 'reject';
+        document.getElementById('approvalModalTitle').textContent = 'Reject Collaboration';
+        document.getElementById('approvalMessage').textContent = `Are you sure you want to reject the collaboration between "${eventName}" and "${entityName}"?`;
+        const btn = document.getElementById('confirmButton');
+        btn.className = 'w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm';
+        btn.textContent = 'Reject';
+        document.getElementById('notes').placeholder = 'Add reason for rejection...';
+        document.getElementById('approvalModal').classList.remove('hidden');
+    }
 </script>
 {% endblock %}

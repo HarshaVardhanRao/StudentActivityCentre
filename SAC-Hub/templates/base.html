@@ -3,13 +3,15 @@
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}MITS SAC Hub - Student Activity Centre{% endblock %}</title>
 
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
 
     <!-- Tailwind -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -18,48 +20,48 @@
     <link rel="stylesheet" href="{% static 'admin/calendar-styles.css' %}">
 
     <!-- SEO Meta -->
-    <meta name="description" content="MITS Student Activity Centre - Manage clubs, events, and student activities professionally">
+    <meta name="description"
+        content="MITS Student Activity Centre - Manage clubs, events, and student activities professionally">
     <meta name="keywords" content="MITS, SAC, Clubs, Events, Students">
     <meta name="author" content="MITS SAC Team">
 
     <!-- Favicon -->
     <link rel="icon" type="image/x-icon"
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>">
 
     {% block extra_css %}{% endblock %}
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-inter">
 
-<!-- ▬▬▬▬▬ NAVIGATION BAR ▬▬▬▬▬ -->
-<header class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
+    <!-- ▬▬▬▬▬ NAVIGATION BAR ▬▬▬▬▬ -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex items-center justify-between py-4 px-6">
 
-        <!-- LEFT: Logo -->
-        <div class="flex items-center gap-3">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Logo.svg/2048px-Logo.svg.png"
-                 class="w-10 h-10" />
-            <span class="font-semibold text-lg">Student Activity Center</span>
-        </div>
+            <!-- LEFT: Logo -->
+            <div class="flex items-center gap-3">
+                <img src="#" class="w-10 h-10" />
+                <span class="font-semibold text-lg">Student Activity Center</span>
+            </div>
 
-        <!-- CENTER NAV (Desktop) -->
-        <nav class="hidden md:flex items-center gap-8 font-medium">
-            <a href="{% url 'home' %}" class="hover:text-red-600 hover:scale-110 transition">Home</a>
-            <a href="{% url 'event_list' %}" class="hover:text-red-600 hover:scale-110 transition">Events</a>
-            <a href="{% url 'club_list' %}" class="hover:text-red-600 hover:scale-110 transition">Clubs</a>
-            <a href="{% url 'calendar_view' %}" class="hover:text-red-600 hover:scale-110 transition">Calendar</a>
-            <a href="#" class="hover:text-red-600 hover:scale-110 transition">About SAC</a>
-        </nav>
+            <!-- CENTER NAV (Desktop) -->
+            <nav class="hidden md:flex items-center gap-8 font-medium">
+                <a href="{% url 'home' %}" class="hover:text-red-600 hover:scale-110 transition">Home</a>
+                <a href="{% url 'event_list' %}" class="hover:text-red-600 hover:scale-110 transition">Events</a>
+                <a href="{% url 'club_list' %}" class="hover:text-red-600 hover:scale-110 transition">Clubs</a>
+                <a href="{% url 'calendar_view' %}" class="hover:text-red-600 hover:scale-110 transition">Calendar</a>
+                <a href="{% url 'about' %}" class="hover:text-red-600 hover:scale-110 transition">About SAC</a>
+            </nav>
 
-        <!-- RIGHT SIDE -->
-        {% if user.is_authenticated %}
+            <!-- RIGHT SIDE -->
+            {% if user.is_authenticated %}
             <!-- Hamburger Menu -->
             <div class="relative md:hidden">
                 <button id="menuBtn" class="p-2 rounded-lg hover:bg-gray-100 transition">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24"
-                         stroke="currentColor">
+                        stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                              d="M4 6h16M4 12h16M4 18h16"/>
+                            d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
 
@@ -73,10 +75,10 @@
             <!-- Desktop Profile Dropdown -->
             <div class="hidden md:block relative">
                 <button id="profileBtn"
-                        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
+                    class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition">
                     <span>{{ user.username }}</span>
                     <img src="https://ui-avatars.com/api/?name={{ user.username }}&background=EF4444&color=fff"
-                         class="w-8 h-8 rounded-full">
+                        class="w-8 h-8 rounded-full">
                 </button>
 
                 <div id="profileMenu" class="hidden absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg py-2">
@@ -85,84 +87,85 @@
                 </div>
             </div>
 
-        {% else %}
+            {% else %}
             <!-- Login Button -->
             <a href="{% url 'login' %}"
-               class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
+                class="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700 transition">
                 Student Login
             </a>
-        {% endif %}
-    </div>
-</header>
+            {% endif %}
+        </div>
+    </header>
 
-<!-- Mobile Dropdown Script -->
-<script>
-document.addEventListener("DOMContentLoaded", () => {
+    <!-- Mobile Dropdown Script -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
 
-    // Mobile Hamburger
-    const menuBtn = document.getElementById("menuBtn");
-    const mobileMenu = document.getElementById("mobileMenu");
+            // Mobile Hamburger
+            const menuBtn = document.getElementById("menuBtn");
+            const mobileMenu = document.getElementById("mobileMenu");
 
-    if (menuBtn) {
-        menuBtn.onclick = () => {
-            mobileMenu.classList.toggle("hidden");
-        };
-    }
+            if (menuBtn) {
+                menuBtn.onclick = () => {
+                    mobileMenu.classList.toggle("hidden");
+                };
+            }
 
-    // Desktop Profile Menu
-    const profileBtn = document.getElementById("profileBtn");
-    const profileMenu = document.getElementById("profileMenu");
+            // Desktop Profile Menu
+            const profileBtn = document.getElementById("profileBtn");
+            const profileMenu = document.getElementById("profileMenu");
 
-    if (profileBtn) {
-        profileBtn.onclick = () => profileMenu.classList.toggle("hidden");
-    }
-});
-</script>
+            if (profileBtn) {
+                profileBtn.onclick = () => profileMenu.classList.toggle("hidden");
+            }
+        });
+    </script>
 
-<!-- PAGE CONTENT -->
-{% block content %}
-{% endblock %}
+    <!-- PAGE CONTENT -->
+    {% block content %}
+    {% endblock %}
 
-<!-- FOOTER -->
-<footer class="bg-white mt-16 border-t">
-    <div class="max-w-7xl mx-auto py-10 px-6 grid md:grid-cols-4 gap-6">
+    <!-- FOOTER -->
+    <footer class="bg-white mt-16 border-t">
+        <div class="max-w-7xl mx-auto py-10 px-6 grid md:grid-cols-4 gap-6">
 
-        <div>
-            <h3 class="font-semibold text-lg">MITS</h3>
-            <p class="text-sm text-gray-600">Student Activity Center</p>
+            <div>
+                <h3 class="font-semibold text-lg">MITS</h3>
+                <p class="text-sm text-gray-600">Student Activity Center</p>
+            </div>
+
+            <div>
+                <h3 class="font-semibold">Links</h3>
+                <ul class="mt-2 text-sm text-gray-600">
+                    <li>Events Calendar</li>
+                    <li>Club Directory</li>
+                    <li>Leader Portal</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-semibold">Support</h3>
+                <ul class="mt-2 text-sm text-gray-600">
+                    <li>Email</li>
+                    <li>Start a New Club</li>
+                </ul>
+            </div>
+
+            <div>
+                <h3 class="font-semibold">Contact</h3>
+                <ul class="mt-2 text-sm text-gray-600">
+                    <li>Email: xxxxxxxxx</li>
+                    <li>Phone: xxxxxxxxx</li>
+                </ul>
+            </div>
+
         </div>
 
-        <div>
-            <h3 class="font-semibold">Links</h3>
-            <ul class="mt-2 text-sm text-gray-600">
-                <li>Events Calendar</li>
-                <li>Club Directory</li>
-                <li>Leader Portal</li>
-            </ul>
+        <div class="text-center text-sm text-gray-500 py-4 border-t">
+            © 2025 Madanapalle Institute of Technology & Science. All rights reserved.
         </div>
-
-        <div>
-            <h3 class="font-semibold">Support</h3>
-            <ul class="mt-2 text-sm text-gray-600">
-                <li>Email</li>
-                <li>Start a New Club</li>
-            </ul>
-        </div>
-
-        <div>
-            <h3 class="font-semibold">Contact</h3>
-            <ul class="mt-2 text-sm text-gray-600">
-                <li>Email: xxxxxxxxx</li>
-                <li>Phone: xxxxxxxxx</li>
-            </ul>
-        </div>
-
-    </div>
-
-    <div class="text-center text-sm text-gray-500 py-4 border-t">
-        © 2025 Madanapalle Institute of Technology & Science. All rights reserved.
-    </div>
-</footer>
-{% block extra_js %}{% endblock %}
+    </footer>
+    {% block extra_js %}{% endblock %}
 </body>
+
 </html>

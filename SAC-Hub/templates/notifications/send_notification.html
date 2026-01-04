@@ -3,148 +3,157 @@
 {% block title %}Send Notification - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-send"></i> Send Notification
-                    </h4>
-                </div>
-                
-                <div class="card-body">
-                    {% if messages %}
-                        {% for message in messages %}
-                            <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
-                                {{ message }}
-                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                            </div>
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="bg-blue-600 px-6 py-4 border-b border-blue-700">
+            <h4 class="text-xl font-bold text-white flex items-center">
+                <i class="bi bi-send me-2"></i> Send Notification
+            </h4>
+        </div>
+
+        <div class="p-6">
+            {% if messages %}
+            {% for message in messages %}
+            <div class="mb-4 p-4 rounded-lg border-l-4 {% if message.tags == 'error' %}bg-red-50 border-red-500 text-red-700{% else %}bg-blue-50 border-blue-500 text-blue-700{% endif %} flex justify-between items-start"
+                role="alert">
+                <div>{{ message }}</div>
+                <button type="button" class="text-gray-400 hover:text-gray-600" onclick="this.parentElement.remove()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <form method="post" id="notificationForm">
+                {% csrf_token %}
+
+                <!-- Recipient Type Selection -->
+                <div class="mb-6">
+                    <label for="recipientType" class="block text-sm font-semibold text-gray-700 mb-1">Send To</label>
+                    <select name="recipient_type" id="recipientType"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white"
+                        required onchange="updateScopeOptions()">
+                        <option value="">-- Select Recipients --</option>
+                        {% for value, label in recipient_options %}
+                        <option value="{{ value }}">{{ label }}</option>
                         {% endfor %}
-                    {% endif %}
-
-                    <form method="post" id="notificationForm">
-                        {% csrf_token %}
-                        
-                        <!-- Recipient Type Selection -->
-                        <div class="mb-4">
-                            <label for="recipientType" class="form-label fw-bold">Send To</label>
-                            <select name="recipient_type" id="recipientType" class="form-select" required onchange="updateScopeOptions()">
-                                <option value="">-- Select Recipients --</option>
-                                {% for value, label in recipient_options %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                {% endfor %}
-                            </select>
-                            <small class="form-text text-muted">
-                                Select who you want to send this notification to
-                            </small>
-                        </div>
-
-                        <!-- Scope Selection (for specific clubs/departments) -->
-                        <div class="mb-4" id="scopeContainer" style="display: none;">
-                            <label for="scopeValue" class="form-label fw-bold">Select Specific</label>
-
-                            <!-- Single-selection fallback (for older roles / compatibility) -->
-                            <select name="scope_value" id="scopeValue" class="form-select" style="display: none;">
-                                <option value="">-- Choose --</option>
-                            </select>
-
-                            <!-- Multi-select for clubs -->
-                            <select name="clubs" id="clubsSelect" class="form-select" multiple style="display: none; height: 200px;">
-                                <!-- Options populated by JavaScript -->
-                            </select>
-
-                            <!-- Multi-select for departments -->
-                            <select name="departments" id="deptsSelect" class="form-select" multiple style="display: none; height: 200px;">
-                                <!-- Options populated by JavaScript -->
-                            </select>
-
-                            <small class="form-text text-muted mt-1">Use Ctrl / Cmd to select multiple items.</small>
-                        </div>
-
-                        <!-- Message Text Area -->
-                        <div class="mb-4">
-                            <label for="message" class="form-label fw-bold">Message</label>
-                            <textarea 
-                                name="message" 
-                                id="message" 
-                                class="form-control" 
-                                rows="5" 
-                                placeholder="Enter your notification message (max 500 characters)"
-                                maxlength="500"
-                                required></textarea>
-                            <small class="form-text text-muted">
-                                <span id="charCount">0</span>/500 characters
-                            </small>
-                        </div>
-
-                        <!-- Important flag -->
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="1" id="importantFlag" name="important">
-                            <label class="form-check-label" for="importantFlag">
-                                Mark as important
-                            </label>
-                        </div>
-
-                        <!-- Recipient Preview -->
-                        <div class="alert alert-info d-none" id="recipientPreview">
-                            <small class="d-block mb-2"><strong>Recipients Preview:</strong></small>
-                            <small id="previewText">No recipients selected</small>
-                        </div>
-
-                        <!-- Form Actions -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-send-fill"></i> Send Notification
-                            </button>
-                            <a href="{% url 'notifications_list' %}" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Cancel
-                            </a>
-                        </div>
-                    </form>
+                    </select>
+                    <p class="mt-1 text-sm text-gray-500">
+                        Select who you want to send this notification to
+                    </p>
                 </div>
-            </div>
 
-            <!-- Helper Info Box -->
-            <div class="card mt-4 bg-light">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="bi bi-info-circle"></i> About Your Role Permissions
-                    </h6>
-                    <small class="text-muted d-block">
-                        {% if "ADMIN" in user.roles or "SAC_COORDINATOR" in user.roles %}
-                            <strong>As an Admin/SAC Coordinator:</strong> You can send notifications to all users, specific groups, or individual clubs/departments.
-                        {% elif "CLUB_COORDINATOR" in user.roles %}
-                            <strong>As a Club Coordinator:</strong> You can send notifications to members of your coordinated clubs and their faculty advisors.
-                        {% elif "CLUB_ADVISOR" in user.roles %}
-                            <strong>As a Club Advisor:</strong> You can send notifications to members of the clubs you advise.
-                        {% elif "DEPARTMENT_ADMIN" in user.roles or "DEPARTMENT_VP" in user.roles or "EVENT_ORGANIZER" in user.roles %}
-                            <strong>As a Department Admin/VP/Event Organizer:</strong> You can send notifications to students in your department or all students.
-                        {% elif "PRESIDENT" in user.roles or "SVP" in user.roles %}
-                            <strong>As President/SVP:</strong> You can send notifications to all students, all users, or specific clubs/departments.
-                        {% elif "SECRETARY" in user.roles or "TREASURER" in user.roles %}
-                            <strong>As Secretary/Treasurer:</strong> You can send notifications to all users or all students.
-                        {% endif %}
-                    </small>
+                <!-- Scope Selection (for specific clubs/departments) -->
+                <div class="mb-6 hidden" id="scopeContainer">
+                    <label for="scopeValue" class="block text-sm font-semibold text-gray-700 mb-1">Select
+                        Specific</label>
+
+                    <!-- Single-selection fallback (for older roles / compatibility) -->
+                    <select name="scope_value" id="scopeValue"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white hidden">
+                        <option value="">-- Choose --</option>
+                    </select>
+
+                    <!-- Multi-select for clubs -->
+                    <select name="clubs" id="clubsSelect"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white hidden"
+                        multiple style="height: 200px;">
+                        <!-- Options populated by JavaScript -->
+                    </select>
+
+                    <!-- Multi-select for departments -->
+                    <select name="departments" id="deptsSelect"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white hidden"
+                        multiple style="height: 200px;">
+                        <!-- Options populated by JavaScript -->
+                    </select>
+
+                    <p class="mt-1 text-sm text-gray-500">Use Ctrl / Cmd to select multiple items.</p>
                 </div>
-            </div>
+
+                <!-- Message Text Area -->
+                <div class="mb-6">
+                    <label for="message" class="block text-sm font-semibold text-gray-700 mb-1">Message</label>
+                    <textarea name="message" id="message"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                        rows="5" placeholder="Enter your notification message (max 500 characters)" maxlength="500"
+                        required></textarea>
+                    <p class="mt-1 text-sm text-gray-500 text-right">
+                        <span id="charCount">0</span>/500 characters
+                    </p>
+                </div>
+
+                <!-- Important flag -->
+                <div class="mb-6">
+                    <label class="inline-flex items-center cursor-pointer">
+                        <input type="checkbox" value="1" id="importantFlag" name="important"
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <span class="ml-2 text-gray-700">Mark as important</span>
+                    </label>
+                </div>
+
+                <!-- Recipient Preview -->
+                <div class="mb-6 bg-blue-50 border-l-4 border-blue-500 p-4 hidden" id="recipientPreview">
+                    <p class="text-sm font-bold text-blue-800 mb-1">Recipients Preview:</p>
+                    <p class="text-sm text-blue-700" id="previewText">No recipients selected</p>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex gap-3">
+                    <button type="submit"
+                        class="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm flex items-center">
+                        <i class="bi bi-send-fill me-2"></i> Send Notification
+                    </button>
+                    <a href="{% url 'notifications_list' %}"
+                        class="px-6 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors flex items-center">
+                        <i class="bi bi-arrow-left me-2"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Helper Info Box -->
+    <div class="mt-6 bg-gray-50 rounded-xl border border-gray-200 p-6">
+        <h6 class="text-gray-800 font-semibold mb-2 flex items-center">
+            <i class="bi bi-info-circle me-2"></i> About Your Role Permissions
+        </h6>
+        <div class="text-sm text-gray-600 space-y-1">
+            {% if "ADMIN" in user.roles or "SAC_COORDINATOR" in user.roles %}
+            <p><strong>As an Admin/SAC Coordinator:</strong> You can send notifications to all users, specific groups,
+                or individual clubs/departments.</p>
+            {% elif "CLUB_COORDINATOR" in user.roles %}
+            <p><strong>As a Club Coordinator:</strong> You can send notifications to members of your coordinated clubs
+                and their faculty advisors.</p>
+            {% elif "CLUB_ADVISOR" in user.roles %}
+            <p><strong>As a Club Advisor:</strong> You can send notifications to members of the clubs you advise.</p>
+            {% elif "DEPARTMENT_ADMIN" in user.roles or "DEPARTMENT_VP" in user.roles or "EVENT_ORGANIZER" in user.roles
+            %}
+            <p><strong>As a Department Admin/VP/Event Organizer:</strong> You can send notifications to students in your
+                department or all students.</p>
+            {% elif "PRESIDENT" in user.roles or "SVP" in user.roles %}
+            <p><strong>As President/SVP:</strong> You can send notifications to all students, all users, or specific
+                clubs/departments.</p>
+            {% elif "SECRETARY" in user.roles or "TREASURER" in user.roles %}
+            <p><strong>As Secretary/Treasurer:</strong> You can send notifications to all users or all students.</p>
+            {% endif %}
         </div>
     </div>
 </div>
 
 <!-- Data for JavaScript -->
 <script>
-    const clubsData = {{ clubs|safe }};
-    const departmentsData = {{ departments|safe }};
+    const clubsData = {{ clubs| safe }};
+    const departmentsData = {{ departments| safe }};
     const userRole = '{{ user_role }}';
-    const coordinatedClubs = {{ coordinated_clubs|default:"[]"|safe }};
-    const advisedClubs = {{ advised_clubs|default:"[]"|safe }};
-    const userDepartment = {{ user_department|default:"null"|safe }};
-    const allowMultiClub = {{ allow_multi_club_select|default:False|yesno:"true,false" }};
-    const allowMultiDept = {{ allow_multi_dept_select|default:False|yesno:"true,false" }};
+    const coordinatedClubs = {{ coordinated_clubs|default: "[]" | safe }};
+    const advisedClubs = {{ advised_clubs|default: "[]" | safe }};
+    const userDepartment = {{ user_department|default: "null" | safe }};
+    const allowMultiClub = {{ allow_multi_club_select|default: False | yesno: "true,false" }};
+    const allowMultiDept = {{ allow_multi_dept_select|default: False | yesno: "true,false" }};
 
     // Update character count
-    document.getElementById('message').addEventListener('input', function() {
+    document.getElementById('message').addEventListener('input', function () {
         document.getElementById('charCount').textContent = this.value.length;
     });
 
@@ -157,20 +166,25 @@
         const deptsSelect = document.getElementById('deptsSelect');
 
         // Reset all
-        scopeSelect.style.display = 'none';
-        clubsSelect.style.display = 'none';
-        deptsSelect.style.display = 'none';
-        scopeContainer.style.display = 'none';
+        scopeSelect.classList.add('hidden');
+        clubsSelect.classList.add('hidden');
+        deptsSelect.classList.add('hidden');
+        scopeContainer.classList.add('hidden');
+
+        // Also remove select2 containers if they exist (we'll re-init)
+        if ($(scopeSelect).data('select2')) $(scopeSelect).select2('destroy');
+        if ($(clubsSelect).data('select2')) $(clubsSelect).select2('destroy');
+        if ($(deptsSelect).data('select2')) $(deptsSelect).select2('destroy');
 
         clubsSelect.innerHTML = '';
         deptsSelect.innerHTML = '';
         scopeSelect.innerHTML = '<option value="">-- Choose --</option>';
 
         if (recipientType === 'specific_club') {
-            scopeContainer.style.display = 'block';
+            scopeContainer.classList.remove('hidden');
             // If multi-select allowed, show multi-select with limited options (coordinator/advisor vs admin)
             if (allowMultiClub) {
-                clubsSelect.style.display = 'block';
+                clubsSelect.classList.remove('hidden');
                 // If coordinator/advisor, show only their clubs
                 if (coordinatedClubs && coordinatedClubs.length > 0) {
                     coordinatedClubs.forEach(c => {
@@ -186,34 +200,37 @@
                 }
             } else {
                 // Single select fallback
-                scopeSelect.style.display = 'block';
+                scopeSelect.classList.remove('hidden');
                 clubsData.forEach(club => {
                     const option = document.createElement('option'); option.value = club.id; option.textContent = club.name; scopeSelect.appendChild(option);
                 });
             }
         } else if (recipientType === 'specific_department') {
-            scopeContainer.style.display = 'block';
+            scopeContainer.classList.remove('hidden');
             if (allowMultiDept) {
-                deptsSelect.style.display = 'block';
+                deptsSelect.classList.remove('hidden');
                 departmentsData.forEach(dept => { const opt = document.createElement('option'); opt.value = dept.id; opt.textContent = dept.name; deptsSelect.appendChild(opt); });
             } else {
-                scopeSelect.style.display = 'block';
+                scopeSelect.classList.remove('hidden');
                 departmentsData.forEach(dept => { const option = document.createElement('option'); option.value = dept.id; option.textContent = dept.name; scopeSelect.appendChild(option); });
             }
         }
+
+        // Re-init select2
+        initSelect2();
     }
 
     // Form submission validation
-    document.getElementById('notificationForm').addEventListener('submit', function(e) {
+    document.getElementById('notificationForm').addEventListener('submit', function (e) {
         const recipientType = document.getElementById('recipientType').value;
         const message = document.getElementById('message').value.trim();
-        
+
         if (!recipientType) {
             e.preventDefault();
             alert('Please select recipients');
             return false;
         }
-        
+
         if (!message) {
             e.preventDefault();
             alert('Please enter a message');
@@ -223,7 +240,7 @@
         if (recipientType === 'specific_club') {
             const clubsSel = document.getElementById('clubsSelect');
             const scopeSel = document.getElementById('scopeValue');
-            if ((clubsSel && clubsSel.style.display !== 'none' && clubsSel.selectedOptions.length === 0) && (scopeSel && scopeSel.style.display !== 'none' && !scopeSel.value)) {
+            if ((!clubsSel.classList.contains('hidden') && clubsSel.selectedOptions.length === 0) && (!scopeSel.classList.contains('hidden') && !scopeSel.value)) {
                 e.preventDefault();
                 alert('Please select at least one club');
                 return false;
@@ -232,7 +249,7 @@
         if (recipientType === 'specific_department') {
             const deptsSel = document.getElementById('deptsSelect');
             const scopeSel = document.getElementById('scopeValue');
-            if ((deptsSel && deptsSel.style.display !== 'none' && deptsSel.selectedOptions.length === 0) && (scopeSel && scopeSel.style.display !== 'none' && !scopeSel.value)) {
+            if ((!deptsSel.classList.contains('hidden') && deptsSel.selectedOptions.length === 0) && (!scopeSel.classList.contains('hidden') && !scopeSel.value)) {
                 e.preventDefault();
                 alert('Please select at least one department');
                 return false;
@@ -242,35 +259,30 @@
         // Confirm before sending
         return confirm('Send notification to selected recipients?');
     });
+
+    // Initialize Select2
+    function initSelect2() {
+        if (document.getElementById('clubsSelect') && !document.getElementById('clubsSelect').classList.contains('hidden')) {
+            $('#clubsSelect').select2({ placeholder: 'Select club(s)', width: '100%' });
+        }
+        if (document.getElementById('deptsSelect') && !document.getElementById('deptsSelect').classList.contains('hidden')) {
+            $('#deptsSelect').select2({ placeholder: 'Select department(s)', width: '100%' });
+        }
+        if (document.getElementById('scopeValue') && !document.getElementById('scopeValue').classList.contains('hidden')) {
+            $('#scopeValue').select2({ placeholder: '-- Choose --', minimumResultsForSearch: Infinity, width: '100%' });
+        }
+    }
 </script>
 
-    <!-- Select2 CDN and initialization for nicer multi-select UI -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script>
-        (function(){
-            // Initialize Select2 on multi-select elements when they are present
-            function initSelect2() {
-                if (document.getElementById('clubsSelect')) {
-                    $('#clubsSelect').select2({placeholder: 'Select club(s)', width: '100%'});
-                }
-                if (document.getElementById('deptsSelect')) {
-                    $('#deptsSelect').select2({placeholder: 'Select department(s)', width: '100%'});
-                }
-                if (document.getElementById('scopeValue')) {
-                    $('#scopeValue').select2({placeholder: '-- Choose --', minimumResultsForSearch: Infinity, width: '100%'});
-                }
-            }
-
-            // Call init after a small timeout to ensure DOM updates from updateScopeOptions
-            document.getElementById('recipientType').addEventListener('change', function(){
-                setTimeout(initSelect2, 50);
-            });
-
-            // Init now in case elements are present
-            setTimeout(initSelect2, 100);
-        })();
-    </script>
+<!-- Select2 CDN and initialization for nicer multi-select UI -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initial init
+        initSelect2();
+    });
+</script>
 
 {% endblock %}

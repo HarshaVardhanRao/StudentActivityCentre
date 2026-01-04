@@ -8,7 +8,7 @@ import django
 from datetime import datetime
 
 # Add the project directory to Python path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'SAC-Hub'))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../SAC-Hub')))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sac_project.settings')
 
 # Setup Django

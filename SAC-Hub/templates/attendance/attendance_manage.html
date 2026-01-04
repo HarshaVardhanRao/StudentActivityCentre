@@ -3,281 +3,293 @@
 {% block title %}Attendance - {{ event.name }} - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h2>Attendance Management</h2>
-        <h5 class="text-muted">{{ event.name }}</h5>
-        <p class="text-muted">{{ event.date_time|date:"M d, Y" }} at {{ event.venue }}</p>
-    </div>
-    <div>
-        <!-- Session selector -->
-        {% if sessions %}
-            <div class="btn-group me-2" role="group">
-                <select id="session-select" class="form-select" onchange="changeSession(this.value)">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-800">Attendance Management</h2>
+            <h5 class="text-lg text-gray-600 font-medium">{{ event.name }}</h5>
+            <p class="text-sm text-gray-500">{{ event.date_time|date:"M d, Y" }} at {{ event.venue }}</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+            <!-- Session selector -->
+            {% if sessions %}
+            <div class="relative">
+                <select id="session-select"
+                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                    onchange="changeSession(this.value)">
                     {% for s in sessions %}
-                        <option value="{{ s.id }}" {% if session and s.id == session.id %}selected{% endif %}>
-                            {% if s.label %}{{ s.label }}{% else %}Session {{ s.id }}{% endif %} - {{ s.created_at|date:"M d, Y H:i" }} {% if s.locked %}(submitted){% endif %}
-                        </option>
+                    <option value="{{ s.id }}" {% if session and s.id == session.id %}selected{% endif %}>
+                        {% if s.label %}{{ s.label }}{% else %}Session {{ s.id }}{% endif %} - {{ s.created_at|date:"M
+                        d, Y H:i" }} {% if s.locked %}(submitted){% endif %}
+                    </option>
                     {% endfor %}
                 </select>
             </div>
-        {% endif %}
+            {% endif %}
 
-        <button type="button" class="btn btn-success me-2" onclick="markAllPresent()">Mark All Present</button>
-        <button type="button" class="btn btn-warning me-2" onclick="markAllAbsent()">Mark All Absent</button>
-        <!-- New session form (simple inline) -->
-        <form id="new-session-form" method="post" style="display:inline-block">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="new_session">
-            <input type="text" name="label" placeholder="Label (optional)" class="form-control d-inline-block" style="width:160px;">
-            <label class="form-check-label ms-2">
-                <input type="checkbox" name="force_open" value="1"> Open now
-            </label>
-            <button type="submit" class="btn btn-outline-primary ms-2">New Session</button>
-        </form>
-    </div>
-</div>
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm font-medium"
+                onclick="markAllPresent()">Mark All Present</button>
+            <button type="button"
+                class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm text-sm font-medium"
+                onclick="markAllAbsent()">Mark All Absent</button>
 
-<!-- Attendance Statistics -->
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card text-center bg-success text-white">
-            <div class="card-body">
-                <h3 id="present-count">{{ attendance_stats.present }}</h3>
-                <p>Present</p>
-            </div>
+            <!-- New session form (simple inline) -->
+            <form id="new-session-form" method="post" class="flex items-center gap-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="new_session">
+                <input type="text" name="label" placeholder="Label (optional)"
+                    class="block w-40 px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                <label class="inline-flex items-center text-sm text-gray-700 whitespace-nowrap">
+                    <input type="checkbox" name="force_open" value="1"
+                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    <span class="ml-2">Open now</span>
+                </label>
+                <button type="submit"
+                    class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium">New
+                    Session</button>
+            </form>
         </div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-danger text-white">
-            <div class="card-body">
-                <h3 id="absent-count">{{ attendance_stats.absent }}</h3>
-                <p>Absent</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-info text-white">
-            <div class="card-body">
-                <h3 id="total-count">{{ attendance_stats.total }}</h3>
-                <p>Total</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-center bg-primary text-white">
-            <div class="card-body">
-                <h3 id="percentage">{{ attendance_stats.percentage|floatformat:1 }}%</h3>
-                <p>Attendance</p>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Search and Filter -->
-<div class="card mb-4">
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <input type="text" id="student-search" class="form-control" placeholder="Search students by name or roll number...">
+    <!-- Attendance Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div class="bg-green-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1" id="present-count">{{ attendance_stats.present }}</h3>
+            <p class="text-green-100 font-medium">Present</p>
+        </div>
+        <div class="bg-red-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1" id="absent-count">{{ attendance_stats.absent }}</h3>
+            <p class="text-red-100 font-medium">Absent</p>
+        </div>
+        <div class="bg-cyan-500 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1" id="total-count">{{ attendance_stats.total }}</h3>
+            <p class="text-cyan-100 font-medium">Total</p>
+        </div>
+        <div class="bg-blue-600 text-white rounded-xl shadow-md p-6 text-center">
+            <h3 class="text-4xl font-bold mb-1" id="percentage">{{ attendance_stats.percentage|floatformat:1 }}%</h3>
+            <p class="text-blue-100 font-medium">Attendance</p>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+            <div class="md:col-span-6">
+                <input type="text" id="student-search"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                    placeholder="Search students by name or roll number...">
             </div>
-            <div class="col-md-3">
-                <select id="status-filter" class="form-select">
+            <div class="md:col-span-3">
+                <select id="status-filter"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white">
                     <option value="">All Students</option>
                     <option value="PRESENT">Present Only</option>
                     <option value="ABSENT">Absent Only</option>
                     <option value="UNMARKED">Unmarked Only</option>
                 </select>
             </div>
-            <div class="col-md-3">
-                <button type="button" class="btn btn-primary w-100" onclick="exportAttendance()">Export to Excel</button>
+            <div class="md:col-span-3">
+                <button type="button"
+                    class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    onclick="exportAttendance()">Export to Excel</button>
             </div>
         </div>
     </div>
-</div>
 
-<!-- Attendance List -->
-<div class="card">
-    <div class="card-header">
-        <h5>Student Attendance</h5>
-    </div>
-    <div class="card-body">
-        <form id="attendance-form" method="post">
-            {% csrf_token %}
-            <div class="table-responsive">
-                <table class="table table-hover">
+    <!-- Attendance List -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h5 class="font-semibold text-gray-800">Student Attendance</h5>
+        </div>
+        <div class="overflow-x-auto">
+            <form id="attendance-form" method="post">
+                {% csrf_token %}
+                <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr>
-                            <th>Roll Number</th>
-                            <th>Student Name</th>
-                            <th>Department</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                        <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                            <th class="px-6 py-4">Roll Number</th>
+                            <th class="px-6 py-4">Student Name</th>
+                            <th class="px-6 py-4">Department</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="attendance-table">
+                    <tbody id="attendance-table" class="divide-y divide-gray-100">
                         {% for student in students %}
-                        <tr data-student-id="{{ student.id }}" class="student-row">
-                            <td>{{ student.roll_no }}</td>
-                            <td>{{ student.get_full_name }}</td>
-                            <td>{{ student.department.name|default:"N/A" }}</td>
-                            <td>
+                        <tr data-student-id="{{ student.id }}" class="student-row hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-600">{{ student.roll_no }}</td>
+                            <td class="px-6 py-4 font-medium text-gray-800">{{ student.get_full_name }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ student.department.name|default:"N/A" }}</td>
+                            <td class="px-6 py-4">
                                 {% if student.attendance %}
-                                    <span class="badge attendance-badge {% if student.attendance.status == 'PRESENT' %}bg-success{% elif student.attendance.status == 'ABSENT' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                        {{ student.attendance.get_status_display }}
-                                    </span>
+                                <span class="attendance-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if student.attendance.status == 'PRESENT' %}bg-green-100 text-green-800
+                                        {% elif student.attendance.status == 'ABSENT' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ student.attendance.get_status_display }}
+                                </span>
                                 {% else %}
-                                    <span class="badge attendance-badge bg-secondary">Not Marked</span>
+                                <span
+                                    class="attendance-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Not
+                                    Marked</span>
                                 {% endif %}
                             </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <button type="button" class="btn btn-sm btn-success" 
-                                            onclick="markAttendance({{ student.id }}, 'PRESENT')">Present</button>
-                                    <button type="button" class="btn btn-sm btn-danger" 
-                                            onclick="markAttendance({{ student.id }}, 'ABSENT')">Absent</button>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <button type="button"
+                                        class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-sm font-medium transition-colors"
+                                        onclick="markAttendance({{ student.id }}, 'PRESENT')">Present</button>
+                                    <button type="button"
+                                        class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
+                                        onclick="markAttendance({{ student.id }}, 'ABSENT')">Absent</button>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="text-center text-muted">No students found for this event</td>
+                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">No students found for this
+                                event</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-            </div>
-        </form>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mt-8 text-center flex justify-center gap-4">
+        <a href="{% url 'event_detail' event.id %}"
+            class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">Back
+            to Event</a>
+        <button type="button"
+            class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            onclick="saveAttendance()">Save All Changes</button>
     </div>
 </div>
 
-<!-- Quick Actions -->
-<div class="mt-4 text-center">
-    <a href="{% url 'event_detail' event.id %}" class="btn btn-outline-primary">Back to Event</a>
-    <button type="button" class="btn btn-primary" onclick="saveAttendance()">Save All Changes</button>
-</div>
-
 <script>
-// Attendance tracking variables
-let attendanceChanges = {};
+    // Attendance tracking variables
+    let attendanceChanges = {};
 
-function markAttendance(studentId, status) {
-    attendanceChanges[studentId] = status;
-    
-    // Update UI immediately
-    const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
-    const badge = row.querySelector('.attendance-badge');
-    
-    badge.textContent = status === 'PRESENT' ? 'Present' : 'Absent';
-    badge.className = `badge attendance-badge ${status === 'PRESENT' ? 'bg-success' : 'bg-danger'}`;
-    
-    updateStats();
-}
+    function markAttendance(studentId, status) {
+        attendanceChanges[studentId] = status;
 
-function markAllPresent() {
-    document.querySelectorAll('.student-row').forEach(row => {
-        const studentId = row.getAttribute('data-student-id');
-        markAttendance(parseInt(studentId), 'PRESENT');
-    });
-}
+        // Update UI immediately
+        const row = document.querySelector(`tr[data-student-id="${studentId}"]`);
+        const badge = row.querySelector('.attendance-badge');
 
-function markAllAbsent() {
-    document.querySelectorAll('.student-row').forEach(row => {
-        const studentId = row.getAttribute('data-student-id');
-        markAttendance(parseInt(studentId), 'ABSENT');
-    });
-}
+        badge.textContent = status === 'PRESENT' ? 'Present' : 'Absent';
+        badge.className = `attendance-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${status === 'PRESENT' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
 
-function updateStats() {
-    let present = 0, absent = 0, total = 0;
-    
-    document.querySelectorAll('.attendance-badge').forEach(badge => {
-        total++;
-        if (badge.textContent === 'Present') present++;
-        else if (badge.textContent === 'Absent') absent++;
-    });
-    
-    document.getElementById('present-count').textContent = present;
-    document.getElementById('absent-count').textContent = absent;
-    document.getElementById('total-count').textContent = total;
-    document.getElementById('percentage').textContent = total > 0 ? ((present / total) * 100).toFixed(1) + '%' : '0%';
-}
-
-function saveAttendance() {
-    if (Object.keys(attendanceChanges).length === 0) {
-        alert('No changes to save');
-        return;
+        updateStats();
     }
-    
-    fetch(`/events/{{ event.id }}/attendance/`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
-        },
-        body: JSON.stringify(attendanceChanges)
-    })
-    .then(response => {
-        const ct = response.headers.get('content-type') || '';
-        if (!response.ok) {
-            // Try to show HTML/text response when server returns an error page
-            return response.text().then(text => { throw new Error(text || response.statusText); });
+
+    function markAllPresent() {
+        document.querySelectorAll('.student-row').forEach(row => {
+            const studentId = row.getAttribute('data-student-id');
+            markAttendance(parseInt(studentId), 'PRESENT');
+        });
+    }
+
+    function markAllAbsent() {
+        document.querySelectorAll('.student-row').forEach(row => {
+            const studentId = row.getAttribute('data-student-id');
+            markAttendance(parseInt(studentId), 'ABSENT');
+        });
+    }
+
+    function updateStats() {
+        let present = 0, absent = 0, total = 0;
+
+        document.querySelectorAll('.attendance-badge').forEach(badge => {
+            total++;
+            if (badge.textContent === 'Present') present++;
+            else if (badge.textContent === 'Absent') absent++;
+        });
+
+        document.getElementById('present-count').textContent = present;
+        document.getElementById('absent-count').textContent = absent;
+        document.getElementById('total-count').textContent = total;
+        document.getElementById('percentage').textContent = total > 0 ? ((present / total) * 100).toFixed(1) + '%' : '0%';
+    }
+
+    function saveAttendance() {
+        if (Object.keys(attendanceChanges).length === 0) {
+            alert('No changes to save');
+            return;
         }
-        if (ct.includes('application/json')) return response.json();
-        return response.text().then(text => { throw new Error(text || 'Unexpected response'); });
-    })
-    .then(data => {
-        if (data && data.success) {
-            alert('Attendance saved successfully!');
-            attendanceChanges = {};
-        } else {
-            alert('Error saving attendance: ' + (data && data.error ? data.error : 'Unknown error'));
-        }
-    })
-    .catch(error => {
-        // If server returned an HTML error page (login redirect, template error), show a concise message
-        const msg = (error && error.message) ? error.message : String(error);
-        alert('Error saving attendance: ' + msg);
+
+        fetch(`/events/{{ event.id }}/attendance/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify(attendanceChanges)
+        })
+            .then(response => {
+                const ct = response.headers.get('content-type') || '';
+                if (!response.ok) {
+                    // Try to show HTML/text response when server returns an error page
+                    return response.text().then(text => { throw new Error(text || response.statusText); });
+                }
+                if (ct.includes('application/json')) return response.json();
+                return response.text().then(text => { throw new Error(text || 'Unexpected response'); });
+            })
+            .then(data => {
+                if (data && data.success) {
+                    alert('Attendance saved successfully!');
+                    attendanceChanges = {};
+                } else {
+                    alert('Error saving attendance: ' + (data && data.error ? data.error : 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                // If server returned an HTML error page (login redirect, template error), show a concise message
+                const msg = (error && error.message) ? error.message : String(error);
+                alert('Error saving attendance: ' + msg);
+            });
+    }
+
+    function exportAttendance() {
+        window.location.href = `/events/{{ event.id }}/attendance/export/`;
+    }
+
+    // Search and filter functionality
+    document.getElementById('student-search').addEventListener('input', function () {
+        const searchTerm = this.value.toLowerCase();
+        filterStudents();
     });
-}
 
-function exportAttendance() {
-    window.location.href = `/events/{{ event.id }}/attendance/export/`;
-}
-
-// Search and filter functionality
-document.getElementById('student-search').addEventListener('input', function() {
-    const searchTerm = this.value.toLowerCase();
-    filterStudents();
-});
-
-document.getElementById('status-filter').addEventListener('change', function() {
-    filterStudents();
-});
-
-function filterStudents() {
-    const searchTerm = document.getElementById('student-search').value.toLowerCase();
-    const statusFilter = document.getElementById('status-filter').value;
-    
-    document.querySelectorAll('.student-row').forEach(row => {
-        const name = row.children[1].textContent.toLowerCase();
-        const rollNo = row.children[0].textContent.toLowerCase();
-        const status = row.querySelector('.attendance-badge').textContent;
-        
-        const matchesSearch = name.includes(searchTerm) || rollNo.includes(searchTerm);
-        const matchesStatus = !statusFilter || 
-                            (statusFilter === 'PRESENT' && status === 'Present') ||
-                            (statusFilter === 'ABSENT' && status === 'Absent') ||
-                            (statusFilter === 'UNMARKED' && status === 'Not Marked');
-        
-        row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+    document.getElementById('status-filter').addEventListener('change', function () {
+        filterStudents();
     });
-}
 
-function changeSession(sessionId) {
-    if (!sessionId) return;
-    // Navigate to the same attendance manage view with the selected session id
-    window.location.href = `/events/{{ event.id }}/attendance/?session_id=${sessionId}`;
-}
+    function filterStudents() {
+        const searchTerm = document.getElementById('student-search').value.toLowerCase();
+        const statusFilter = document.getElementById('status-filter').value;
+
+        document.querySelectorAll('.student-row').forEach(row => {
+            const name = row.children[1].textContent.toLowerCase();
+            const rollNo = row.children[0].textContent.toLowerCase();
+            const status = row.querySelector('.attendance-badge').textContent;
+
+            const matchesSearch = name.includes(searchTerm) || rollNo.includes(searchTerm);
+            const matchesStatus = !statusFilter ||
+                (statusFilter === 'PRESENT' && status === 'Present') ||
+                (statusFilter === 'ABSENT' && status === 'Absent') ||
+                (statusFilter === 'UNMARKED' && status === 'Not Marked');
+
+            row.style.display = matchesSearch && matchesStatus ? '' : 'none';
+        });
+    }
+
+    function changeSession(sessionId) {
+        if (!sessionId) return;
+        // Navigate to the same attendance manage view with the selected session id
+        window.location.href = `/events/{{ event.id }}/attendance/?session_id=${sessionId}`;
+    }
 </script>
 {% endblock %}

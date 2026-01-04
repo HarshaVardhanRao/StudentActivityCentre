@@ -30,7 +30,7 @@ def student_dashboard(request):
     dashboards = []
     
     # Check if user is a club coordinator
-    if "CLUB_COORDINATOR" in user_roles:
+    if "CLUB_COORDINATOR" in user_roles or "CO_COORDINATOR" in user_roles:
         coordinated_clubs = request.user.coordinated_clubs.all()
         if coordinated_clubs.exists():
             club_names = ", ".join([club.name for club in coordinated_clubs[:2]])
@@ -59,7 +59,7 @@ def student_dashboard(request):
             "description": "Oversee all student activities and approve events"
         })
     
-    if "DEPARTMENT_ADMIN" in user_roles:
+    if "DEPARTMENT_ADMIN" in user_roles or "DEPARTMENT_VP" in user_roles:
         dashboards.append({
             "name": "Department Admin Dashboard", 
             "url": "/dashboard/department-admin/",
@@ -100,13 +100,53 @@ def student_dashboard(request):
             "icon": "bi bi-person-check",
             "description": f"Advise {advised_clubs.count()} club(s)"
         })
-    return render(request, "student_dashboard.html", {
-        "upcoming_events": upcoming_events,
-        "ongoing_events": ongoing_events,
-        "finished_events": finished_events,
-        "notices": notices,
-        "contacts": contacts,
-        "clubs": clubs,
-        "departments": departments,
-        "dashboards": dashboards,
-    })
+
+    if "STUDENT_VOLUNTEER" in user_roles:
+        dashboards.append({
+            "name": "Student Volunteer Dashboard", 
+            "url": "/dashboard/student-volunteer/",
+            "icon": "bi bi-hand-thumbs-up",
+            "description": "Volunteer activities and tasks"
+        })
+
+    if "FACULTY" in user_roles:
+        dashboards.append({
+            "name": "Faculty Dashboard", 
+            "url": "/dashboard/faculty/",
+            "icon": "bi bi-mortarboard",
+            "description": "Faculty oversight and activities"
+        })
+    # Calculate stats
+    my_clubs_count = request.user.clubs.count() if request.user.is_authenticated else 0
+    events_attended_count = 0 # Placeholder or fetch from Attendance model
+    
+    # Fetch user-specific data
+    my_events = []
+    my_notifications = []
+    if request.user.is_authenticated:
+        from events.models import EventRegistration
+        my_events = EventRegistration.objects.filter(student=request.user).select_related('event').order_by('-registered_at')[:5]
+        my_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+
+    context = {
+        'page_title': 'Student Dashboard',
+        'stats': {
+            'total_clubs': my_clubs_count, # Label: My Clubs
+            'pending_events': upcoming_events.count(), # Label: Upcoming Events
+            'total_users': events_attended_count, # Label: Events Attended
+        },
+        'dashboard_events': upcoming_events,
+        'dashboard_clubs': request.user.clubs.all() if request.user.is_authenticated else [],
+        'dashboard_members': [], # Not applicable for students
+        'upcoming_events': upcoming_events,
+        'ongoing_events': ongoing_events,
+        'finished_events': finished_events,
+        'notices': notices,
+        'my_notifications': my_notifications,
+        'my_events': my_events,
+        'contacts': contacts,
+        'clubs': clubs,
+        'departments': departments,
+        'dashboards': dashboards,
+    }
+    return render(request, "dashboard/unified_dashboard.html", context)

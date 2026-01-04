@@ -188,6 +188,7 @@ def event_create(request):
                     'is_club_coordinator': is_club_coordinator,
                     'coordinator_club': coordinator_club,
                     'form': request.POST,
+                    'event': None,
                 })
             
             # Create event from form data
@@ -307,6 +308,7 @@ def event_create(request):
     coordinator_club = None
     if is_club_coordinator and user_clubs.count() == 1:
         coordinator_club = user_clubs.first()
+    print('DEBUG: event_create running')
     
     context = {
         'clubs': clubs,
@@ -316,6 +318,9 @@ def event_create(request):
         'user_role': 'Faculty Advisor' if 'FACULTY' in (request.user.roles or []) else 'Club Coordinator' if 'CLUB_COORDINATOR' in (request.user.roles or []) else 'Administrator',
         'is_club_coordinator': is_club_coordinator,
         'coordinator_club': coordinator_club,
+        'event': None,
+        'form': {},
+
     }
     return render(request, 'events/event_form.html', context)
 

@@ -1,0 +1,269 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }} - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg fixed h-full z-10 hidden md:block">
+        <div class="p-6 border-b">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                    MITS
+                </div>
+                <span class="font-bold text-gray-800">SAC Hub</span>
+            </div>
+        </div>
+
+        <nav class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-80px)]">
+            <div class="mb-6">
+                <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Main</p>
+                <a href="{% url 'home' %}"
+                    class="flex items-center gap-3 px-4 py-3 text-red-600 bg-red-50 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-grid-fill"></i>
+                    Dashboard
+                </a>
+                <a href="{% url 'club_list' %}"
+                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-people"></i>
+                    Manage Clubs
+                </a>
+                <a href="#"
+                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-person-badge"></i>
+                    Manage Users
+                </a>
+                <a href="{% url 'settings' %}"
+                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-gear"></i>
+                    System Settings
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-bold text-gray-800">{{ page_title }}</h1>
+            <a href="{% url 'calendar_view' %}"
+                class="flex items-center gap-2 text-red-600 font-medium hover:text-red-700 transition-colors">
+                View Calendar <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+
+        {% block dashboard_content %}
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <!-- Total Clubs -->
+            <div
+                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                <p class="text-gray-500 font-medium mb-2">Total Clubs</p>
+                <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ stats.total_clubs|default:"0" }}</h2>
+            </div>
+
+            <!-- Pending Events -->
+            <div
+                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div class="absolute top-4 right-4 opacity-10">
+                    <i class="bi bi-calendar-event text-6xl text-red-600"></i>
+                </div>
+                <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-600">
+                    <i class="bi bi-hourglass-split text-xl"></i>
+                </div>
+                <p class="text-gray-500 font-medium mb-1">Pending Events</p>
+                <h2 class="text-4xl font-bold text-red-600">{{ stats.pending_events|default:"0" }}</h2>
+            </div>
+
+            <!-- Total Students -->
+            <div
+                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+                <p class="text-gray-500 font-medium mb-2">Total Students</p>
+                <h2 class="text-4xl font-bold text-gray-800">{{ stats.total_users|default:"0" }}</h2>
+            </div>
+        </div>
+
+        <!-- My Club Dashboards Table -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800">My Clubs</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 text-sm">
+                        <tr>
+                            <th class="px-6 py-4 font-medium">#</th>
+                            <th class="px-6 py-4 font-medium">Club Name</th>
+                            <th class="px-6 py-4 font-medium">Description</th>
+                            <th class="px-6 py-4 font-medium">Faculty Advisor</th>
+                            <th class="px-6 py-4 font-medium">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for club in clubs|slice:":5" %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-500">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4 font-medium text-gray-800">{{ club.name }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ club.description }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ club.advisor }}</td>
+                            <td class="px-6 py-4 text-gray-600"><a href="/clubs/{{ club.id }}">View</a></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No pending events found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+{% if users %}
+<!-- Admin Sections -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- Manage Users -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Manage Users</h3>
+            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-medium">User</th>
+                        <th class="px-6 py-4 font-medium">Role</th>
+                        <th class="px-6 py-4 font-medium">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for u in users|slice:":5" %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-800">
+                            {{ u.get_full_name|default:u.username }}
+                            <div class="text-xs text-gray-500">{{ u.email }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600 text-sm">
+                            {% for role in u.roles %}
+                            <span
+                                class="inline-block bg-gray-100 rounded-full px-2 py-1 text-xs font-semibold text-gray-600 mr-1">{{
+                                role }}</span>
+                            {% empty %}
+                            <span class="text-gray-400">Student</span>
+                            {% endfor %}
+                        </td>
+                        <td class="px-6 py-4">
+                            <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Manage Departments -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Manage Departments</h3>
+            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-medium">Name</th>
+                        <th class="px-6 py-4 font-medium">Head</th>
+                        <th class="px-6 py-4 font-medium">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for dept in departments|slice:":5" %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ dept.name }}</td>
+                        <td class="px-6 py-4 text-gray-600 text-sm">{{ dept.head_of_department.get_full_name|default:"-"
+                            }}</td>
+                        <td class="px-6 py-4">
+                            <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- My Events and Notifications Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <!-- My Events -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">My Events</h3>
+            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 text-gray-500 text-sm">
+                    <tr>
+                        <th class="px-6 py-4 font-medium">Event</th>
+                        <th class="px-6 py-4 font-medium">Date</th>
+                        <th class="px-6 py-4 font-medium">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for reg in my_events %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-800">{{ reg.event.name }}</td>
+                        <td class="px-6 py-4 text-gray-600 text-sm">{{ reg.event.date_time|date:"M d, Y" }}</td>
+                        <td class="px-6 py-4">
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if reg.status == 'REGISTERED' %}bg-green-100 text-green-700
+                                        {% else %}bg-red-100 text-red-700{% endif %}">
+                                {{ reg.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-6 py-8 text-center text-gray-500">No registered events.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Notifications -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-gray-800">Notifications</h3>
+            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+        </div>
+        <div class="divide-y divide-gray-100">
+            {% for notice in my_notifications %}
+            <div class="p-4 hover:bg-gray-50 transition-colors">
+                <div class="flex gap-3">
+                    <div class="flex-shrink-0 mt-1">
+                        <i class="bi bi-bell text-red-600"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-800 text-sm">{{ notice.message }}</p>
+                        <p class="text-gray-400 text-xs mt-1">{{ notice.created_at|timesince }} ago</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="p-8 text-center text-gray-500">No new notifications.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+</main>
+</div>
+{% endblock %}
