@@ -25,20 +25,33 @@
                     <i class="bi bi-grid-fill"></i>
                     Dashboard
                 </a>
-                <a href="{% url 'club_list' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-people"></i>
-                    Manage Clubs
-                </a>
-                <a href="#"
+
+                {% if 'CLUB_COORDINATOR' in request.user.roles %}
+                <a href="#manage-users-section"
                     class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                     <i class="bi bi-person-badge"></i>
                     Manage Users
                 </a>
+                {% elif 'ADMIN' in request.user.roles or 'SAC_COORDINATOR' in request.user.roles %}
+                <a href="#manage-users-section"
+                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-person-badge"></i>
+                    Manage Users
+                </a>
+                {% endif %}
+
+                {% if 'CLUB_ADVISOR' in request.user.roles or 'SAC_COORDINATOR' in request.user.roles %}
+                <a href="#reports-section"
+                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                    <i class="bi bi-file-earmark-text"></i>
+                    Reports
+                </a>
+                {% endif %}
+
                 <a href="{% url 'settings' %}"
                     class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                     <i class="bi bi-gear"></i>
-                    System Settings
+                    Settings
                 </a>
             </div>
         </nav>
@@ -58,34 +71,60 @@
         {% block dashboard_content %}
         <!-- Stats Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <!-- Total Clubs -->
-            <div
-                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                <p class="text-gray-500 font-medium mb-2">Total Clubs</p>
+            <!-- Card 1: Total Clubs / My Clubs -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="bi bi-people text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-gray-500 font-medium mb-2">
+                    {% if stats.is_sac_admin %}Total Clubs{% else %}My Clubs{% endif %}
+                </p>
                 <h2 class="text-4xl font-bold text-gray-800 mb-4">{{ stats.total_clubs|default:"0" }}</h2>
+                <div class="flex items-center text-sm text-green-600">
+                    <i class="bi bi-arrow-up-right mr-1"></i>
+                    <!-- Placeholder trend -->
+                    <span>Active</span>
+                </div>
             </div>
 
-            <!-- Pending Events -->
-            <div
-                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center relative overflow-hidden">
-                <div class="absolute top-4 right-4 opacity-10">
-                    <i class="bi bi-calendar-event text-6xl text-red-600"></i>
-                </div>
-                <div class="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mb-3 text-red-600">
-                    <i class="bi bi-hourglass-split text-xl"></i>
+            {% if stats.is_sac_admin %}
+            <!-- Card 2: Pending Events (SAC Only) -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-red-50 text-red-600 rounded-lg">
+                        <i class="bi bi-clock-history text-xl"></i>
+                    </div>
+                    <span class="text-sm font-medium text-red-600 bg-red-50 px-2 py-1 rounded-full">New</span>
                 </div>
                 <p class="text-gray-500 font-medium mb-1">Pending Events</p>
                 <h2 class="text-4xl font-bold text-red-600">{{ stats.pending_events|default:"0" }}</h2>
+                <p class="text-sm text-gray-500 mt-2">Requires approval</p>
             </div>
+            {% endif %}
 
-            <!-- Total Students -->
-            <div
-                class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
-                <p class="text-gray-500 font-medium mb-2">Total Students</p>
+            <!-- Card 3: Total Students / Events Participated -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                        {% if stats.is_sac_admin %}
+                        <i class="bi bi-person text-xl"></i>
+                        {% else %}
+                        <i class="bi bi-calendar-check text-xl"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-gray-500 font-medium mb-2">
+                    {% if stats.is_sac_admin %}Total Students{% else %}Events Participated{% endif %}
+                </p>
                 <h2 class="text-4xl font-bold text-gray-800">{{ stats.total_users|default:"0" }}</h2>
+                <div class="flex items-center text-sm text-gray-500 mt-4">
+                    <i class="bi bi-graph-up mr-1"></i>
+                    <span>{% if stats.is_sac_admin %}Registered users{% else %}Successfully attended{% endif %}</span>
+                </div>
             </div>
         </div>
-
         <!-- My Club Dashboards Table -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
             <div class="p-6 border-b border-gray-100">
@@ -103,17 +142,18 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
-                        {% for club in clubs|slice:":5" %}
+                        {% for club in dashboard_clubs|slice:":5" %}
                         <tr class="hover:bg-gray-50 transition-colors">
                             <td class="px-6 py-4 text-gray-500">{{ forloop.counter }}</td>
                             <td class="px-6 py-4 font-medium text-gray-800">{{ club.name }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ club.description }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ club.advisor }}</td>
-                            <td class="px-6 py-4 text-gray-600"><a href="/clubs/{{ club.id }}">View</a></td>
+                            <td class="px-6 py-4 text-gray-600">{{ club.description|truncatewords:10 }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ club.advisor.get_full_name|default:"None" }}</td>
+                            <td class="px-6 py-4 text-gray-600"><a href="/clubs/{{ club.id }}"
+                                    class="text-red-600 hover:underline">View</a></td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No pending events found.</td>
+                            <td colspan="5" class="px-6 py-8 text-center text-gray-500">No clubs found.</td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -121,149 +161,307 @@
             </div>
         </div>
 
-{% if users %}
-<!-- Admin Sections -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- Manage Users -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-800">Manage Users</h3>
-            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 text-gray-500 text-sm">
-                    <tr>
-                        <th class="px-6 py-4 font-medium">User</th>
-                        <th class="px-6 py-4 font-medium">Role</th>
-                        <th class="px-6 py-4 font-medium">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for u in users|slice:":5" %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-800">
-                            {{ u.get_full_name|default:u.username }}
-                            <div class="text-xs text-gray-500">{{ u.email }}</div>
-                        </td>
-                        <td class="px-6 py-4 text-gray-600 text-sm">
-                            {% for role in u.roles %}
-                            <span
-                                class="inline-block bg-gray-100 rounded-full px-2 py-1 text-xs font-semibold text-gray-600 mr-1">{{
-                                role }}</span>
-                            {% empty %}
-                            <span class="text-gray-400">Student</span>
+        {% if users %}
+        <!-- Admin/Coordinator Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" id="manage-users-section">
+            <!-- Manage Users -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">Manage Users</h3>
+                    <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">User</th>
+                                <th class="px-6 py-4 font-medium">Role</th>
+                                <th class="px-6 py-4 font-medium">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for u in users|slice:":10" %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">
+                                    {{ u.get_full_name|default:u.username }}
+                                    <div class="text-xs text-gray-500">{{ u.email }}</div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    {% for role in u.roles %}
+                                    <span
+                                        class="inline-block bg-gray-100 rounded-full px-2 py-1 text-xs font-semibold text-gray-600 mr-1">{{
+                                        role }}</span>
+                                    {% empty %}
+                                    <span class="text-gray-400">Student</span>
+                                    {% endfor %}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                                </td>
+                            </tr>
                             {% endfor %}
-                        </td>
-                        <td class="px-6 py-4">
-                            <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Manage Departments -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-800">Manage Departments</h3>
-            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 text-gray-500 text-sm">
-                    <tr>
-                        <th class="px-6 py-4 font-medium">Name</th>
-                        <th class="px-6 py-4 font-medium">Head</th>
-                        <th class="px-6 py-4 font-medium">Action</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for dept in departments|slice:":5" %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-800">{{ dept.name }}</td>
-                        <td class="px-6 py-4 text-gray-600 text-sm">{{ dept.head_of_department.get_full_name|default:"-"
-                            }}</td>
-                        <td class="px-6 py-4">
-                            <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-{% endif %}
-<!-- My Events and Notifications Grid -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-    <!-- My Events -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-800">My Events</h3>
-            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead class="bg-gray-50 text-gray-500 text-sm">
-                    <tr>
-                        <th class="px-6 py-4 font-medium">Event</th>
-                        <th class="px-6 py-4 font-medium">Date</th>
-                        <th class="px-6 py-4 font-medium">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-100">
-                    {% for reg in my_events %}
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-medium text-gray-800">{{ reg.event.name }}</td>
-                        <td class="px-6 py-4 text-gray-600 text-sm">{{ reg.event.date_time|date:"M d, Y" }}</td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                        {% if reg.status == 'REGISTERED' %}bg-green-100 text-green-700
-                                        {% else %}bg-red-100 text-red-700{% endif %}">
-                                {{ reg.get_status_display }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="3" class="px-6 py-8 text-center text-gray-500">No registered events.</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- Notifications -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-800">Notifications</h3>
-            <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
-        </div>
-        <div class="divide-y divide-gray-100">
-            {% for notice in my_notifications %}
-            <div class="p-4 hover:bg-gray-50 transition-colors">
-                <div class="flex gap-3">
-                    <div class="flex-shrink-0 mt-1">
-                        <i class="bi bi-bell text-red-600"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-800 text-sm">{{ notice.message }}</p>
-                        <p class="text-gray-400 text-xs mt-1">{{ notice.created_at|timesince }} ago</p>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            {% empty %}
-            <div class="p-8 text-center text-gray-500">No new notifications.</div>
-            {% endfor %}
-        </div>
-    </div>
-</div>
 
-{% endblock %}
-</main>
+            <!-- Manage Departments (Only for Admin/SAC Coordinator) -->
+            {% if 'ADMIN' in request.user.roles or 'SAC_COORDINATOR' in request.user.roles %}
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">Manage Departments</h3>
+                    <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Name</th>
+                                <th class="px-6 py-4 font-medium">Head</th>
+                                <th class="px-6 py-4 font-medium">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for dept in departments|slice:":5" %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ dept.name }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{
+                                    dept.head_of_department.get_full_name|default:"-"
+                                    }}</td>
+                                <td class="px-6 py-4">
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Edit</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- SAC Coordinator Specifics -->
+        {% if show_calendar_control %}
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8" id="sac-controls">
+            <!-- Resource Requests -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Resource Requests</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Event</th>
+                                <th class="px-6 py-4 font-medium">Resources</th>
+                                <th class="px-6 py-4 font-medium">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for req in resource_requests|slice:":5" %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ req.name }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ req.resources|truncatechars:30 }}</td>
+                                <td class="px-6 py-4">
+                                    <button class="text-green-600 hover:text-green-800 text-sm mr-2">Approve</button>
+                                    <button class="text-red-600 hover:text-red-800 text-sm">Reject</button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">No pending resource
+                                    requests.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Report Approvals -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Pending Report Approvals</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Club</th>
+                                <th class="px-6 py-4 font-medium">Title</th>
+                                <th class="px-6 py-4 font-medium">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for rep in pending_reports|slice:":5" %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ rep.club.name }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ rep.title }}</td>
+                                <td class="px-6 py-4">
+                                    <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Review</a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">No pending reports.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Club Advisor Reports -->
+        {% if show_report_submission %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden" id="reports-section">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">Club Reports</h3>
+                <button class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-700">Submit New
+                    Report</button>
+            </div>
+            <div class="p-6">
+                <h4 class="font-medium text-gray-700 mb-4">Previous Submissions</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Date</th>
+                                <th class="px-6 py-4 font-medium">Title</th>
+                                <th class="px-6 py-4 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for rep in previous_reports %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-gray-600">{{ rep.created_at|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ rep.title }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                {% if rep.status == 'APPROVED' %}bg-green-100 text-green-700
+                                {% elif rep.status == 'REJECTED' %}bg-red-100 text-red-700
+                                {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                                        {{ rep.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-4 text-center text-gray-500">No reports submitted yet.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Completed Events (For Coordinators/SAC) -->
+        {% if completed_events %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800">Completed Events</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 text-sm">
+                        <tr>
+                            <th class="px-6 py-4 font-medium">Event</th>
+                            <th class="px-6 py-4 font-medium">Date</th>
+                            <th class="px-6 py-4 font-medium">Attendance</th>
+                            <th class="px-6 py-4 font-medium">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for event in completed_events|slice:":5" %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-medium text-gray-800">{{ event.name }}</td>
+                            <td class="px-6 py-4 text-gray-600">{{ event.date_time|date:"M d, Y" }}</td>
+                            <td class="px-6 py-4 text-gray-600">
+                                {# Placeholder for attendance stats #}
+                                <span class="text-xs bg-gray-100 px-2 py-1 rounded">View Stats</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <a href="#" class="text-blue-600 hover:text-blue-800 text-sm">Manage Attendance</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        <!-- My Events and Notifications Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <!-- My Events -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">My Events</h3>
+                    <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Event</th>
+                                <th class="px-6 py-4 font-medium">Date</th>
+                                <th class="px-6 py-4 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for reg in my_events %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ reg.event.name }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ reg.event.date_time|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                        {% if reg.status == 'REGISTERED' %}bg-green-100 text-green-700
+                                        {% else %}bg-red-100 text-red-700{% endif %}">
+                                        {{ reg.get_status_display }}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="px-6 py-8 text-center text-gray-500">No registered events.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-gray-800">Notifications</h3>
+                    <a href="#" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                </div>
+                <div class="divide-y divide-gray-100">
+                    {% for notice in my_notifications %}
+                    <div class="p-4 hover:bg-gray-50 transition-colors">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0 mt-1">
+                                <i class="bi bi-bell text-red-600"></i>
+                            </div>
+                            <div>
+                                <p class="text-gray-800 text-sm">{{ notice.message }}</p>
+                                <p class="text-gray-400 text-xs mt-1">{{ notice.created_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="p-8 text-center text-gray-500">No new notifications.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        {% endblock %}
+    </main>
 </div>
 {% endblock %}

@@ -7,7 +7,7 @@ from django.utils import timezone
 
 @login_required
 def club_coordinator_dashboard(request):
-    from users.models import Club, Notification
+    from users.models import Club, Notification, User
     from events.models import Event
     from attendance.models import Attendance
 
@@ -23,24 +23,34 @@ def club_coordinator_dashboard(request):
 
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
     
-    # Upcoming events for the coordinator's clubs
+    # Get members of clubs this user coordinates
+    dashboard_members = User.objects.filter(clubs__in=coordinator_clubs).distinct()
+    
     now = timezone.now()
+    # Upcoming events: PENDING and APPROVED
     upcoming_events = Event.objects.filter(
         club__in=coordinator_clubs,
         date_time__gt=now,
-        status="APPROVED"
-    ).order_by('date_time')[:6]
+        status__in=["APPROVED", "PENDING"]
+    ).order_by('date_time')
+    
+    completed_events = Event.objects.filter(
+        club__in=coordinator_clubs,
+        status="COMPLETED"
+    ).order_by('-date_time')
 
     context = {
         'page_title': 'Club Coordinator Dashboard',
         'stats': {
             'total_clubs': coordinator_clubs.count(),
             'pending_events': pending_approvals_count,
-            'total_users': participant_count, # Using participant count as proxy for students
+            'total_users': dashboard_members.count(),
         },
-        'dashboard_events': upcoming_events,
+        'dashboard_events': upcoming_events, # Main list
         'dashboard_clubs': coordinator_clubs,
-        'dashboard_members': [], # Populate if available
+        'dashboard_members': dashboard_members,
+        'users': dashboard_members, # For Manage Users table compatibility
+        'completed_events': completed_events,
         'coordinator_clubs': coordinator_clubs,
         'club_events': club_events_count,
         'pending_approvals': pending_approvals_count,
@@ -127,13 +137,28 @@ def club_advisor_dashboard(request):
         date_time__gt=now,
         status="APPROVED"
     ).order_by('date_time')[:6]
+    from clubs.models import ClubReport
+    advised_clubs = request.user.advised_clubs.all()
+    upcoming_events = Event.objects.filter(
+        club__in=advised_clubs,
+        date_time__gt=now,
+        status="APPROVED"
+    ).order_by('date_time')[:6]
+    
+    previous_reports = ClubReport.objects.filter(club__in=advised_clubs).order_by('-created_at')[:5]
+
     context = {
         'page_title': 'Club Advisor Dashboard',
-        'stats': {},
+        'stats': {
+            'advised_clubs': advised_clubs.count(),
+            'upcoming_events': upcoming_events.count(),
+        },
         'dashboard_events': upcoming_events,
-        'dashboard_clubs': [],
+        'dashboard_clubs': advised_clubs,
         'dashboard_members': [],
-        'upcoming_events': upcoming_events
+        'upcoming_events': upcoming_events,
+        'previous_reports': previous_reports,
+        'show_report_submission': True, # Flag to show report submission form
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -215,11 +240,25 @@ def admin_dashboard(request):
     from attendance.models import Attendance
     from calendar_app.models import CalendarEntry
     
+    from clubs.models import ClubReport
+    
     # Check if user has admin permissions
     if 'ADMIN' not in (request.user.roles or []) and 'SAC_COORDINATOR' not in (request.user.roles or []):
         return render(request, "admin_dashboard.html", {
             'error_message': 'You do not have permission to access this dashboard.'
         })
+    
+    # Events categorization
+    planned_events = Event.objects.filter(status='PENDING').order_by('date_time')
+    approved_events = Event.objects.filter(status='APPROVED').order_by('-date_time')[:20]
+    completed_events = Event.objects.filter(status='COMPLETED').order_by('-date_time')[:20]
+    cancelled_events = Event.objects.filter(status='REJECTED').order_by('-date_time')[:20]
+    
+    # Resource requests (events with resources specified)
+    resource_requests = Event.objects.exclude(resources='').exclude(resources__isnull=True).filter(status='PENDING')
+    
+    # Reports
+    pending_reports = ClubReport.objects.filter(status='PENDING')
     
     # Statistics
     stats = {
@@ -227,10 +266,12 @@ def admin_dashboard(request):
         'total_clubs': Club.objects.count(),
         'total_departments': Department.objects.count(),
         'total_events': Event.objects.count(),
-        'pending_events': Event.objects.filter(status='PENDING').count(),
-        'approved_events': Event.objects.filter(status='APPROVED').count(),
+        'pending_events': planned_events.count(),
+        'approved_events': approved_events.count(),
         'total_attendance_records': Attendance.objects.count(),
         'total_calendar_entries': CalendarEntry.objects.count(),
+        'pending_reports': pending_reports.count(),
+        'is_sac_admin': True,
     }
     
     # Lists for management
@@ -252,10 +293,15 @@ def admin_dashboard(request):
     ).order_by('date_time')[:6]
     
     context = {
-        'page_title': 'Admin Dashboard',
+        'page_title': 'SAC Coordinator Dashboard', # Updated title
         'stats': stats,
-        'dashboard_events': Event.objects.filter(status='PENDING').order_by('date_time')[:5], # Pending events for "My Club Dashboards" (Approvals)
-        'all_events': events, # All events for "My Club's Events" (Status list)
+        'dashboard_events': planned_events, # Default view
+        'planned_events': planned_events,
+        'approved_events': approved_events,
+        'completed_events': completed_events,
+        'cancelled_events': cancelled_events,
+        'resource_requests': resource_requests,
+        'pending_reports': pending_reports,
         'dashboard_clubs': clubs,
         'dashboard_members': users,
         'users': users,
@@ -266,6 +312,8 @@ def admin_dashboard(request):
         'calendar_entries': calendar_entries,
         'notifications': notifications,
         'upcoming_events': upcoming_events,
+        'show_calendar_control': True, # Flag for calendar control
+        'show_report_approval': True, # Flag for report approval
     }
     
     return render(request, "dashboard/unified_dashboard.html", context)

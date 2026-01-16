@@ -8,11 +8,14 @@ from users.models import Club, Department, User, Notification
 from attendance.models import Attendance
 from datetime import datetime
 
+from django.utils import timezone
+
 def event_list(request):
     """List all events with filtering options"""
     from .models import EventRegistration
     
-    events = Event.objects.all().select_related('club', 'department').prefetch_related('organizers')
+    # Only show upcoming events by default
+    events = Event.objects.filter(date_time__gte=timezone.now()).select_related('club', 'department').prefetch_related('organizers')
     clubs = Club.objects.all()
     
     # Filter events based on user role

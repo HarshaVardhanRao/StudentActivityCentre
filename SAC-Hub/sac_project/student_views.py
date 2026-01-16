@@ -118,22 +118,69 @@ def student_dashboard(request):
         })
     # Calculate stats
     my_clubs_count = request.user.clubs.count() if request.user.is_authenticated else 0
-    events_attended_count = 0 # Placeholder or fetch from Attendance model
+    events_attended_count = 0
     
     # Fetch user-specific data
     my_events = []
     my_notifications = []
+    
     if request.user.is_authenticated:
         from events.models import EventRegistration
-        my_events = EventRegistration.objects.filter(student=request.user).select_related('event').order_by('-registered_at')[:5]
+        from attendance.models import Attendance
+        
+        # Stats: Count sessions where student was PRESENT
+        events_attended_count = Attendance.objects.filter(student=request.user, status='PRESENT').count()
+        
+        # 1. Fetch upcoming registered events
+        registrations = EventRegistration.objects.filter(
+            student=request.user,
+            event__date_time__gt=now,
+            status='REGISTERED'
+        ).select_related('event')
+        
+        # 2. Fetch events user attended (PRESENT)
+        attendances = Attendance.objects.filter(
+            student=request.user,
+            status='PRESENT'
+        ).select_related('session__event')
+        
+        # 3. Combine and Deduplicate (Prioritize Attendance)
+        events_map = {}
+        
+        # Add registrations first
+        for reg in registrations:
+             events_map[reg.event.id] = {
+                 'event': reg.event,
+                 'status': 'REGISTERED',
+                 'get_status_display': 'Registered',
+                 'sort_date': reg.event.date_time
+             }
+             
+        # Add/Overwrite with Attendance
+        for att in attendances:
+            if att.session and att.session.event:
+                event = att.session.event
+                events_map[event.id] = {
+                    'event': event,
+                    'status': 'PRESENT',
+                    'get_status_display': 'Participated',
+                    'sort_date': event.date_time
+                }
+        
+        # 4. Sort by date descending (Newest/Future first)
+        my_events = sorted(events_map.values(), key=lambda x: x['sort_date'], reverse=True)
+        
         my_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
+    
+    is_sac_admin = "SAC_COORDINATOR" in user_roles or "ADMIN" in user_roles
 
     context = {
         'page_title': 'Student Dashboard',
         'stats': {
-            'total_clubs': my_clubs_count, # Label: My Clubs
-            'pending_events': upcoming_events.count(), # Label: Upcoming Events
-            'total_users': events_attended_count, # Label: Events Attended
+            'total_clubs': my_clubs_count, 
+            'pending_events': upcoming_events.count(),
+            'total_users': events_attended_count,
+            'is_sac_admin': is_sac_admin, # Flag for template to switch labels
         },
         'dashboard_events': upcoming_events,
         'dashboard_clubs': request.user.clubs.all() if request.user.is_authenticated else [],
