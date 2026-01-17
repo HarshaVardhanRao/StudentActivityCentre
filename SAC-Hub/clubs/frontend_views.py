@@ -284,4 +284,4 @@ def manage_club_members(request, club_id):
         'is_advisor': is_advisor,
     }
     
-    return render(request, 'clubs/manage_members.html', context)
+    return render(request, 'clubs/manage_members_v2.html', context)

@@ -6,244 +6,7 @@
 {% block content %}
 <div class="flex min-h-screen bg-gray-50">
     <!-- Sidebar -->
-    <aside id="sidebar" class="w-64 bg-white shadow-lg fixed h-full z-20 hidden md:block transition-transform duration-300 ease-in-out md:translate-x-0 -translate-x-full">
-        <div class="p-6 border-b flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div
-                    class="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    MITS
-                </div>
-                <span class="font-bold text-gray-800">SAC Hub</span>
-            </div>
-            <button id="closeSidebarBtn" class="md:hidden p-1 hover:bg-gray-100 rounded transition-colors">
-                <i class="bi bi-x-lg text-gray-600"></i>
-            </button>
-        </div>
-
-        <nav class="p-4 space-y-1 overflow-y-auto h-[calc(100vh-80px)]">
-            <div class="mb-6">
-                <p class="px-4 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4">Menu</p>
-
-                <!-- Student Navigation -->
-                {% if request.user.roles|length == 0 or 'STUDENT' in request.user.roles %}
-                <a href="{% url 'home' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-house-door"></i>
-                    Home
-                </a>
-                <a href="{% url 'event_list' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-calendar-event"></i>
-                    Events
-                </a>
-                <a href="#my-registrations"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-check2-square"></i>
-                    My Registrations
-                </a>
-                <a href="#certificates"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-award"></i>
-                    Certificates
-                </a>
-                <a href="#notifications"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-                <a href="{% url 'profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-                {% endif %}
-
-                <!-- Club Coordinator Navigation -->
-                {% if 'CLUB_COORDINATOR' in request.user.roles %}
-                <a href="{% url 'home' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-building"></i>
-                    My Club
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-calendar-event"></i>
-                    Events
-                </a>
-                <a href="{% if coordinator_clubs %}{% url 'manage_club_members' coordinator_clubs.0.id %}{% else %}#manage-members{% endif %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-people"></i>
-                    Manage Members
-                </a>
-                <a href="#approvals"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-check-circle"></i>
-                    Approvals
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Reports
-                </a>
-                <a href="#finance"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-cash-flow"></i>
-                    Finance
-                </a>
-                <a href="#notifications"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-                <a href="{% url 'profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-                {% endif %}
-
-                <!-- Club Advisor Navigation -->
-                {% if 'CLUB_ADVISOR' in request.user.roles %}
-                <a href="{% url 'home' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-calendar-check"></i>
-                    Event Approvals
-                </a>
-                <a href="{% url 'club_list' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-collection"></i>
-                    Clubs
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Reports
-                </a>
-                <a href="#notifications"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-                <a href="{% url 'profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-                {% endif %}
-
-                <!-- Department Admin Navigation -->
-                {% if 'ADMIN' in request.user.roles and 'SAC_COORDINATOR' not in request.user.roles %}
-                <a href="{% url 'home' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-speedometer2"></i>
-                    Dashboard
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-calendar-event"></i>
-                    Department Events
-                </a>
-                <a href="#clubs-management"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-building"></i>
-                    Clubs Management
-                </a>
-                <a href="#students"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-people"></i>
-                    Students
-                </a>
-                <a href="#approvals"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-check-circle"></i>
-                    Approvals
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-file-earmark-text"></i>
-                    Reports
-                </a>
-                <a href="#notifications"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-                <a href="{% url 'profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-                {% endif %}
-
-                <!-- SAC Coordinator Navigation -->
-                {% if 'SAC_COORDINATOR' in request.user.roles %}
-                <a href="{% url 'home' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-speedometer2"></i>
-                    SAC Dashboard
-                </a>
-                <a href="{% url 'events_management' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-calendar-event"></i>
-                    All Events
-                </a>
-                <a href="#clubs-departments"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-diagram-3"></i>
-                    Clubs & Departments
-                </a>
-                <a href="#approvals"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-check-circle"></i>
-                    Approvals
-                </a>
-                <a href="#users-roles"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-shield-lock"></i>
-                    Users & Roles
-                </a>
-                <a href="#finance"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-cash-flow"></i>
-                    Finance & Resources
-                </a>
-                <a href="#analytics"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-graph-up"></i>
-                    Analytics & Reports
-                </a>
-                <a href="{% url 'settings' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-gear"></i>
-                    System Settings
-                </a>
-                <a href="#notifications"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-bell"></i>
-                    Notifications
-                </a>
-                <a href="{% url 'profile' %}"
-                    class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                    <i class="bi bi-person"></i>
-                    Profile
-                </a>
-                {% endif %}
-            </div>
-        </nav>
-    </aside>
-
-    <!-- Toggle Button -->
-    <button id="sidebarToggleBtn" class="hidden md:hidden fixed top-4 left-4 z-30 p-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-        <i class="bi bi-list text-xl"></i>
-    </button>
-
-    <!-- Overlay -->
-    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black bg-opacity-50 z-10 md:hidden"></div>
+    {% include 'includes/sidebar.html' %}
 
     <!-- Main Content -->
     <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
@@ -538,7 +301,7 @@
                 </div>
             </div>
         </div>
-        {% endif %}
+
 
         <!-- Completed Events (For Coordinators/SAC) -->
         {% if completed_events %}
@@ -576,27 +339,36 @@
         </div>
         {% endif %}
         <!-- My Registrations Section (Student Dashboard Only) -->
-        {% if 'CLUB_COORDINATOR' not in request.user.roles and 'CLUB_ADVISOR' not in request.user.roles and 'ADMIN' not in request.user.roles and 'SAC_COORDINATOR' not in request.user.roles and 'DEPARTMENT_ADMIN' not in request.user.roles %}
+        {% if 'CLUB_COORDINATOR' not in request.user.roles and 'CLUB_ADVISOR' not in request.user.roles and 'ADMIN' not
+        in request.user.roles and 'SAC_COORDINATOR' not in request.user.roles and 'DEPARTMENT_ADMIN' not in
+        request.user.roles %}
         <div id="my-registrations" class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                 <div>
                     <h3 class="text-lg font-bold text-gray-800">My Event Registrations</h3>
                     <p class="text-sm text-gray-500 mt-1">Track and manage your event registrations</p>
                 </div>
-                <a href="{% url 'event_list' %}" class="text-sm text-red-600 font-medium hover:text-red-700 flex items-center gap-2">
+                <a href="{% url 'event_list' %}"
+                    class="text-sm text-red-600 font-medium hover:text-red-700 flex items-center gap-2">
                     <i class="bi bi-plus-circle"></i> Browse Events
                 </a>
             </div>
 
             <!-- Filter Tabs -->
             <div class="flex border-b border-gray-100 bg-gray-50">
-                <button onclick="filterRegistrations('all')" class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 active" data-filter="all">
+                <button onclick="filterRegistrations('all')"
+                    class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300 active"
+                    data-filter="all">
                     <i class="bi bi-list me-2"></i> All
                 </button>
-                <button onclick="filterRegistrations('registered')" class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300" data-filter="registered">
+                <button onclick="filterRegistrations('registered')"
+                    class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+                    data-filter="registered">
                     <i class="bi bi-check-circle me-2"></i> Registered
                 </button>
-                <button onclick="filterRegistrations('participated')" class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300" data-filter="participated">
+                <button onclick="filterRegistrations('participated')"
+                    class="filter-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300"
+                    data-filter="participated">
                     <i class="bi bi-checkmark-all me-2"></i> Participated
                 </button>
             </div>
@@ -610,7 +382,7 @@
                 <div class="text-center">
                     <p class="text-2xl font-bold text-green-600">
                         {% with registered_count=my_events|dictsort:"status"|length %}
-                            {{ my_events|length }}
+                        {{ my_events|length }}
                         {% endwith %}
                     </p>
                     <p class="text-xs text-gray-600 mt-1">Registered</p>
@@ -635,18 +407,22 @@
                     </thead>
                     <tbody class="divide-y divide-gray-100">
                         {% for item in my_events %}
-                        <tr class="hover:bg-gray-50 transition-colors registration-row" data-status="{{ item.status|lower }}">
+                        <tr class="hover:bg-gray-50 transition-colors registration-row"
+                            data-status="{{ item.status|lower }}">
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-3">
                                     {% if item.event.thumbnail %}
-                                    <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}" class="w-10 h-10 rounded object-cover">
+                                    <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}"
+                                        class="w-10 h-10 rounded object-cover">
                                     {% else %}
-                                    <div class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">
+                                    <div
+                                        class="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">
                                         {{ item.event.name|first }}
                                     </div>
                                     {% endif %}
                                     <div>
-                                        <p class="font-semibold text-gray-800 truncate max-w-xs">{{ item.event.name }}</p>
+                                        <p class="font-semibold text-gray-800 truncate max-w-xs">{{ item.event.name }}
+                                        </p>
                                         {% if item.event.club %}
                                         <p class="text-xs text-gray-500">{{ item.event.club.name }}</p>
                                         {% endif %}
@@ -670,23 +446,28 @@
                                     {% elif item.status == 'CANCELLED' %}bg-red-100 text-red-700
                                     {% else %}bg-gray-100 text-gray-700{% endif %}">
                                     {% if item.status == 'REGISTERED' %}
-                                        <i class="bi bi-check-circle"></i> Registered
+                                    <i class="bi bi-check-circle"></i> Registered
                                     {% elif item.status == 'PRESENT' %}
-                                        <i class="bi bi-check-all"></i> Participated
+                                    <i class="bi bi-check-all"></i> Participated
                                     {% elif item.status == 'CANCELLED' %}
-                                        <i class="bi bi-x-circle"></i> Cancelled
+                                    <i class="bi bi-x-circle"></i> Cancelled
                                     {% else %}
-                                        {{ item.get_status_display }}
+                                    {{ item.get_status_display }}
                                     {% endif %}
                                 </span>
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
-                                    <a href="{% url 'event_detail' item.event.id %}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded text-xs font-medium transition-colors" title="View Details">
+                                    <a href="{% url 'event_detail' item.event.id %}"
+                                        class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-3 py-1 rounded text-xs font-medium transition-colors"
+                                        title="View Details">
                                         <i class="bi bi-eye"></i> View
                                     </a>
                                     {% if item.status == 'REGISTERED' and item.event.date_time > now %}
-                                    <a href="{% url 'event_unregister' item.event.id %}" class="text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1 rounded text-xs font-medium transition-colors" title="Cancel Registration" onclick="return confirm('Are you sure you want to unregister?')">
+                                    <a href="{% url 'event_unregister' item.event.id %}"
+                                        class="text-red-600 hover:text-red-800 hover:bg-red-50 px-3 py-1 rounded text-xs font-medium transition-colors"
+                                        title="Cancel Registration"
+                                        onclick="return confirm('Are you sure you want to unregister?')">
                                         <i class="bi bi-x"></i> Cancel
                                     </a>
                                     {% endif %}
@@ -699,8 +480,10 @@
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="text-5xl text-gray-300 mb-3"><i class="bi bi-calendar-x"></i></div>
                                     <p class="text-gray-600 font-medium mb-2">No event registrations yet</p>
-                                    <p class="text-sm text-gray-500 mb-4">Browse upcoming events and register to participate</p>
-                                    <a href="{% url 'event_list' %}" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                                    <p class="text-sm text-gray-500 mb-4">Browse upcoming events and register to
+                                        participate</p>
+                                    <a href="{% url 'event_list' %}"
+                                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
                                         <i class="bi bi-search me-2"></i> Explore Events
                                     </a>
                                 </div>
@@ -732,7 +515,8 @@
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="text-lg font-bold text-gray-800">Recent Events</h3>
-                    <a href="{% url 'events_management' %}" class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                    <a href="{% url 'events_management' %}"
+                        class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
@@ -747,7 +531,8 @@
                             {% for event in my_events|slice:":5" %}
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 font-medium text-gray-800">{{ event.event.name }}</td>
-                                <td class="px-6 py-4 text-gray-600 text-sm">{{ event.event.date_time|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ event.event.date_time|date:"M d, Y" }}
+                                </td>
                                 <td class="px-6 py-4">
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full 
                                         {% if event.event.status == 'APPROVED' %}bg-green-100 text-green-700
@@ -795,86 +580,30 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('sidebarToggleBtn');
-        const closeBtn = document.getElementById('closeSidebarBtn');
-        const overlay = document.getElementById('sidebarOverlay');
-        let isSidebarOpen = false;
-
-        function toggleSidebar() {
-            isSidebarOpen = !isSidebarOpen;
-            
-            if (isSidebarOpen) {
-                sidebar.classList.remove('-translate-x-full');
-                sidebar.classList.add('translate-x-0');
-                overlay.classList.remove('hidden');
-                toggleBtn.classList.add('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-                sidebar.classList.remove('translate-x-0');
-                overlay.classList.add('hidden');
-                toggleBtn.classList.remove('hidden');
-            }
-        }
-
-        function closeSidebar() {
-            isSidebarOpen = true;
-            toggleSidebar();
-        }
-
-        toggleBtn.addEventListener('click', toggleSidebar);
-        closeBtn.addEventListener('click', closeSidebar);
-        overlay.addEventListener('click', closeSidebar);
-
-        // Handle window resize
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 768) {
-                // Desktop view - always show sidebar
-                sidebar.classList.add('hidden', 'md:block');
-                sidebar.classList.remove('-translate-x-full');
-                overlay.classList.add('hidden');
-                toggleBtn.classList.add('hidden');
-                isSidebarOpen = false;
-            } else {
-                // Mobile view
-                if (!isSidebarOpen) {
-                    sidebar.classList.add('-translate-x-full');
-                    toggleBtn.classList.remove('hidden');
-                }
-            }
-        });
-
-        // Initialize based on screen size
-        if (window.innerWidth < 768) {
-            sidebar.classList.remove('hidden');
-            sidebar.classList.add('-translate-x-full');
-            toggleBtn.classList.remove('hidden');
-        }
-    });
+    // Sidebar logic moved to includes/sidebar.html
 
     // Filter registrations function
     function filterRegistrations(filter) {
         const rows = document.querySelectorAll('.registration-row');
         const tabs = document.querySelectorAll('.filter-tab');
-        
+
         // Update active tab styling
         tabs.forEach(tab => {
             tab.classList.remove('border-b-red-600', 'text-red-600');
             tab.classList.add('border-b-transparent', 'text-gray-700');
         });
-        
+
         const activeTab = document.querySelector(`[data-filter="${filter}"]`);
         if (activeTab) {
             activeTab.classList.remove('border-b-transparent', 'text-gray-700');
             activeTab.classList.add('border-b-red-600', 'text-red-600');
         }
-        
+
         // Filter rows
         rows.forEach(row => {
             const status = row.getAttribute('data-status');
             let show = false;
-            
+
             if (filter === 'all') {
                 show = true;
             } else if (filter === 'registered' && status === 'registered') {
@@ -882,7 +611,7 @@
             } else if (filter === 'participated' && status === 'present') {
                 show = true;
             }
-            
+
             row.style.display = show ? '' : 'none';
         });
     }

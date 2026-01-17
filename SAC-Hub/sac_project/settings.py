@@ -85,6 +85,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "sac_project.context_processors.global_sidebar_context",
             ],
             # Register app templatetags as builtins so filters like `has_role` are
             # available in all templates without needing {% load %}.
