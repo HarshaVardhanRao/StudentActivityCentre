@@ -257,6 +257,7 @@ def admin_dashboard(request):
     from users.models import User, Club, Department
     from attendance.models import Attendance
     from calendar_app.models import CalendarEntry
+    from datetime import timedelta
     
     from clubs.models import ClubReport
     from events.models import EventReport
@@ -268,31 +269,47 @@ def admin_dashboard(request):
         })
     
     # Events categorization
-    planned_events = Event.objects.filter(status='PENDING').order_by('date_time')
-    approved_events = Event.objects.filter(status='APPROVED').order_by('-date_time')[:20]
-    completed_events = Event.objects.filter(status='COMPLETED').order_by('-date_time')[:20]
-    cancelled_events = Event.objects.filter(status='REJECTED').order_by('-date_time')[:20]
+    pending_events = Event.objects.filter(status='PENDING').order_by('date_time')
+    approved_events = Event.objects.filter(status='APPROVED').order_by('-date_time')
+    completed_events = Event.objects.filter(status='COMPLETED').order_by('-date_time')
+    rejected_events = Event.objects.filter(status='REJECTED').order_by('-date_time')
     
     # Resource requests (events with resources specified)
     resource_requests = Event.objects.exclude(resources='').exclude(resources__isnull=True).filter(status='PENDING')
     
     # Reports - Both ClubReport and EventReport
     pending_reports = ClubReport.objects.filter(status='PENDING')
-    pending_event_reports = EventReport.objects.filter(status='PENDING')
+    pending_event_reports = EventReport.objects.filter(status='PENDING').select_related('event', 'submitted_by', 'approved_by')
+    approved_event_reports = EventReport.objects.filter(status='APPROVED').select_related('event', 'submitted_by', 'approved_by')
+    
+    # Calculate analytics
+    total_events = Event.objects.count()
+    all_attendances = Attendance.objects.all()
+    total_attendees = all_attendances.count()
+    avg_attendance = round(total_attendees / total_events) if total_events > 0 else 0
+    
+    # Success rate (completed + approved / total)
+    success_count = completed_events.count() + approved_events.count()
+    success_rate = round((success_count / total_events) * 100) if total_events > 0 else 0
     
     # Statistics
     stats = {
         'total_users': User.objects.count(),
         'total_clubs': Club.objects.count(),
         'total_departments': Department.objects.count(),
-        'total_events': Event.objects.count(),
-        'pending_events': planned_events.count(),
+        'total_events': total_events,
+        'pending_events': pending_events.count(),
         'approved_events': approved_events.count(),
+        'completed_events': completed_events.count(),
+        'rejected_events': rejected_events.count(),
         'total_attendance_records': Attendance.objects.count(),
         'total_calendar_entries': CalendarEntry.objects.count(),
         'pending_reports': pending_reports.count(),
         'pending_event_reports': pending_event_reports.count(),
         'is_sac_admin': True,
+        'avg_attendance': avg_attendance,
+        'success_rate': success_rate,
+        'total_attendees': total_attendees,
     }
     
     # Lists for management
@@ -316,14 +333,14 @@ def admin_dashboard(request):
     context = {
         'page_title': 'SAC Coordinator Dashboard',
         'stats': stats,
-        'dashboard_events': planned_events,
-        'planned_events': planned_events,
+        'pending_events': pending_events,
         'approved_events': approved_events,
         'completed_events': completed_events,
-        'cancelled_events': cancelled_events,
+        'rejected_events': rejected_events,
         'resource_requests': resource_requests,
         'pending_reports': pending_reports,
         'pending_event_reports': pending_event_reports,
+        'approved_event_reports': approved_event_reports,
         'dashboard_clubs': clubs,
         'dashboard_members': users,
         'users': users,
@@ -338,4 +355,4 @@ def admin_dashboard(request):
         'show_report_approval': True,
     }
     
-    return render(request, "dashboard/unified_dashboard.html", context)
+    return render(request, "admin_dashboard.html", context)

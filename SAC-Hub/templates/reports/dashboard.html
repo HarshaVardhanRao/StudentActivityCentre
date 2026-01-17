@@ -45,11 +45,12 @@
                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white">
                     <option value="">All Clubs</option>
                     {% for club in clubs %}
-                    <option value="{{ club.id }}" {% if
-                        request.GET.club_filter|stringformat:"s"==club.id|stringformat:"s" %}selected{% endif %}>
-                        {{ club.name }}
-                    </option>
-                    {% endfor %}
+<option value="{{ club.id }}"
+    {% if request.GET.club_filter|stringformat:"s" == club.id|stringformat:"s" %}selected{% endif %}>
+    {{ club.name }}
+</option>
+{% endfor %}
+
                 </select>
             </div>
             <div class="flex items-end gap-2">
@@ -65,20 +66,329 @@
     <!-- Summary Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <div class="bg-blue-600 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1">{{ stats.total_events }}</h3>
+            <h3 class="text-4xl font-bold mb-1">{{ stats.total_events|default:0 }}</h3>
             <p class="text-blue-100 font-medium">Total Events</p>
         </div>
         <div class="bg-green-600 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1">{{ stats.total_participants }}</h3>
+            <h3 class="text-4xl font-bold mb-1">{{ stats.total_attendees|default:0 }}</h3>
             <p class="text-green-100 font-medium">Total Participants</p>
         </div>
         <div class="bg-cyan-500 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1">{{ stats.active_clubs }}</h3>
+            <h3 class="text-4xl font-bold mb-1">{{ stats.total_clubs|default:0 }}</h3>
             <p class="text-cyan-100 font-medium">Active Clubs</p>
         </div>
         <div class="bg-yellow-500 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1">{{ stats.avg_attendance|floatformat:1 }}%</h3>
+            <h3 class="text-4xl font-bold mb-1">{{ stats.avg_attendance|default:0|floatformat:1 }}%</h3>
             <p class="text-yellow-100 font-medium">Avg Attendance</p>
+        </div>
+    </div>
+
+    <!-- Event Reports Management Section -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+            <h5 class="font-semibold text-gray-800 text-lg flex items-center">
+                <i class="bi bi-file-earmark-text me-2"></i> Event Reports Management
+            </h5>
+        </div>
+        
+        <!-- Report Status Filter -->
+        <div class="p-6 border-b border-gray-100 bg-gray-50">
+            <div class="flex gap-3 flex-wrap">
+                <button onclick="filterEventReports('all')" class="report-status-filter active px-4 py-2 rounded-lg font-medium text-sm bg-blue-600 text-white transition-colors">
+                    All Reports
+                </button>
+                <button onclick="filterEventReports('approved')" class="report-status-filter px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">
+                    Approved (Submitted & Approved)
+                </button>
+                <button onclick="filterEventReports('pending')" class="report-status-filter px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">
+                    Pending for Approval (Submitted & Awaiting)
+                </button>
+                <button onclick="filterEventReports('notsubmitted')" class="report-status-filter px-4 py-2 rounded-lg font-medium text-sm bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">
+                    Yet to Submit (Completed Events)
+                </button>
+            </div>
+        </div>
+
+        <div class="p-6 space-y-8">
+            <!-- Approved Reports -->
+            <div id="report-filter-all" class="report-filter-content">
+                <div id="report-filter-approved" class="report-filter-subsection mb-8">
+                    <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-green-600">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                        Approved Reports (Submitted & Approved by SAC Coordinator)
+                    </h6>
+                    <div class="grid gap-4">
+                        {% for report in approved_event_reports %}
+                        <div class="bg-white border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h5 class="font-semibold text-gray-900">{{ report.event.name }}</h5>
+                                    <p class="text-sm text-gray-600">{{ report.title }}</p>
+                                </div>
+                                <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Approved</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4 mb-3">
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Submitted By</p>
+                                    <p class="font-medium text-gray-900">{{ report.submitted_by.username }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Event Date</p>
+                                    <p class="font-medium text-gray-900">{{ report.event.date_time|date:"M d, Y" }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Attendees</p>
+                                    <p class="font-medium text-gray-900">{{ report.total_attendees }}/{{ report.expected_attendees }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Submitted Date</p>
+                                    <p class="font-medium text-gray-900">{{ report.submitted_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            {% if report.approved_by %}
+                            <div class="mb-3 p-2 bg-green-50 rounded border border-green-100 text-xs text-gray-600">
+                                <span class="font-medium">Approved by:</span> {{ report.approved_by.username }}
+                                {% if report.approved_at %}<span class="text-gray-500">on {{ report.approved_at|date:"M d, Y" }}</span>{% endif %}
+                            </div>
+                            {% endif %}
+                            <button onclick="viewReportDetails({{ report.id }})" class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">View Details</button>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-center py-8">No approved reports</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Pending Approval Reports -->
+                <div id="report-filter-pending" class="report-filter-subsection mb-8">
+                    <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-yellow-600">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 002 0V6z" /></svg>
+                        Pending for Approval (Submitted & Awaiting Review)
+                    </h6>
+                    <div class="grid gap-4">
+                        {% for report in pending_event_reports %}
+                        <div class="bg-white border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <div class="flex items-start justify-between mb-3">
+                                <div>
+                                    <h5 class="font-semibold text-gray-900">{{ report.event.name }}</h5>
+                                    <p class="text-sm text-gray-600">{{ report.title }}</p>
+                                </div>
+                                <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Awaiting Review</span>
+                            </div>
+                            <div class="grid grid-cols-4 gap-4 mb-3">
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Submitted By</p>
+                                    <p class="font-medium text-gray-900">{{ report.submitted_by.username }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Event Date</p>
+                                    <p class="font-medium text-gray-900">{{ report.event.date_time|date:"M d, Y" }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Attendees</p>
+                                    <p class="font-medium text-gray-900">{{ report.total_attendees }}/{{ report.expected_attendees }}</p>
+                                </div>
+                                <div class="text-sm">
+                                    <p class="text-gray-500">Submitted Date</p>
+                                    <p class="font-medium text-gray-900">{{ report.submitted_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="approveReport({{ report.id }})" class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Approve</button>
+                                <button onclick="rejectReport({{ report.id }})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Reject</button>
+                                <button onclick="viewReportDetails({{ report.id }})" class="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">View Details</button>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <p class="text-gray-500 text-center py-8">No pending reports</p>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Yet to Submit Reports -->
+                <div id="report-filter-notsubmitted" class="report-filter-subsection">
+                    <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-red-600">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        Yet to Submit (Completed Events without Reports)
+                    </h6>
+                    <div class="grid gap-4">
+                        {% for event in completed_events %}
+                            {% with report_count=event.eventreport_set.count %}
+                                {% if report_count == 0 %}
+                                <div class="bg-white border border-red-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <h5 class="font-semibold text-gray-900">{{ event.name }}</h5>
+                                            <p class="text-sm text-gray-600">{{ event.description|truncatewords:15 }}</p>
+                                        </div>
+                                        <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Report Not Submitted</span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-4 mb-3">
+                                        <div class="text-sm">
+                                            <p class="text-gray-500">Club/Dept</p>
+                                            <p class="font-medium text-gray-900">{% if event.club %}{{ event.club.name }}{% elif event.department %}{{ event.department.name }}{% else %}System{% endif %}</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="text-gray-500">Event Date</p>
+                                            <p class="font-medium text-gray-900">{{ event.date_time|date:"M d, Y" }}</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="text-gray-500">Expected Attendees</p>
+                                            <p class="font-medium text-gray-900">{{ event.expected_participants|default:"N/A" }}</p>
+                                        </div>
+                                        <div class="text-sm">
+                                            <p class="text-gray-500">Organizer</p>
+                                            <p class="font-medium text-gray-900">{{ event.created_by.username }}</p>
+                                        </div>
+                                    </div>
+                                    <button onclick="sendReminder({{ event.id }})" class="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors">Send Reminder to Organizer</button>
+                                </div>
+                                {% endif %}
+                            {% endwith %}
+                        {% empty %}
+                        <p class="text-gray-500 text-center py-8">All completed events have submitted reports!</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Individual Filter Views -->
+            <div id="report-filter-approved" class="report-filter-content hidden">
+                <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-green-600">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" /></svg>
+                    Approved Reports (Submitted & Approved by SAC Coordinator)
+                </h6>
+                <div class="grid gap-4">
+                    {% for report in approved_event_reports %}
+                    <div class="bg-white border border-green-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h5 class="font-semibold text-gray-900">{{ report.event.name }}</h5>
+                                <p class="text-sm text-gray-600">{{ report.title }}</p>
+                            </div>
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Approved</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 mb-3">
+                            <div class="text-sm">
+                                <p class="text-gray-500">Submitted By</p>
+                                <p class="font-medium text-gray-900">{{ report.submitted_by.username }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Event Date</p>
+                                <p class="font-medium text-gray-900">{{ report.event.date_time|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Attendees</p>
+                                <p class="font-medium text-gray-900">{{ report.total_attendees }}/{{ report.expected_attendees }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Submitted Date</p>
+                                <p class="font-medium text-gray-900">{{ report.submitted_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        {% if report.approved_by %}
+                        <div class="mb-3 p-2 bg-green-50 rounded border border-green-100 text-xs text-gray-600">
+                            <span class="font-medium">Approved by:</span> {{ report.approved_by.username }}
+                            {% if report.approved_at %}<span class="text-gray-500">on {{ report.approved_at|date:"M d, Y" }}</span>{% endif %}
+                        </div>
+                        {% endif %}
+                        <button onclick="viewReportDetails({{ report.id }})" class="px-3 py-1 text-sm bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors">View Details</button>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-8">No approved reports</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="report-filter-pending" class="report-filter-content hidden">
+                <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-yellow-600">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 002 0V6z" /></svg>
+                    Pending for Approval (Submitted & Awaiting Review)
+                </h6>
+                <div class="grid gap-4">
+                    {% for report in pending_event_reports %}
+                    <div class="bg-white border border-yellow-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex items-start justify-between mb-3">
+                            <div>
+                                <h5 class="font-semibold text-gray-900">{{ report.event.name }}</h5>
+                                <p class="text-sm text-gray-600">{{ report.title }}</p>
+                            </div>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">Awaiting Review</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-4 mb-3">
+                            <div class="text-sm">
+                                <p class="text-gray-500">Submitted By</p>
+                                <p class="font-medium text-gray-900">{{ report.submitted_by.username }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Event Date</p>
+                                <p class="font-medium text-gray-900">{{ report.event.date_time|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Attendees</p>
+                                <p class="font-medium text-gray-900">{{ report.total_attendees }}/{{ report.expected_attendees }}</p>
+                            </div>
+                            <div class="text-sm">
+                                <p class="text-gray-500">Submitted Date</p>
+                                <p class="font-medium text-gray-900">{{ report.submitted_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="approveReport({{ report.id }})" class="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 transition-colors">Approve</button>
+                            <button onclick="rejectReport({{ report.id }})" class="px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors">Reject</button>
+                            <button onclick="viewReportDetails({{ report.id }})" class="px-3 py-1 text-sm bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition-colors">View Details</button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-8">No pending reports</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div id="report-filter-notsubmitted" class="report-filter-content hidden">
+                <h6 class="text-lg font-semibold text-gray-800 mb-4 flex items-center text-red-600">
+                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                    Yet to Submit (Completed Events without Reports)
+                </h6>
+                <div class="grid gap-4">
+                    {% for event in completed_events %}
+                        {% with report_count=event.eventreport_set.count %}
+                            {% if report_count == 0 %}
+                            <div class="bg-white border border-red-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div>
+                                        <h5 class="font-semibold text-gray-900">{{ event.name }}</h5>
+                                        <p class="text-sm text-gray-600">{{ event.description|truncatewords:15 }}</p>
+                                    </div>
+                                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">Report Not Submitted</span>
+                                </div>
+                                <div class="grid grid-cols-4 gap-4 mb-3">
+                                    <div class="text-sm">
+                                        <p class="text-gray-500">Club/Dept</p>
+                                        <p class="font-medium text-gray-900">{% if event.club %}{{ event.club.name }}{% elif event.department %}{{ event.department.name }}{% else %}System{% endif %}</p>
+                                    </div>
+                                    <div class="text-sm">
+                                        <p class="text-gray-500">Event Date</p>
+                                        <p class="font-medium text-gray-900">{{ event.date_time|date:"M d, Y" }}</p>
+                                    </div>
+                                    <div class="text-sm">
+                                        <p class="text-gray-500">Expected Attendees</p>
+                                        <p class="font-medium text-gray-900">{{ event.expected_participants|default:"N/A" }}</p>
+                                    </div>
+                                    <div class="text-sm">
+                                        <p class="text-gray-500">Organizer</p>
+                                        <p class="font-medium text-gray-900">{{ event.created_by.username }}</p>
+                                    </div>
+                                </div>
+                                <button onclick="sendReminder({{ event.id }})" class="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 transition-colors">Send Reminder to Organizer</button>
+                            </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% empty %}
+                    <p class="text-gray-500 text-center py-8">All completed events have submitted reports!</p>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 
@@ -336,6 +646,55 @@
         const params = new URLSearchParams(window.location.search);
         params.set('format', format);
         window.location.href = `/reports/export/?${params.toString()}`;
+    }
+
+    // Event Reports Filter Functions
+    function filterEventReports(filterType) {
+        // Hide all filter content
+        const allContents = document.querySelectorAll('.report-filter-content');
+        allContents.forEach(content => content.classList.add('hidden'));
+
+        // Show selected filter content
+        const selectedContent = document.getElementById('report-filter-' + filterType);
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+        }
+
+        // Update button styles
+        const buttons = document.querySelectorAll('.report-status-filter');
+        buttons.forEach(btn => {
+            btn.classList.remove('bg-blue-600', 'text-white');
+            btn.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        
+        event.target.classList.remove('bg-gray-200', 'text-gray-700');
+        event.target.classList.add('bg-blue-600', 'text-white');
+    }
+
+    function viewReportDetails(reportId) {
+        alert('Opening report details for ID: ' + reportId);
+        // In production, this would open a modal or navigate to detail page
+    }
+
+    function approveReport(reportId) {
+        const notes = prompt('Enter approval notes (optional):');
+        if (notes !== null) {
+            alert('Report approved successfully!');
+            // In production, this would send an AJAX request to approve the report
+        }
+    }
+
+    function rejectReport(reportId) {
+        const reason = prompt('Enter rejection reason:');
+        if (reason !== null && reason.trim() !== '') {
+            alert('Report rejected!');
+            // In production, this would send an AJAX request to reject the report
+        }
+    }
+
+    function sendReminder(eventId) {
+        alert('Reminder sent to event organizer!');
+        // In production, this would send an AJAX request to send a reminder
     }
 </script>
 {% endblock %}
