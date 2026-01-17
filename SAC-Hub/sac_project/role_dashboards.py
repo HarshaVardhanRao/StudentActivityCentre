@@ -46,10 +46,10 @@ def club_coordinator_dashboard(request):
             'pending_events': pending_approvals_count,
             'total_users': dashboard_members.count(),
         },
-        'dashboard_events': upcoming_events, # Main list
+        'dashboard_events': upcoming_events,
         'dashboard_clubs': coordinator_clubs,
         'dashboard_members': dashboard_members,
-        'users': dashboard_members, # For Manage Users table compatibility
+        'users': dashboard_members,
         'completed_events': completed_events,
         'coordinator_clubs': coordinator_clubs,
         'club_events': club_events_count,
@@ -58,6 +58,9 @@ def club_coordinator_dashboard(request):
         'coordinator_club': coordinator_club,
         'notifications': notifications,
         'upcoming_events': upcoming_events,
+        'my_notifications': notifications,
+        'my_events': [],
+        'previous_reports': [],
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -75,7 +78,10 @@ def svp_dashboard(request):
         'dashboard_events': upcoming_events,
         'dashboard_clubs': [],
         'dashboard_members': [],
-        'upcoming_events': upcoming_events
+        'upcoming_events': upcoming_events,
+        'my_notifications': [],
+        'my_events': upcoming_events,
+        'previous_reports': [],
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -92,7 +98,10 @@ def secretary_dashboard(request):
         'dashboard_events': upcoming_events,
         'dashboard_clubs': [],
         'dashboard_members': [],
-        'upcoming_events': upcoming_events
+        'upcoming_events': upcoming_events,
+        'my_notifications': [],
+        'my_events': upcoming_events,
+        'previous_reports': [],
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -109,7 +118,10 @@ def treasurer_dashboard(request):
         'dashboard_events': upcoming_events,
         'dashboard_clubs': [],
         'dashboard_members': [],
-        'upcoming_events': upcoming_events
+        'upcoming_events': upcoming_events,
+        'my_notifications': [],
+        'my_events': upcoming_events,
+        'previous_reports': [],
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -126,18 +138,19 @@ def department_admin_dashboard(request):
         'dashboard_events': upcoming_events,
         'dashboard_clubs': [],
         'dashboard_members': [],
-        'upcoming_events': upcoming_events
+        'upcoming_events': upcoming_events,
+        'my_notifications': [],
+        'my_events': upcoming_events,
+        'previous_reports': [],
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
 @login_required
 def club_advisor_dashboard(request):
     now = timezone.now()
-    upcoming_events = Event.objects.filter(
-        date_time__gt=now,
-        status="APPROVED"
-    ).order_by('date_time')[:6]
     from clubs.models import ClubReport
+    from events.models import EventReport
+    
     advised_clubs = request.user.advised_clubs.all()
     upcoming_events = Event.objects.filter(
         club__in=advised_clubs,
@@ -145,7 +158,11 @@ def club_advisor_dashboard(request):
         status="APPROVED"
     ).order_by('date_time')[:6]
     
+    # Get both ClubReport and EventReport
     previous_reports = ClubReport.objects.filter(club__in=advised_clubs).order_by('-created_at')[:5]
+    event_reports = EventReport.objects.filter(
+        event__club__in=advised_clubs
+    ).order_by('-created_at')[:5]
 
     context = {
         'page_title': 'Club Advisor Dashboard',
@@ -158,7 +175,8 @@ def club_advisor_dashboard(request):
         'dashboard_members': [],
         'upcoming_events': upcoming_events,
         'previous_reports': previous_reports,
-        'show_report_submission': True, # Flag to show report submission form
+        'event_reports': event_reports,
+        'show_report_submission': True,
     }
     return render(request, "dashboard/unified_dashboard.html", context)
 
@@ -241,6 +259,7 @@ def admin_dashboard(request):
     from calendar_app.models import CalendarEntry
     
     from clubs.models import ClubReport
+    from events.models import EventReport
     
     # Check if user has admin permissions
     if 'ADMIN' not in (request.user.roles or []) and 'SAC_COORDINATOR' not in (request.user.roles or []):
@@ -257,8 +276,9 @@ def admin_dashboard(request):
     # Resource requests (events with resources specified)
     resource_requests = Event.objects.exclude(resources='').exclude(resources__isnull=True).filter(status='PENDING')
     
-    # Reports
+    # Reports - Both ClubReport and EventReport
     pending_reports = ClubReport.objects.filter(status='PENDING')
+    pending_event_reports = EventReport.objects.filter(status='PENDING')
     
     # Statistics
     stats = {
@@ -271,6 +291,7 @@ def admin_dashboard(request):
         'total_attendance_records': Attendance.objects.count(),
         'total_calendar_entries': CalendarEntry.objects.count(),
         'pending_reports': pending_reports.count(),
+        'pending_event_reports': pending_event_reports.count(),
         'is_sac_admin': True,
     }
     
@@ -293,15 +314,16 @@ def admin_dashboard(request):
     ).order_by('date_time')[:6]
     
     context = {
-        'page_title': 'SAC Coordinator Dashboard', # Updated title
+        'page_title': 'SAC Coordinator Dashboard',
         'stats': stats,
-        'dashboard_events': planned_events, # Default view
+        'dashboard_events': planned_events,
         'planned_events': planned_events,
         'approved_events': approved_events,
         'completed_events': completed_events,
         'cancelled_events': cancelled_events,
         'resource_requests': resource_requests,
         'pending_reports': pending_reports,
+        'pending_event_reports': pending_event_reports,
         'dashboard_clubs': clubs,
         'dashboard_members': users,
         'users': users,
@@ -312,8 +334,8 @@ def admin_dashboard(request):
         'calendar_entries': calendar_entries,
         'notifications': notifications,
         'upcoming_events': upcoming_events,
-        'show_calendar_control': True, # Flag for calendar control
-        'show_report_approval': True, # Flag for report approval
+        'show_calendar_control': True,
+        'show_report_approval': True,
     }
     
     return render(request, "dashboard/unified_dashboard.html", context)

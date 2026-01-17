@@ -154,3 +154,84 @@ class EventRegistration(models.Model):
 
 	def __str__(self):
 		return f"{self.student} -> {self.event} ({self.status})"
+
+
+class EventReport(models.Model):
+	"""Model for event reports submitted by club coordinators/advisors and approved by admins/SAC coordinators"""
+	
+	STATUS_CHOICES = [
+		('DRAFT', 'Draft'),
+		('PENDING', 'Pending Approval'),
+		('APPROVED', 'Approved'),
+		('REJECTED', 'Rejected'),
+	]
+
+	event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='event_reports')
+	title = models.CharField(max_length=200, help_text='Event report title')
+	description = models.TextField(help_text='Detailed description of the event and outcomes')
+	
+	# Submission details
+	submitted_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='submitted_event_reports', help_text='Club coordinator or Club advisor who submitted the report')
+	status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DRAFT')
+	
+	# Event metrics
+	total_attendees = models.PositiveIntegerField(default=0, help_text='Total number of attendees')
+	expected_attendees = models.PositiveIntegerField(default=0, help_text='Expected number of attendees')
+	
+	# Additional details
+	highlights = models.TextField(blank=True, help_text='Key highlights and achievements')
+	challenges = models.TextField(blank=True, help_text='Challenges faced during the event')
+	lessons_learned = models.TextField(blank=True, help_text='Lessons learned and recommendations for future events')
+	budget_used = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Budget amount used')
+	budget_allocated = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Budget amount allocated')
+	
+	# Attachments
+	file = models.FileField(upload_to='event_reports/', null=True, blank=True, help_text='Attached report document or images')
+	
+	# Approval process
+	approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_event_reports', help_text='Admin or SAC Coordinator who approved the report')
+	approval_notes = models.TextField(blank=True, help_text='Notes from approver')
+	
+	# Timestamps
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	submitted_at = models.DateTimeField(null=True, blank=True, help_text='When report was submitted for approval')
+	approved_at = models.DateTimeField(null=True, blank=True, help_text='When report was approved/rejected')
+
+	class Meta:
+		ordering = ['-created_at']
+		verbose_name = 'Event Report'
+		verbose_name_plural = 'Event Reports'
+
+	def __str__(self):
+		return f"Report: {self.title} - {self.event.name} ({self.status})"
+	
+	def save(self, *args, **kwargs):
+		"""Automatically notify admins/SAC coordinators when report is submitted"""
+		is_new = self._state.adding
+		old_status = None
+		
+		if not is_new:
+			old = EventReport.objects.get(pk=self.pk)
+			old_status = old.status
+		
+		super().save(*args, **kwargs)
+		
+		# Notify admins and SAC coordinators when report is submitted for approval
+		if not is_new and old_status == 'DRAFT' and self.status == 'PENDING':
+			all_users = User.objects.all()
+			admins = [user for user in all_users if 'ADMIN' in (user.roles or []) or 'SAC_COORDINATOR' in (user.roles or [])]
+			
+			for admin in admins:
+				Notification.objects.create(
+					user=admin,
+					message=f"New event report '{self.title}' for event '{self.event.name}' is pending approval."
+				)
+		
+		# Notify submitter on approval/rejection
+		if not is_new and old_status != self.status and self.status in ['APPROVED', 'REJECTED']:
+			if self.submitted_by:
+				Notification.objects.create(
+					user=self.submitted_by,
+					message=f"Your event report '{self.title}' has been {self.status.lower()}."
+				)

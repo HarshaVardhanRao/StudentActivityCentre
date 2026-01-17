@@ -721,3 +721,95 @@ def approve_collaboration(request, collaboration_id):
             )
     
     return redirect('association_approval_list')
+
+@login_required
+def events_management(request):
+    """Comprehensive events management page for different roles"""
+    user_roles = request.user.roles or []
+    
+    # Check permission
+    can_access = any(role in user_roles for role in ['CLUB_COORDINATOR', 'CLUB_ADVISOR', 'ADMIN', 'SAC_COORDINATOR'])
+    
+    if not can_access:
+        messages.error(request, 'You do not have permission to access events management.')
+        return redirect('home')
+    
+    # Get events based on user role
+    events = Event.objects.all().select_related('club', 'department').prefetch_related('organizers')
+    
+    if 'CLUB_COORDINATOR' in user_roles:
+        # Club coordinators see only their club's events
+        user_clubs = request.user.coordinated_clubs.all()
+        events = events.filter(club__in=user_clubs)
+        can_edit_event = True
+        can_delete_event = True
+        
+    elif 'CLUB_ADVISOR' in user_roles:
+        # Club advisors see events from clubs they advise and can approve
+        user_clubs = request.user.advised_clubs.all()
+        events = events.filter(Q(club__in=user_clubs) | Q(status='PENDING'))
+        can_edit_event = False
+        can_delete_event = False
+        
+    elif 'ADMIN' in user_roles and 'SAC_COORDINATOR' not in user_roles:
+        # Department admins see only their department events
+        if hasattr(request.user, 'department') and request.user.department:
+            events = events.filter(department=request.user.department)
+        can_edit_event = True
+        can_delete_event = True
+        
+    elif 'SAC_COORDINATOR' in user_roles:
+        # SAC coordinators see all events
+        events = events.all()
+        can_edit_event = True
+        can_delete_event = True
+    
+    # Apply filters
+    status_filter = request.GET.get('status')
+    if status_filter:
+        events = events.filter(status=status_filter)
+    
+    event_type_filter = request.GET.get('event_type')
+    if event_type_filter:
+        events = events.filter(event_type__icontains=event_type_filter)
+    
+    search_filter = request.GET.get('search')
+    if search_filter:
+        events = events.filter(Q(name__icontains=search_filter) | Q(description__icontains=search_filter))
+    
+    # Order by creation date (newest first)
+    events = events.order_by('-created_at')
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(events, 10)
+    page_number = request.GET.get('page', 1)
+    events = paginator.get_page(page_number)
+    
+    # Statistics
+    all_events = Event.objects.all()
+    
+    if 'CLUB_COORDINATOR' in user_roles:
+        all_events = all_events.filter(club__in=user_clubs)
+    elif 'CLUB_ADVISOR' in user_roles:
+        all_events = all_events.filter(Q(club__in=user_clubs) | Q(status='PENDING'))
+    elif 'ADMIN' in user_roles and 'SAC_COORDINATOR' not in user_roles:
+        if hasattr(request.user, 'department') and request.user.department:
+            all_events = all_events.filter(department=request.user.department)
+    
+    total_events = all_events.count()
+    pending_events = all_events.filter(status='PENDING').count()
+    approved_events = all_events.filter(status='APPROVED').count()
+    completed_events = all_events.filter(status='COMPLETED').count()
+    
+    context = {
+        'events': events,
+        'total_events': total_events,
+        'pending_events': pending_events,
+        'approved_events': approved_events,
+        'completed_events': completed_events,
+        'can_edit_event': can_edit_event,
+        'can_delete_event': can_delete_event,
+    }
+    
+    return render(request, 'events/events_management.html', context)

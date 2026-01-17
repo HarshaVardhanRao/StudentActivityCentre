@@ -37,10 +37,10 @@ from .auth_views import login_view, logout_view
 from events.frontend_views import (
     event_list, event_detail, event_create, event_edit, event_delete,
     event_register, event_unregister, event_registrations,
-    association_approval_list, approve_association, approve_collaboration
+    association_approval_list, approve_association, approve_collaboration, events_management
 )
 from clubs.frontend_views import (
-    club_list, club_detail, club_create, club_edit, club_delete, club_join, club_leave
+    club_list, club_detail, club_create, club_edit, club_delete, club_join, club_leave, manage_club_members
 )
 from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
@@ -110,6 +110,7 @@ urlpatterns = [
     # Frontend views
     # Events
     path("events/", event_list, name="event_list"),
+    path("events/management/", events_management, name="events_management"),
     path("events/<int:event_id>/", event_detail, name="event_detail"),
     path("events/create/", event_create, name="event_create"),
     path("events/<int:event_id>/edit/", event_edit, name="event_edit"),
@@ -129,6 +130,7 @@ urlpatterns = [
     path("clubs/<int:club_id>/delete/", club_delete, name="club_delete"),
     path("clubs/<int:club_id>/join/", club_join, name="club_join"),
     path("clubs/<int:club_id>/leave/", club_leave, name="club_leave"),
+    path("clubs/<int:club_id>/manage-members/", manage_club_members, name="manage_club_members"),
     
     # Calendar and Attendance
     path("calendar/", calendar_view, name="calendar_view"),

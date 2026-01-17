@@ -183,3 +183,105 @@ def club_delete(request, club_id):
         return redirect('club_list')
     
     return render(request, 'clubs_confirm_delete.html', {'club': club})
+
+@login_required
+def manage_club_members(request, club_id):
+    """Manage club members - view, filter, edit members"""
+    club = get_object_or_404(Club, id=club_id)
+    
+    # Check permissions - only club coordinators of this club can manage members
+    user_roles = request.user.roles or []
+    is_coordinator = 'CLUB_COORDINATOR' in user_roles and request.user in club.coordinators.all()
+    is_admin = 'ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles
+    is_advisor = 'CLUB_ADVISOR' in user_roles and club.advisor == request.user
+    
+    if not (is_coordinator or is_admin or is_advisor):
+        messages.error(request, 'You do not have permission to manage this club\'s members.')
+        return redirect('club_detail', club_id=club.id)
+    
+    # Get members
+    members = club.members.all().select_related('department')
+    
+    # Search filter
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        from django.db.models import Q
+        members = members.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(roll_no__icontains=search_query) |
+            Q(username__icontains=search_query)
+        )
+    
+    # Role filter
+    role_filter = request.GET.get('role', '').strip()
+    if role_filter:
+        # Filter users by JSON array containment
+        members = members.filter(roles__contains=role_filter)
+    
+    # Department filter
+    dept_filter = request.GET.get('department', '').strip()
+    if dept_filter:
+        members = members.filter(department_id=dept_filter)
+    
+    # Year filter
+    year_filter = request.GET.get('year', '').strip()
+    if year_filter:
+        members = members.filter(year_of_study=year_filter)
+    
+    # Sort
+    sort_by = request.GET.get('sort', 'name')
+    if sort_by == 'date_joined':
+        members = members.order_by('-date_joined')
+    elif sort_by == 'email':
+        members = members.order_by('email')
+    else:
+        members = members.order_by('first_name', 'last_name')
+    
+    # Handle member removal
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        member_id = request.POST.get('member_id')
+        
+        if action == 'remove':
+            try:
+                member = User.objects.get(id=member_id)
+                if member in club.members.all():
+                    club.members.remove(member)
+                    messages.success(request, f'{member.get_full_name()} has been removed from {club.name}.')
+                else:
+                    messages.warning(request, f'{member.get_full_name()} is not a member of {club.name}.')
+            except User.DoesNotExist:
+                messages.error(request, 'User not found.')
+            return redirect('manage_club_members', club_id=club.id)
+    
+    # Pagination
+    paginator = Paginator(members, 15)
+    page_number = request.GET.get('page')
+    members_page = paginator.get_page(page_number)
+    
+    # Get all departments for filter dropdown
+    departments = Department.objects.all()
+    
+    # Get all years for filter dropdown
+    all_years = set(User.objects.filter(clubs=club).exclude(year_of_study__isnull=True).exclude(year_of_study='').values_list('year_of_study', flat=True))
+    all_years = sorted(list(all_years))
+    
+    context = {
+        'club': club,
+        'members': members_page,
+        'total_members': club.members.count(),
+        'search_query': search_query,
+        'role_filter': role_filter,
+        'dept_filter': dept_filter,
+        'year_filter': year_filter,
+        'sort_by': sort_by,
+        'departments': departments,
+        'all_years': all_years,
+        'is_coordinator': is_coordinator,
+        'is_admin': is_admin,
+        'is_advisor': is_advisor,
+    }
+    
+    return render(request, 'clubs/manage_members.html', context)
