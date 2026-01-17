@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Q, Count
-from .models import Event, CollaborationRequest
+from .models import Event, CollaborationRequest, EventReport
 from users.models import Club, Department, User, Notification
 from attendance.models import Attendance
 from datetime import datetime
@@ -813,3 +813,256 @@ def events_management(request):
     }
     
     return render(request, 'events/events_management.html', context)
+
+
+@login_required
+def submit_event_report(request, event_id):
+    """Submit a report for a completed event"""
+    from .models import EventReport
+    
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Permission check: only coordinators, advisors, organizers, or admins can submit reports
+    user_roles = request.user.roles or []
+    is_club_coordinator = request.user in (event.club.coordinators.all() if event.club else [])
+    is_club_advisor = event.club and event.club.advisor == request.user
+    is_organizer = request.user in event.organizers.all()
+    is_admin = 'ADMIN' in user_roles or 'SAC_COORDINATOR' in user_roles
+    
+    if not (is_club_coordinator or is_club_advisor or is_organizer or is_admin):
+        messages.error(request, 'You do not have permission to submit a report for this event.')
+        return redirect('events_management')
+    
+    # Check if event is completed
+    if event.status != 'COMPLETED':
+        messages.error(request, 'Reports can only be submitted for completed events.')
+        return redirect('events_management')
+    
+    # Check if report already exists
+    existing_report = event.event_reports.filter(status__in=['DRAFT', 'PENDING', 'APPROVED']).first()
+    if existing_report:
+        if request.method == 'POST':
+            # Update existing report
+            report = existing_report
+        else:
+            # Show edit form for existing report
+            context = {
+                'event': event,
+                'report': existing_report,
+                'is_edit': True,
+            }
+            return render(request, 'events/submit_event_report.html', context)
+    else:
+        report = EventReport(event=event)
+    
+    if request.method == 'POST':
+        # Update report with form data
+        report.title = request.POST.get('title', '')
+        report.description = request.POST.get('description', '')
+        report.highlights = request.POST.get('highlights', '')
+        report.challenges = request.POST.get('challenges', '')
+        report.lessons_learned = request.POST.get('lessons_learned', '')
+        report.total_attendees = int(request.POST.get('total_attendees', 0)) if request.POST.get('total_attendees') else 0
+        report.expected_attendees = int(request.POST.get('expected_attendees', 0)) if request.POST.get('expected_attendees') else 0
+        report.budget_allocated = float(request.POST.get('budget_allocated', 0)) if request.POST.get('budget_allocated') else 0
+        report.budget_used = float(request.POST.get('budget_used', 0)) if request.POST.get('budget_used') else 0
+        report.submitted_by = request.user
+        
+        # Handle file upload
+        if 'file' in request.FILES:
+            report.file = request.FILES['file']
+        
+        # Determine status based on action
+        action = request.POST.get('action', 'draft')
+        if action == 'submit':
+            report.status = 'PENDING'
+            report.submitted_at = timezone.now()
+            messages.success(request, 'Event report submitted for approval.')
+        else:
+            report.status = 'DRAFT'
+            messages.success(request, 'Event report saved as draft.')
+        
+        report.save()
+        
+        return redirect('events_management')
+    
+    context = {
+        'event': event,
+        'report': existing_report if existing_report else None,
+        'is_edit': existing_report is not None,
+    }
+    
+    return render(request, 'events/submit_event_report.html', context)
+
+
+@login_required
+def event_reports(request):
+    """Display all event reports with approval status - for SAC Coordinators and Admins"""
+    from .models import EventReport
+    
+    # Check if user has permission to view/approve reports
+    user_roles = request.user.roles or []
+    if 'SAC_COORDINATOR' not in user_roles and 'ADMIN' not in user_roles:
+        messages.error(request, 'You do not have permission to access this page.')
+        return redirect('events_management')
+    
+    # Get all completed events with their report status
+    completed_events = Event.objects.filter(status='COMPLETED').select_related('club', 'department').prefetch_related('event_reports')
+    
+    # Create event report status objects
+    event_report_list = []
+    for event in completed_events:
+        report = event.event_reports.first()  # Get the associated report if exists
+        event_report_list.append({
+            'event': event,
+            'report': report,
+            'status': report.status if report else 'NOT_SUBMITTED',
+            'has_report': report is not None,
+        })
+    
+    # Filtering
+    status_filter = request.GET.get('status')
+    search_query = request.GET.get('search')
+    
+    if status_filter:
+        event_report_list = [item for item in event_report_list if item['status'] == status_filter]
+    
+    if search_query:
+        event_report_list = [item for item in event_report_list if search_query.lower() in item['event'].name.lower()]
+    
+    # Sorting
+    sort_by = request.GET.get('sort', '-date')
+    if sort_by == 'date':
+        event_report_list.sort(key=lambda x: x['event'].date_time)
+    elif sort_by == '-date':
+        event_report_list.sort(key=lambda x: x['event'].date_time, reverse=True)
+    elif sort_by == 'status':
+        event_report_list.sort(key=lambda x: x['status'])
+    
+    # Pagination
+    paginator = Paginator(event_report_list, 15)
+    page_number = request.GET.get('page')
+    paginated_reports = paginator.get_page(page_number)
+    
+    # Statistics
+    total_completed_events = completed_events.count()
+    reports_submitted = sum(1 for item in event_report_list if item['has_report'])
+    pending_reports = EventReport.objects.filter(status='PENDING').count()
+    approved_reports = EventReport.objects.filter(status='APPROVED').count()
+    
+    context = {
+        'paginated_reports': paginated_reports,
+        'total_completed_events': total_completed_events,
+        'reports_submitted': reports_submitted,
+        'pending_reports': pending_reports,
+        'approved_reports': approved_reports,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'sort_by': sort_by,
+    }
+    
+    return render(request, 'events/event_reports.html', context)
+
+
+@login_required
+def review_event_report(request, report_id):
+    """Review and approve/reject event report - for SAC Coordinators and Admins"""
+    from .models import EventReport
+    
+    # Check permissions
+    user_roles = request.user.roles or []
+    if 'SAC_COORDINATOR' not in user_roles and 'ADMIN' not in user_roles:
+        messages.error(request, 'You do not have permission to approve reports.')
+        return redirect('event_reports')
+    
+    report = get_object_or_404(EventReport, id=report_id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        approval_notes = request.POST.get('approval_notes', '')
+        
+        if action == 'approve':
+            report.status = 'APPROVED'
+            report.approved_by = request.user
+            report.approved_at = timezone.now()
+            messages.success(request, f'Report "{report.title}" approved successfully.')
+        elif action == 'reject':
+            report.status = 'REJECTED'
+            report.approved_by = request.user
+            report.approved_at = timezone.now()
+            messages.success(request, f'Report "{report.title}" rejected.')
+        
+        report.approval_notes = approval_notes
+        report.save()
+        
+        return redirect('event_reports')
+    
+    context = {
+        'report': report,
+        'event': report.event,
+    }
+    
+    return render(request, 'events/review_event_report.html', context)
+
+
+@login_required
+def send_report_reminder(request, report_id):
+    """Send reminder notification to event organizers about pending/rejected report"""
+    from .models import EventReport
+    
+    # Check if user has permission to send reminders
+    user_roles = request.user.roles or []
+    if 'SAC_COORDINATOR' not in user_roles and 'ADMIN' not in user_roles:
+        messages.error(request, 'You do not have permission to send reminders.')
+        return redirect('event_reports')
+    
+    report = get_object_or_404(EventReport, id=report_id)
+    event = report.event
+    
+    # Get event organizers
+    organizers = event.organizers.all()
+    
+    if not organizers.exists():
+        messages.error(request, 'No organizers found for this event.')
+        return redirect('review_event_report', report_id=report_id)
+    
+    # Create appropriate reminder message based on report status
+    if report.status == 'PENDING':
+        message = (
+            f"Reminder: Your event report for '{event.name}' (held on {event.date_time.strftime('%B %d, %Y')}) "
+            f"is still pending approval. Please follow up with the SAC Coordinator if needed. "
+            f"Report Title: {report.title}"
+        )
+        reminder_type = "Report Pending Approval"
+    elif report.status == 'REJECTED':
+        message = (
+            f"Reminder: Your event report for '{event.name}' (held on {event.date_time.strftime('%B %d, %Y')}) "
+            f"has been rejected. Please review the feedback and resubmit the corrected report. "
+            f"Report Title: {report.title}. "
+            f"Feedback: {report.approval_notes if report.approval_notes else 'Check the report details for more information.'}"
+        )
+        reminder_type = "Report Rejected - Action Required"
+    else:
+        message = (
+            f"Reminder: Your event report for '{event.name}' (held on {event.date_time.strftime('%B %d, %Y')}) "
+            f"requires your attention. Report Title: {report.title}"
+        )
+        reminder_type = "Report Status Update"
+    
+    # Send notifications to all organizers
+    notification_count = 0
+    for organizer in organizers:
+        notification = Notification(
+            user=organizer,
+            message=f"{reminder_type}\n\n{message}",
+            important=report.status == 'REJECTED'  # Mark rejected reminders as important
+        )
+        notification.save()
+        notification_count += 1
+    
+    # Log the reminder action
+    action_message = f"Reminder sent to {notification_count} organizer(s) for report: {report.title}"
+    messages.success(request, action_message)
+    
+    # Redirect back to report review page
+    return redirect('review_event_report', report_id=report_id)

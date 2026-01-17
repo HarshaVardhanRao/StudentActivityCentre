@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Report - {{ event.name }} - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Attendance Report</h1>
+                    <h3 class="text-lg text-gray-600 font-medium mt-1">{{ event.name }}</h3>
+                    <p class="text-sm text-gray-500">{{ event.date_time|date:"M d, Y H:i" }} at {{ event.venue }}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.print()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="bi bi-printer mr-2"></i>Print
+                    </button>
+                    <button onclick="exportToCSV()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                        <i class="bi bi-download mr-2"></i>Export CSV
+                    </button>
+                </div>
+            </div>
+
+            <!-- Sessions Tabs -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+                <div class="flex flex-wrap border-b border-gray-100">
+                    {% for session in sessions %}
+                    <button class="session-tab px-6 py-4 font-medium text-gray-600 hover:text-gray-900 border-b-2 border-transparent transition-all {% if forloop.first %}active border-blue-600 text-blue-600{% endif %}"
+                        data-session-id="{{ session.id }}">
+                        <span>{{ session.label|default:"Session" }} #{{ session.id }}</span>
+                        {% if session.locked %}
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                            <i class="bi bi-lock-fill mr-1"></i>Submitted
+                        </span>
+                        {% else %}
+                        <span class="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            <i class="bi bi-unlock-fill mr-1"></i>Open
+                        </span>
+                        {% endif %}
+                    </button>
+                    {% endfor %}
+                </div>
+
+                {% for session in sessions %}
+                <div class="session-content {% if not forloop.first %}hidden{% endif %}" data-session-id="{{ session.id }}">
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div>
+                                <p class="text-gray-600 text-sm">Attendance Code</p>
+                                <code class="text-lg font-mono font-bold text-gray-800">{{ session.attendance_code }}</code>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">Created At</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ session.created_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600 text-sm">Created By</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ session.created_by.get_full_name|default:"System" }}</p>
+                            </div>
+                            {% if session.submitted_at %}
+                            <div>
+                                <p class="text-gray-600 text-sm">Submitted At</p>
+                                <p class="text-lg font-semibold text-gray-800">{{ session.submitted_at|date:"M d, Y H:i" }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="p-6 border-b border-gray-100">
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-green-50 rounded-lg p-4 text-center">
+                                <p class="text-green-600 text-2xl font-bold">{{ session.present_count }}</p>
+                                <p class="text-green-700 text-sm">Present</p>
+                            </div>
+                            <div class="bg-red-50 rounded-lg p-4 text-center">
+                                <p class="text-red-600 text-2xl font-bold">{{ session.absent_count }}</p>
+                                <p class="text-red-700 text-sm">Absent</p>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-4 text-center">
+                                <p class="text-blue-600 text-2xl font-bold">{{ session.total_count }}</p>
+                                <p class="text-blue-700 text-sm">Total</p>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-4 text-center">
+                                <p class="text-purple-600 text-2xl font-bold">{{ session.percentage|floatformat:1 }}%</p>
+                                <p class="text-purple-700 text-sm">Attendance %</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Attendance Records -->
+                    <div class="p-6">
+                        <h4 class="text-lg font-semibold text-gray-800 mb-4">Attendance Records</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 border-b border-gray-100">
+                                    <tr class="text-xs uppercase text-gray-500 font-semibold">
+                                        <th class="px-6 py-4">#</th>
+                                        <th class="px-6 py-4">Roll Number</th>
+                                        <th class="px-6 py-4">Student Name</th>
+                                        <th class="px-6 py-4">Department</th>
+                                        <th class="px-6 py-4">Status</th>
+                                        <th class="px-6 py-4">Ref Code</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-100">
+                                    {% for record in session.records.all %}
+                                    <tr class="hover:bg-gray-50 transition-colors">
+                                        <td class="px-6 py-4 text-gray-600">{{ forloop.counter }}</td>
+                                        <td class="px-6 py-4 text-gray-600">{{ record.student.roll_no }}</td>
+                                        <td class="px-6 py-4 font-medium text-gray-800">{{ record.student.get_full_name }}</td>
+                                        <td class="px-6 py-4 text-gray-600">{{ record.student.department.name|default:"N/A" }}</td>
+                                        <td class="px-6 py-4">
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                                                {% if record.status == 'PRESENT' %}bg-green-100 text-green-800
+                                                {% elif record.status == 'ABSENT' %}bg-red-100 text-red-800
+                                                {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                                {{ record.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="px-6 py-4">
+                                            <code class="bg-gray-100 px-2 py-1 rounded text-xs font-mono">{{ record.ref_code }}</code>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                            No attendance records for this session.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Summary Statistics -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Overall Statistics</h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">By Status</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Present</span>
+                                    <span class="font-semibold text-green-600">{{ overall_stats.total_present }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Absent</span>
+                                    <span class="font-semibold text-red-600">{{ overall_stats.total_absent }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Records</span>
+                                    <span class="font-semibold text-gray-800">{{ overall_stats.total_records }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-gray-800 mb-3">Sessions Summary</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Total Sessions</span>
+                                    <span class="font-semibold text-gray-800">{{ sessions.count }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Submitted Sessions</span>
+                                    <span class="font-semibold text-purple-600">{{ submitted_sessions_count }}</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-gray-600">Open Sessions</span>
+                                    <span class="font-semibold text-green-600">{{ open_sessions_count }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div class="mt-8">
+                <a href="{% url 'attendance_list' %}" class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors">
+                    <i class="bi bi-arrow-left mr-2"></i>Back to Attendance Management
+                </a>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Tab switching
+    document.querySelectorAll('.session-tab').forEach(tab => {
+        tab.addEventListener('click', function() {
+            const sessionId = this.dataset.sessionId;
+
+            // Remove active state from all tabs
+            document.querySelectorAll('.session-tab').forEach(t => {
+                t.classList.remove('active', 'border-blue-600', 'text-blue-600');
+                t.classList.add('text-gray-600');
+            });
+
+            // Add active state to clicked tab
+            this.classList.add('active', 'border-blue-600', 'text-blue-600');
+            this.classList.remove('text-gray-600');
+
+            // Hide all content
+            document.querySelectorAll('.session-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Show selected content
+            document.querySelector(`[data-session-id="${sessionId}"].session-content`).classList.remove('hidden');
+        });
+    });
+
+    function exportToCSV() {
+        const sessionId = document.querySelector('.session-tab.active').dataset.sessionId;
+        window.location.href = `{% url 'attendance_export' event.id %}?session_id=${sessionId}`;
+    }
+</script>
+
+<style>
+    @media print {
+        .flex, button, [onclick] {
+            display: none !important;
+        }
+        main {
+            margin-left: 0 !important;
+        }
+    }
+</style>
+{% endblock %}

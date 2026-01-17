@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Attendance Management - MITS SAC Hub{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Attendance Management</h1>
+                    <p class="text-gray-600 mt-2">Manage attendance sessions for your club events</p>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <select id="club-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Clubs</option>
+                        {% for club in coordinator_clubs %}
+                        <option value="{{ club.id }}">{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <select id="status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">All Status</option>
+                        <option value="open">Open Sessions</option>
+                        <option value="closed">Submitted Sessions</option>
+                    </select>
+                    <input type="text" id="search-input" placeholder="Search events..." 
+                        class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                            <i class="bi bi-calendar-event text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 font-medium mb-2">Total Events</p>
+                    <h2 class="text-4xl font-bold text-gray-800">{{ total_events }}</h2>
+                    <p class="text-sm text-gray-500 mt-2">Organized by your clubs</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+                            <i class="bi bi-check-circle text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 font-medium mb-2">Open Sessions</p>
+                    <h2 class="text-4xl font-bold text-gray-800">{{ open_sessions }}</h2>
+                    <p class="text-sm text-gray-500 mt-2">Active attendance sessions</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                            <i class="bi bi-lock-fill text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 font-medium mb-2">Submitted Sessions</p>
+                    <h2 class="text-4xl font-bold text-gray-800">{{ submitted_sessions }}</h2>
+                    <p class="text-sm text-gray-500 mt-2">Locked attendance sessions</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-orange-50 text-orange-600 rounded-lg">
+                            <i class="bi bi-person-check text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-gray-500 font-medium mb-2">Total Records</p>
+                    <h2 class="text-4xl font-bold text-gray-800">{{ total_records }}</h2>
+                    <p class="text-sm text-gray-500 mt-2">Attendance entries</p>
+                </div>
+            </div>
+
+            <!-- Events and Sessions Table -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Events with Attendance Sessions</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr class="text-xs uppercase text-gray-500 font-semibold">
+                                <th class="px-6 py-4">#</th>
+                                <th class="px-6 py-4">Event Name</th>
+                                <th class="px-6 py-4">Club</th>
+                                <th class="px-6 py-4">Date & Time</th>
+                                <th class="px-6 py-4">Sessions</th>
+                                <th class="px-6 py-4">Open</th>
+                                <th class="px-6 py-4">Submitted</th>
+                                <th class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100" id="events-table">
+                            {% for event in events %}
+                            <tr class="hover:bg-gray-50 transition-colors event-row" data-club-id="{{ event.club.id }}" data-event-id="{{ event.id }}">
+                                <td class="px-6 py-4 text-gray-600">{{ forloop.counter }}</td>
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ event.name }}</td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        {{ event.club.name }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    <small>{{ event.date_time|date:"M d, Y H:i" }}</small>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-center font-semibold">
+                                    {{ event.attendance_sessions.count }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if event.open_sessions_count > 0 %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+                                        {{ event.open_sessions_count }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                        {% if event.submitted_sessions_count > 0 %}bg-purple-100 text-purple-800{% else %}bg-gray-100 text-gray-600{% endif %}">
+                                        {{ event.submitted_sessions_count }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{% url 'attendance_manage' event.id %}" 
+                                            class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-600 hover:bg-blue-200 rounded-md text-xs font-semibold transition-colors">
+                                            <i class="bi bi-pencil-square mr-1"></i>Manage
+                                        </a>
+                                        <a href="{% url 'attendance_report' event.id %}" 
+                                            class="inline-flex items-center px-3 py-1 bg-green-100 text-green-600 hover:bg-green-200 rounded-md text-xs font-semibold transition-colors">
+                                            <i class="bi bi-file-text mr-1"></i>Report
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                    <i class="bi bi-inbox text-3xl mb-2"></i>
+                                    <p class="mt-2">No events found. Create an event first to manage attendance.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-100">
+                    <h3 class="text-lg font-bold text-gray-800">Recent Attendance Sessions</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b border-gray-100">
+                            <tr class="text-xs uppercase text-gray-500 font-semibold">
+                                <th class="px-6 py-4">#</th>
+                                <th class="px-6 py-4">Event</th>
+                                <th class="px-6 py-4">Label</th>
+                                <th class="px-6 py-4">Created</th>
+                                <th class="px-6 py-4">Attendance Code</th>
+                                <th class="px-6 py-4">Records</th>
+                                <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for session in recent_sessions %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-gray-600">{{ forloop.counter }}</td>
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ session.event.name }}</td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    {{ session.label|default:"Session #"|add:session.id }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    {{ session.created_at|date:"M d, Y H:i" }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    <code class="bg-gray-100 px-3 py-1 rounded text-sm font-mono">{{ session.attendance_code }}</code>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-center font-semibold">
+                                    {{ session.records.count }}
+                                </td>
+                                <td class="px-6 py-4">
+                                    {% if session.locked %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="bi bi-lock-fill mr-1"></i>Submitted
+                                    </span>
+                                    {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="bi bi-unlock-fill mr-1"></i>Open
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <a href="{% url 'attendance_manage' session.event.id %}?session_id={{ session.id }}" 
+                                            class="text-blue-600 hover:text-blue-800 text-sm font-semibold">View</a>
+                                        {% if not session.locked %}
+                                        <a href="{% url 'attendance_manage' session.event.id %}?session_id={{ session.id }}#submit" 
+                                            class="text-green-600 hover:text-green-800 text-sm font-semibold">Submit</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="px-6 py-8 text-center text-gray-500">
+                                    <p>No attendance sessions yet.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<script>
+    // Filter functionality
+    document.getElementById('club-filter').addEventListener('change', filterTable);
+    document.getElementById('status-filter').addEventListener('change', filterTable);
+    document.getElementById('search-input').addEventListener('keyup', filterTable);
+
+    function filterTable() {
+        const clubFilter = document.getElementById('club-filter').value;
+        const statusFilter = document.getElementById('status-filter').value;
+        const searchInput = document.getElementById('search-input').value.toLowerCase();
+        const rows = document.querySelectorAll('.event-row');
+
+        rows.forEach(row => {
+            let show = true;
+
+            // Club filter
+            if (clubFilter && row.dataset.clubId !== clubFilter) {
+                show = false;
+            }
+
+            // Status filter
+            if (statusFilter) {
+                const openSessions = parseInt(row.cells[5].textContent);
+                const submittedSessions = parseInt(row.cells[6].textContent);
+                if (statusFilter === 'open' && openSessions === 0) {
+                    show = false;
+                } else if (statusFilter === 'closed' && submittedSessions === 0) {
+                    show = false;
+                }
+            }
+
+            // Search filter
+            if (searchInput) {
+                const eventName = row.cells[1].textContent.toLowerCase();
+                if (!eventName.includes(searchInput)) {
+                    show = false;
+                }
+            }
+
+            row.style.display = show ? '' : 'none';
+        });
+    }
+</script>
+{% endblock %}

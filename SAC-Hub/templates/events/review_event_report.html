@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Review Event Report - SAC Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .section-title {
+        @apply text-lg font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200;
+    }
+    .info-box {
+        @apply bg-gray-50 rounded-lg p-4;
+    }
+    .info-row {
+        @apply flex justify-between py-2 border-b border-gray-200 last:border-0;
+    }
+    .info-label {
+        @apply text-sm font-medium text-gray-600;
+    }
+    .info-value {
+        @apply text-sm font-semibold text-gray-800;
+    }
+    .report-section {
+        @apply bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <a href="{% url 'event_reports' %}" class="text-red-600 hover:text-red-800 font-medium text-sm mb-4 inline-block">
+                    <i class="bi bi-arrow-left mr-2"></i>Back to Reports
+                </a>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Review Event Report</h1>
+                <p class="text-gray-600">{{ report.title }}</p>
+            </div>
+
+            <!-- Event Information -->
+            <div class="report-section">
+                <div class="section-title">Event Information</div>
+                <div class="info-box">
+                    <div class="info-row">
+                        <span class="info-label">Event Name</span>
+                        <span class="info-value">{{ event.name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Date & Time</span>
+                        <span class="info-value">{{ event.date_time|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Venue</span>
+                        <span class="info-value">{{ event.venue }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Club/Department</span>
+                        <span class="info-value">
+                            {% if event.club %}{{ event.club.name }}{% elif event.department %}{{ event.department.name }}{% else %}--{% endif %}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Event Type</span>
+                        <span class="info-value">{{ event.event_type }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Status & Submission Info -->
+            <div class="report-section">
+                <div class="section-title">Report Status</div>
+                <div class="info-box">
+                    <div class="info-row">
+                        <span class="info-label">Report Status</span>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold 
+                            {% if report.status == 'DRAFT' %}bg-gray-100 text-gray-800{% endif %}
+                            {% if report.status == 'PENDING' %}bg-yellow-100 text-yellow-800{% endif %}
+                            {% if report.status == 'APPROVED' %}bg-green-100 text-green-800{% endif %}
+                            {% if report.status == 'REJECTED' %}bg-red-100 text-red-800{% endif %}">
+                            {{ report.get_status_display }}
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Submitted By</span>
+                        <span class="info-value">{{ report.submitted_by.first_name }} {{ report.submitted_by.last_name }} ({{ report.submitted_by.email }})</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Submitted On</span>
+                        <span class="info-value">
+                            {% if report.submitted_at %}
+                                {{ report.submitted_at|date:"M d, Y H:i" }}
+                            {% else %}
+                                Not yet submitted
+                            {% endif %}
+                        </span>
+                    </div>
+                    {% if report.status in 'APPROVED,REJECTED' %}
+                    <div class="info-row">
+                        <span class="info-label">Reviewed By</span>
+                        <span class="info-value">{{ report.approved_by.first_name }} {{ report.approved_by.last_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Reviewed On</span>
+                        <span class="info-value">{{ report.approved_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Report Details -->
+            <div class="report-section">
+                <div class="section-title">Report Details</div>
+                
+                <!-- Description -->
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-2">Description & Summary</h4>
+                    <div class="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap text-sm">
+                        {{ report.description }}
+                    </div>
+                </div>
+
+                <!-- Highlights -->
+                {% if report.highlights %}
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-2">Key Highlights & Achievements</h4>
+                    <div class="bg-green-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap text-sm border-l-4 border-green-500">
+                        {{ report.highlights }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Challenges -->
+                {% if report.challenges %}
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-2">Challenges & Difficulties</h4>
+                    <div class="bg-yellow-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap text-sm border-l-4 border-yellow-500">
+                        {{ report.challenges }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Lessons Learned -->
+                {% if report.lessons_learned %}
+                <div class="mb-6">
+                    <h4 class="font-semibold text-gray-800 mb-2">Lessons Learned & Recommendations</h4>
+                    <div class="bg-blue-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap text-sm border-l-4 border-blue-500">
+                        {{ report.lessons_learned }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Attendance & Metrics -->
+            <div class="report-section">
+                <div class="section-title">Attendance & Metrics</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Attendance -->
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-6 border border-blue-200">
+                        <h4 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="bi bi-people text-blue-600 text-lg"></i>Attendance
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm text-gray-600">Expected Attendees</p>
+                                <p class="text-2xl font-bold text-gray-800">{{ report.expected_attendees }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Actual Attendees</p>
+                                <p class="text-2xl font-bold text-blue-600">{{ report.total_attendees }}</p>
+                            </div>
+                            <div class="pt-2 border-t border-blue-200">
+                                <p class="text-sm text-gray-600">Attendance Rate</p>
+                                <p class="text-xl font-semibold text-gray-800">
+                                    {% if report.expected_attendees > 0 %}
+                                        {{ report.total_attendees}}
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget -->
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg p-6 border border-purple-200">
+                        <h4 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="bi bi-wallet2 text-purple-600 text-lg"></i>Budget
+                        </h4>
+                        <div class="space-y-3">
+                            <div>
+                                <p class="text-sm text-gray-600">Budget Allocated</p>
+                                <p class="text-2xl font-bold text-gray-800">Rs. {{ report.budget_allocated|floatformat:2 }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-600">Budget Used</p>
+                                <p class="text-2xl font-bold text-purple-600">Rs. {{ report.budget_used|floatformat:2 }}</p>
+                            </div>
+                            <div class="pt-2 border-t border-purple-200">
+                                <p class="text-sm text-gray-600">Utilization Rate</p>
+                                <p class="text-xl font-semibold text-gray-800">
+                                    {% if report.budget_allocated > 0 %}
+                                        {{ report.budget_used }}%
+                                    {% else %}
+                                        N/A
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            {% if report.file %}
+            <div class="report-section">
+                <div class="section-title">Attachments</div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <a href="{{ report.file.url }}" target="_blank" class="text-red-600 hover:text-red-800 font-medium text-sm flex items-center gap-2 w-fit">
+                        <i class="bi bi-download"></i>
+                        {{ report.file.name|truncatechars:50 }}
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Approval Notes (if already reviewed) -->
+            {% if report.status in 'APPROVED,REJECTED' and report.approval_notes %}
+            <div class="report-section">
+                <div class="section-title">Review Notes</div>
+                <div class="{% if report.status == 'APPROVED' %}bg-green-50 border-l-4 border-green-500{% else %}bg-red-50 border-l-4 border-red-500{% endif %} rounded-lg p-4">
+                    <p class="text-sm {% if report.status == 'APPROVED' %}text-green-800{% else %}text-red-800{% endif %} whitespace-pre-wrap">
+                        {{ report.approval_notes }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Action Buttons -->
+            {% if report.status != 'APPROVED' %}
+            <div class="report-section">
+                <div class="section-title">Approve or Reject Report</div>
+                
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    
+                    <div>
+                        <label for="approval_notes" class="block text-sm font-medium text-gray-700 mb-2">
+                            Approval Notes (Optional)
+                        </label>
+                        <textarea id="approval_notes" name="approval_notes" rows="4"
+                            placeholder="Add any comments, feedback, or reasons for rejection..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500"></textarea>
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="submit" name="action" value="approve" class="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2">
+                            <i class="bi bi-check-circle"></i>Approve Report
+                        </button>
+                        <button type="submit" name="action" value="reject" class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center justify-center gap-2">
+                            <i class="bi bi-x-circle"></i>Reject Report
+                        </button>
+                        <a href="{% url 'send_report_reminder' report.id %}" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center justify-center gap-2">
+                            <i class="bi bi-bell"></i>Send Reminder
+                        </a>
+                        <a href="{% url 'event_reports' %}" class="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium text-center">
+                            <i class="bi bi-x-lg"></i>Cancel
+                        </a>
+                    </div>
+
+                    <!-- Info Box -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <p class="text-sm text-blue-800">
+                            <i class="bi bi-info-circle mr-2"></i>
+                            <strong>Note:</strong> Adding approval notes is optional. Use this field to provide feedback, reasons for rejection, or suggestions for future improvements.
+                        </p>
+                    </div>
+                </form>
+            </div>
+            {% else %}
+            <div class="report-section">
+                <div class="text-center py-6">
+                    <p class="text-gray-600 mb-4">This report has already been reviewed.</p>
+                    <div class="flex gap-4 justify-center flex-wrap">
+                        {% if report.status != 'APPROVED' %}
+                        <a href="{% url 'send_report_reminder' report.id %}" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2">
+                            <i class="bi bi-bell"></i>Send Reminder to Organizers
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'event_reports' %}" class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium flex items-center gap-2">
+                            <i class="bi bi-arrow-left"></i>Back to Reports
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+<!-- Custom Filter for multiplication and division in template -->
+<script>
+    // Since Django templates don't have multiply/divide, we'll calculate in JS if needed
+    document.addEventListener('DOMContentLoaded', function() {
+        // This is handled by Python calculations, but can be enhanced if needed
+    });
+</script>
+{% endblock %}

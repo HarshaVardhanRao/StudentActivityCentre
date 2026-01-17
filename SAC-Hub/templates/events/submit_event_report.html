@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Submit Event Report - {{ event.name }} - SAC Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        @apply bg-white rounded-lg shadow-sm border border-gray-100 p-6 mb-6;
+    }
+    .form-section-title {
+        @apply text-lg font-semibold text-gray-800 mb-4 pb-3 border-b border-gray-200;
+    }
+    .form-group {
+        @apply mb-4;
+    }
+    .form-group label {
+        @apply block text-sm font-medium text-gray-700 mb-2;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500;
+    }
+    .form-group textarea {
+        @apply resize-vertical min-h-[120px];
+    }
+    .form-row {
+        @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="mb-8">
+                <a href="{% url 'events_management' %}" class="text-red-600 hover:text-red-800 font-medium text-sm mb-4 inline-block">
+                    <i class="bi bi-arrow-left mr-2"></i>Back to Events
+                </a>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Submit Event Report</h1>
+                <p class="text-gray-600">{{ event.name }}</p>
+                <p class="text-sm text-gray-500 mt-1">{{ event.date_time|date:"M d, Y H:i" }} at {{ event.venue }}</p>
+            </div>
+
+            <!-- Event Summary -->
+            <div class="form-section">
+                <div class="form-section-title">Event Information</div>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                        <p class="text-sm text-gray-600">Event Name</p>
+                        <p class="font-semibold text-gray-800">{{ event.name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Date & Time</p>
+                        <p class="font-semibold text-gray-800">{{ event.date_time|date:"M d, Y H:i" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Venue</p>
+                        <p class="font-semibold text-gray-800">{{ event.venue }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Club/Department</p>
+                        <p class="font-semibold text-gray-800">
+                            {% if event.club %}{{ event.club.name }}{% elif event.department %}{{ event.department.name }}{% else %}--{% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Event Type</p>
+                        <p class="font-semibold text-gray-800">{{ event.event_type }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-600">Status</p>
+                        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
+                            {{ event.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Form -->
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Basic Information -->
+                <div class="form-section">
+                    <div class="form-section-title">Report Information</div>
+                    
+                    <div class="form-group">
+                        <label for="title">Report Title *</label>
+                        <input type="text" id="title" name="title" required 
+                            value="{% if report %}{{ report.title }}{% else %}{{ event.name }} - Event Report{% endif %}"
+                            placeholder="e.g., Tech Talk 2026 - Event Report"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        <p class="text-xs text-gray-500 mt-1">A descriptive title for this report</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Event Description & Summary *</label>
+                        <textarea id="description" name="description" required 
+                            placeholder="Provide a detailed summary of the event, including key topics, discussions, and outcomes..."
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">{% if report %}{{ report.description }}{% endif %}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Detailed description of how the event was conducted and outcomes</p>
+                    </div>
+                </div>
+
+                <!-- Attendance & Metrics -->
+                <div class="form-section">
+                    <div class="form-section-title">Attendance & Metrics</div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="expected_attendees">Expected Attendees</label>
+                            <input type="number" id="expected_attendees" name="expected_attendees" min="0"
+                                value="{% if report %}{{ report.expected_attendees }}{% endif %}"
+                                placeholder="Number of expected attendees"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div class="form-group">
+                            <label for="total_attendees">Total Attendees *</label>
+                            <input type="number" id="total_attendees" name="total_attendees" required min="0"
+                                value="{% if report %}{{ report.total_attendees }}{% endif %}"
+                                placeholder="Number of actual attendees"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                            <p class="text-xs text-gray-500 mt-1">Total students/participants who attended</p>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="budget_allocated">Budget Allocated</label>
+                            <input type="number" id="budget_allocated" name="budget_allocated" step="0.01" min="0"
+                                value="{% if report %}{{ report.budget_allocated }}{% endif %}"
+                                placeholder="0.00"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        </div>
+                        <div class="form-group">
+                            <label for="budget_used">Budget Used</label>
+                            <input type="number" id="budget_used" name="budget_used" step="0.01" min="0"
+                                value="{% if report %}{{ report.budget_used }}{% endif %}"
+                                placeholder="0.00"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                            <p class="text-xs text-gray-500 mt-1">Amount actually spent from the allocated budget</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Details -->
+                <div class="form-section">
+                    <div class="form-section-title">Event Details</div>
+                    
+                    <div class="form-group">
+                        <label for="highlights">Key Highlights & Achievements</label>
+                        <textarea id="highlights" name="highlights"
+                            placeholder="What were the main highlights and achievements of the event? Any notable moments or success stories?"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">{% if report %}{{ report.highlights }}{% endif %}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Key achievements, milestones, and success metrics</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="challenges">Challenges & Difficulties</label>
+                        <textarea id="challenges" name="challenges"
+                            placeholder="What challenges or difficulties were faced during the event? How were they addressed?"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">{% if report %}{{ report.challenges }}{% endif %}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Obstacles encountered and solutions applied</p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lessons_learned">Lessons Learned & Recommendations</label>
+                        <textarea id="lessons_learned" name="lessons_learned"
+                            placeholder="What did you learn from this event? What would you do differently next time? Recommendations for future events?"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">{% if report %}{{ report.lessons_learned }}{% endif %}</textarea>
+                        <p class="text-xs text-gray-500 mt-1">Takeaways and suggestions for improvement</p>
+                    </div>
+                </div>
+
+                <!-- Attachments -->
+                <div class="form-section">
+                    <div class="form-section-title">Attachments</div>
+                    
+                    <div class="form-group">
+                        <label for="file">Report Document or Photos</label>
+                        <input type="file" id="file" name="file" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.xlsx,.csv"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-red-500 focus:border-red-500">
+                        <p class="text-xs text-gray-500 mt-1">Attach PDF, images, or document files (optional)</p>
+                        {% if report and report.file %}
+                        <div class="mt-3">
+                            <p class="text-sm text-gray-600">
+                                <i class="bi bi-file-earmark"></i>
+                                Current file: <a href="{{ report.file.url }}" class="text-red-600 hover:underline">{{ report.file.name|truncatechars:50 }}</a>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Submit Actions -->
+                <div class="bg-white rounded-lg shadow-sm border border-gray-100 p-6 flex gap-4">
+                    <button type="submit" name="action" value="draft" class="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors font-medium">
+                        <i class="bi bi-floppy mr-2"></i>Save as Draft
+                    </button>
+                    <button type="submit" name="action" value="submit" class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
+                        <i class="bi bi-check-circle mr-2"></i>Submit for Approval
+                    </button>
+                    <a href="{% url 'events_management' %}" class="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium text-center">
+                        <i class="bi bi-x-lg mr-2"></i>Cancel
+                    </a>
+                </div>
+
+                <!-- Info Box -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p class="text-sm text-blue-800">
+                        <i class="bi bi-info-circle mr-2"></i>
+                        <strong>Note:</strong> {% if is_edit %}You are editing an existing report.{% else %}This report will be saved. You can submit it for approval or save it as draft and edit later.{% endif %}
+                    </p>
+                </div>
+            </form>
+        </div>
+    </main>
+</div>
+{% endblock %}

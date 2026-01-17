@@ -796,4 +796,116 @@ def clear_all_notifications(request):
     else:
         Notification.objects.filter(user=request.user).delete()
     return JsonResponse({'success': True})
-    return JsonResponse({'success': True})
+
+
+@login_required
+def attendance_list(request):
+    """List attendance sessions for club coordinator's events"""
+    from users.models import Club
+    from django.db.models import Count, Q
+    
+    # Check if user is a club coordinator
+    coordinator_clubs = Club.objects.filter(coordinators=request.user)
+    if not coordinator_clubs.exists() and 'ADMIN' not in (request.user.roles or []):
+        messages.error(request, 'You do not have permission to view attendance sessions.')
+        return redirect('home')
+    
+    # Get all events from coordinator's clubs
+    if 'ADMIN' in (request.user.roles or []):
+        events = Event.objects.all().prefetch_related('attendance_sessions', 'club')
+    else:
+        events = Event.objects.filter(club__in=coordinator_clubs).prefetch_related('attendance_sessions', 'club')
+    
+    # Add session counts to events
+    events_with_counts = []
+    for event in events:
+        sessions = event.attendance_sessions.all()
+        open_sessions = sessions.filter(locked=False).count()
+        submitted_sessions = sessions.filter(locked=True).count()
+        events_with_counts.append({
+            'event': event,
+            'open_sessions_count': open_sessions,
+            'submitted_sessions_count': submitted_sessions
+        })
+    
+    # Get recent sessions across all events
+    recent_sessions = AttendanceSession.objects.filter(
+        event__club__in=coordinator_clubs if not 'ADMIN' in (request.user.roles or []) else Q()
+    ).order_by('-created_at')[:10]
+    
+    # Calculate statistics
+    total_events = len(events_with_counts)
+    all_sessions = AttendanceSession.objects.filter(
+        event__club__in=coordinator_clubs if not 'ADMIN' in (request.user.roles or []) else Q()
+    )
+    open_sessions_count = all_sessions.filter(locked=False).count()
+    submitted_sessions_count = all_sessions.filter(locked=True).count()
+    total_records = Attendance.objects.filter(
+        session__event__club__in=coordinator_clubs if not 'ADMIN' in (request.user.roles or []) else Q()
+    ).count()
+    
+    context = {
+        'coordinator_clubs': coordinator_clubs,
+        'events': [item['event'] for item in events_with_counts],
+        'events_data': events_with_counts,
+        'recent_sessions': recent_sessions,
+        'total_events': total_events,
+        'open_sessions': open_sessions_count,
+        'submitted_sessions': submitted_sessions_count,
+        'total_records': total_records,
+    }
+    
+    return render(request, 'attendance/attendance_list.html', context)
+
+
+@login_required
+def attendance_report(request, event_id):
+    """Display attendance report for a specific event"""
+    event = get_object_or_404(Event, id=event_id)
+    
+    # Permission check: coordinator, advisor, organizer, or admin
+    user_roles = request.user.roles if isinstance(request.user.roles, list) else []
+    is_club_coordinator = request.user in (event.club.coordinators.all() if event.club else [])
+    is_club_advisor = event.club and event.club.advisor == request.user
+    is_organizer = request.user in event.organizers.all()
+    
+    if not (is_organizer or is_club_coordinator or is_club_advisor or 'ADMIN' in user_roles):
+        messages.error(request, 'You do not have permission to view this report.')
+        return redirect('attendance_list')
+    
+    # Get all sessions for this event
+    sessions = event.attendance_sessions.all().prefetch_related('records__student')
+    
+    # Add statistics to each session
+    for session in sessions:
+        records = session.records.all()
+        present_count = records.filter(status='PRESENT').count()
+        absent_count = records.filter(status='ABSENT').count()
+        total_count = records.count()
+        percentage = (present_count / total_count * 100) if total_count > 0 else 0
+        
+        session.present_count = present_count
+        session.absent_count = absent_count
+        session.total_count = total_count
+        session.percentage = percentage
+    
+    # Overall statistics
+    all_records = Attendance.objects.filter(session__event=event)
+    overall_stats = {
+        'total_present': all_records.filter(status='PRESENT').count(),
+        'total_absent': all_records.filter(status='ABSENT').count(),
+        'total_records': all_records.count(),
+    }
+    
+    submitted_sessions_count = sessions.filter(locked=True).count()
+    open_sessions_count = sessions.filter(locked=False).count()
+    
+    context = {
+        'event': event,
+        'sessions': sessions,
+        'overall_stats': overall_stats,
+        'submitted_sessions_count': submitted_sessions_count,
+        'open_sessions_count': open_sessions_count,
+    }
+    
+    return render(request, 'attendance/attendance_report.html', context)

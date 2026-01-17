@@ -37,14 +37,16 @@ from .auth_views import login_view, logout_view
 from events.frontend_views import (
     event_list, event_detail, event_create, event_edit, event_delete,
     event_register, event_unregister, event_registrations,
-    association_approval_list, approve_association, approve_collaboration, events_management
+    association_approval_list, approve_association, approve_collaboration, events_management, submit_event_report,
+    event_reports, review_event_report, send_report_reminder
 )
 from clubs.frontend_views import (
     club_list, club_detail, club_create, club_edit, club_delete, club_join, club_leave, manage_club_members
 )
 from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
-    settings_view, reports_dashboard, attendance_export, attendance_verify
+    settings_view, reports_dashboard, attendance_export, attendance_verify,
+    attendance_list, attendance_report
 )
 from .frontend_views import (
     send_notification, mark_notification_read, mark_notification_unread,
@@ -111,7 +113,11 @@ urlpatterns = [
     # Events
     path("events/", event_list, name="event_list"),
     path("events/management/", events_management, name="events_management"),
+    path("events/reports/", event_reports, name="event_reports"),
+    path("events/reports/<int:report_id>/review/", review_event_report, name="review_event_report"),
+    path("events/reports/<int:report_id>/send-reminder/", send_report_reminder, name="send_report_reminder"),
     path("events/<int:event_id>/", event_detail, name="event_detail"),
+    path("events/<int:event_id>/report/submit/", submit_event_report, name="submit_event_report"),
     path("events/create/", event_create, name="event_create"),
     path("events/<int:event_id>/edit/", event_edit, name="event_edit"),
     path("events/<int:event_id>/delete/", event_delete, name="event_delete"),
@@ -136,6 +142,8 @@ urlpatterns = [
     path("calendar/", calendar_view, name="calendar_view"),
     path("events/<int:event_id>/attendance/", attendance_manage, name="attendance_manage"),
     path("events/<int:event_id>/attendance/export/", attendance_export, name="attendance_export"),
+    path("events/<int:event_id>/attendance/report/", attendance_report, name="attendance_report"),
+    path("attendance/", attendance_list, name="attendance_list"),
     path("attendance/verify/", attendance_verify, name="attendance_verify"),
     
     # User pages
