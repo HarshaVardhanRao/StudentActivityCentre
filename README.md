@@ -279,6 +279,144 @@ Actions:
 │   └── 🗑️ Delete       → Confirmation dialog
 ```
 
+---
+
+## 📈 Analytics Dashboard
+
+### Overview
+The Analytics Dashboard provides comprehensive insights and metrics for SAC (Student Activity Centre) management. It's exclusively available to **SAC_COORDINATOR** and **ADMIN** roles.
+
+### Access
+```
+URL: http://localhost:8000/analytics/
+Requirements: Login as SAC_COORDINATOR or ADMIN
+Sidebar Link: "Analytics" in the SAC_COORDINATOR menu
+```
+
+### Dashboard Sections
+
+#### 1. **Key Performance Indicators (KPIs)**
+```
+Four main metrics cards:
+├── 📊 Total Clubs        → Shows total clubs and active count
+├── 📅 Total Events       → Shows total events and approved count  
+├── 🏢 Departments        → Shows total departments and student count
+└── ✅ Overall Attendance → Shows average attendance percentage
+```
+
+#### 2. **Top Clubs Analysis**
+```
+Displays top 5 clubs by member count:
+├── Club Name
+├── Member Count
+└── Member distribution across clubs
+```
+
+#### 3. **Event Status Distribution**
+```
+Breakdown of events by status:
+├── 🟢 Approved Events
+├── 🟡 Pending Events
+├── ⚪ Draft Events
+└── 🔴 Rejected Events
+```
+
+#### 4. **Attendance Analysis**
+```
+Part A: Overall Statistics
+├── Present Records Count
+├── Absent Records Count
+├── Overall Attendance Percentage
+└── Progress bars for visualization
+
+Part B: Department-wise Breakdown
+├── Attendance by department
+├── Present/Absent counts per department
+├── Attendance percentage per department
+└── Sortable list by attendance volume
+```
+
+#### 5. **Event Participation Details**
+```
+Comprehensive table showing:
+├── Event Name
+├── Registration Count
+├── Attendance Count
+├── Event Status (Approved/Pending/Draft/Rejected)
+└── Attendance Rate (registrations vs actual attendance)
+```
+
+#### 6. **Most Active Students**
+```
+Top 5 most active students:
+├── Student Name
+├── Registration Count
+├── Attendance Count
+└── Engagement level indicators
+```
+
+#### 7. **Events by Club**
+```
+Shows club activity levels:
+├── Club Name
+├── Event Count
+└── Activity ranking
+```
+
+#### 8. **Club Performance Metrics**
+```
+Individual club cards showing:
+├── Club Name
+├── Member Count
+├── Event Count
+└── Active status indicator
+```
+
+#### 9. **Last 30 Days Summary**
+```
+Recent activity metrics:
+├── 📈 New Events Created (last 30 days)
+├── 📊 Attendance Records (last 30 days)
+└── 📉 Overall Attendance Rate (last 30 days)
+```
+
+### Data Sources
+The analytics dashboard pulls data from:
+- `Club` model - Club information and relationships
+- `Event` model - Event data with status and timestamps
+- `User` model - Student and staff information
+- `Department` model - Department organization
+- `Attendance` model - Attendance records with status
+- `EventRegistration` model - Event registration data
+
+### Key Features
+✅ **Real-time Data**: All statistics calculated from current database state  
+✅ **Role-Based Access**: Exclusive to SAC_COORDINATOR and ADMIN  
+✅ **Responsive Design**: Works on mobile, tablet, and desktop  
+✅ **Visual Indicators**: Color-coded status badges and progress bars  
+✅ **Comprehensive Metrics**: Covers clubs, events, attendance, and participation  
+✅ **30-Day Trends**: Shows recent activity patterns  
+✅ **Performance Analytics**: Identifies top performers (clubs, students, events)  
+
+### Usage Workflow
+```
+1. Login as SAC_COORDINATOR or ADMIN
+2. Navigate to sidebar → "Analytics" link
+3. View dashboard sections for different metrics
+4. Analyze trends and performance indicators
+5. Use data for decision-making and reporting
+```
+
+### Export & Integration Notes
+Current version displays data on-page. Future enhancements may include:
+- PDF export of analytics reports
+- CSV export of data tables
+- Scheduled email reports
+- Custom date range filters
+- Chart.js visualization integration
+
+---
+
 #### 7. **Calendar Management**
 ```
 Actions:

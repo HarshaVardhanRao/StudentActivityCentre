@@ -28,7 +28,7 @@
                 <div class="flex items-center text-sm text-green-600">
                     <i class="bi bi-arrow-up-right mr-1"></i>
                     <!-- Placeholder trend -->
-                    <span>Active</span>
+                    <!-- <span>Active</span> -->
                 </div>
             </div>
 
@@ -45,30 +45,197 @@
                 <h2 class="text-4xl font-bold text-red-600">{{ stats.pending_events|default:"0" }}</h2>
                 <p class="text-sm text-gray-500 mt-2">Requires approval</p>
             </div>
+            {% else %}
+            <!-- Card 2: Registered Events (Students Only) -->
+            <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                        <i class="bi bi-bookmark text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-gray-500 font-medium mb-2">Registered Events</p>
+                <h2 class="text-4xl font-bold text-blue-600 mb-4">{{ registered_events|length|default:"0" }}</h2>
+                <div class="flex items-center text-sm text-blue-600">
+                    <i class="bi bi-check-circle mr-1"></i>
+                    <!-- <span>Upcoming & Past</span> -->
+                </div>
+            </div>
             {% endif %}
 
             <!-- Card 3: Total Students / Events Participated -->
             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
                 <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-purple-50 text-purple-600 rounded-lg">
+                    <div class="p-3 {% if stats.is_sac_admin %}bg-purple-50 text-purple-600{% else %}bg-green-50 text-green-600{% endif %} rounded-lg">
                         {% if stats.is_sac_admin %}
                         <i class="bi bi-person text-xl"></i>
                         {% else %}
-                        <i class="bi bi-calendar-check text-xl"></i>
+                        <i class="bi bi-check-all text-xl"></i>
                         {% endif %}
                     </div>
                 </div>
                 <p class="text-gray-500 font-medium mb-2">
-                    {% if stats.is_sac_admin %}Total Students{% else %}Events Participated{% endif %}
+                    {% if stats.is_sac_admin %}Total Students{% else %}Attended Events{% endif %}
                 </p>
-                <h2 class="text-4xl font-bold text-gray-800">{{ stats.total_users|default:"0" }}</h2>
-                <div class="flex items-center text-sm text-gray-500 mt-4">
+                <h2 class="text-4xl font-bold {% if stats.is_sac_admin %}text-gray-800{% else %}text-green-600{% endif %} mb-4">{{ attended_events|length|default:stats.total_users }}</h2>
+                <div class="flex items-center text-sm {% if stats.is_sac_admin %}text-gray-500{% else %}text-green-600{% endif %}">
                     <i class="bi bi-graph-up mr-1"></i>
-                    <span>{% if stats.is_sac_admin %}Registered users{% else %}Successfully attended{% endif %}</span>
+                    <span>{% if stats.is_sac_admin %}Registered users{% else %}{% endif %}</span>
                 </div>
             </div>
         </div>
-        <!-- My Club Dashboards Table -->
+        <!-- My Clubs, Registered Events, and Attended Events Tabs (Student Only) -->
+        {% if 'CLUB_COORDINATOR' not in request.user.roles and 'CLUB_ADVISOR' not in request.user.roles and 'ADMIN' not in request.user.roles and 'SAC_COORDINATOR' not in request.user.roles and 'DEPARTMENT_ADMIN' not in request.user.roles %}
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
+            <div class="p-6 border-b border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800">My Activities</h3>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="flex border-b border-gray-100 bg-gray-50">
+                <button onclick="switchTab('my-clubs')" class="activity-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-red-600 text-red-600 active" data-tab="my-clubs">
+                    <i class="bi bi-people me-2"></i> My Clubs
+                </button>
+                <button onclick="switchTab('registered-events')" class="activity-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300" data-tab="registered-events">
+                    <i class="bi bi-bookmark me-2"></i> Registered Events
+                </button>
+                <button onclick="switchTab('attended-events')" class="activity-tab px-6 py-3 font-medium text-gray-700 hover:text-gray-900 border-b-2 border-transparent hover:border-gray-300" data-tab="attended-events">
+                    <i class="bi bi-check-circle me-2"></i> Attended Events
+                </button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="overflow-x-auto">
+                <!-- My Clubs Tab -->
+                <div id="my-clubs-content" class="activity-tab-content active">
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-gray-500 text-sm">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">#</th>
+                                <th class="px-6 py-4 font-medium">Club Name</th>
+                                <th class="px-6 py-4 font-medium">Description</th>
+                                <th class="px-6 py-4 font-medium">Faculty Advisor</th>
+                                <th class="px-6 py-4 font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for club in dashboard_clubs %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 text-gray-500">{{ forloop.counter }}</td>
+                                <td class="px-6 py-4 font-medium text-gray-800">{{ club.name }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ club.description|truncatewords:10 }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ club.advisor.get_full_name|default:"None" }}</td>
+                                <td class="px-6 py-4 text-gray-600"><a href="/clubs/{{ club.id }}" class="text-red-600 hover:underline text-sm font-medium">View</a></td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No clubs found. Join one to get started!</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Registered Events Tab -->
+                <div id="registered-events-content" class="activity-tab-content hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-500">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Event Name</th>
+                                <th class="px-6 py-4 font-medium">Date & Time</th>
+                                <th class="px-6 py-4 font-medium">Venue</th>
+                                <th class="px-6 py-4 font-medium">Club</th>
+                                <th class="px-6 py-4 font-medium">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for item in registered_events %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">
+                                    <div class="flex items-center gap-2">
+                                        {% if item.event.thumbnail %}
+                                        <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}" class="w-8 h-8 rounded object-cover">
+                                        {% else %}
+                                        <div class="w-8 h-8 bg-blue-400 rounded flex items-center justify-center text-white text-xs font-bold">{{ item.event.name|first }}</div>
+                                        {% endif %}
+                                        <span>{{ item.event.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium">{{ item.event.date_time|date:"M d, Y" }}</span>
+                                        <span class="text-xs text-gray-500">{{ item.event.date_time|date:"g:i A" }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <i class="bi bi-geo-alt text-red-500 me-1"></i>{{ item.event.venue|truncatewords:3 }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ item.event.club.name|default:"N/A" }}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-1">
+                                        <a href="{% url 'event_detail' item.event.id %}" class="text-blue-600 hover:text-blue-800 text-xs font-medium px-2 py-1 rounded hover:bg-blue-50">View</a>
+                                        {% if item.event.date_time > now %}
+                                        <a href="{% url 'event_unregister' item.event.id %}" class="text-red-600 hover:text-red-800 text-xs font-medium px-2 py-1 rounded hover:bg-red-50" onclick="return confirm('Unregister from this event?')">Cancel</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No registered events. <a href="{% url 'event_list' %}" class="text-red-600 hover:underline">Browse events</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Attended Events Tab -->
+                <div id="attended-events-content" class="activity-tab-content hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 text-gray-500">
+                            <tr>
+                                <th class="px-6 py-4 font-medium">Event Name</th>
+                                <th class="px-6 py-4 font-medium">Date</th>
+                                <th class="px-6 py-4 font-medium">Venue</th>
+                                <th class="px-6 py-4 font-medium">Club</th>
+                                <th class="px-6 py-4 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for item in attended_events %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">
+                                    <div class="flex items-center gap-2">
+                                        {% if item.event.thumbnail %}
+                                        <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}" class="w-8 h-8 rounded object-cover">
+                                        {% else %}
+                                        <div class="w-8 h-8 bg-green-400 rounded flex items-center justify-center text-white text-xs font-bold">{{ item.event.name|first }}</div>
+                                        {% endif %}
+                                        <span>{{ item.event.name }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ item.event.date_time|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <i class="bi bi-geo-alt text-red-500 me-1"></i>{{ item.event.venue|truncatewords:3 }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">{{ item.event.club.name|default:"N/A" }}</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-700 inline-flex items-center gap-1">
+                                        <i class="bi bi-check-circle"></i> Attended
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center text-gray-500">No attended events yet. Register and attend events to see them here!</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <!-- Fallback for non-students (show original My Clubs) -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 overflow-hidden">
             <div class="p-6 border-b border-gray-100">
                 <h3 class="text-lg font-bold text-gray-800">My Clubs</h3>
@@ -103,6 +270,7 @@
                 </table>
             </div>
         </div>
+        {% endif %}
 
         {% if users %}
         <!-- Admin/Coordinator Sections -->
@@ -511,41 +679,102 @@
         <!-- My Events and Notifications Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <!-- My Events (If not coordinator/advisor) -->
-            {% if 'CLUB_COORDINATOR' not in request.user.roles and 'CLUB_ADVISOR' not in request.user.roles %}
+            {% if 'CLUB_COORDINATOR' not in request.user.roles and 'CLUB_ADVISOR' not in request.user.roles and 'STUDENT' not in request.user.roles %}
             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-6 border-b border-gray-100 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-gray-800">Recent Events</h3>
-                    <a href="{% url 'events_management' %}"
-                        class="text-sm text-red-600 font-medium hover:text-red-700">View All</a>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Upcoming Events</h3>
+                        <p class="text-xs text-gray-500 mt-1">Events you're registered for</p>
+                    </div>
+                    <a href="{% url 'events_management' %}" class="text-sm text-red-600 font-medium hover:text-red-700">Browse All</a>
                 </div>
+
+                <!-- Quick Stats -->
+                <div class="px-6 py-3 bg-blue-50 border-b border-gray-100 flex items-center gap-4">
+                    <div>
+                        <p class="text-xs text-gray-600">Registered</p>
+                        <p class="text-lg font-bold text-blue-600">{{ upcoming_registered_events|length }}</p>
+                    </div>
+                    {% with attended_count=attended_events|length %}
+                    <div>
+                        <p class="text-xs text-gray-600">Attended</p>
+                        <p class="text-lg font-bold text-green-600">{{ attended_count }}</p>
+                    </div>
+                    {% endwith %}
+                </div>
+
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-sm">
                         <thead class="bg-gray-50 text-gray-500">
                             <tr>
                                 <th class="px-6 py-4 font-medium">Event</th>
-                                <th class="px-6 py-4 font-medium">Date</th>
-                                <th class="px-6 py-4 font-medium">Status</th>
+                                <th class="px-6 py-4 font-medium">Date & Time</th>
+                                <th class="px-6 py-4 font-medium">Venue</th>
+                                <th class="px-6 py-4 font-medium">Club</th>
+                                <th class="px-6 py-4 font-medium">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            {% for event in my_events|slice:":5" %}
+                            {% for item in upcoming_registered_events|slice:":5" %}
                             <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-gray-800">{{ event.event.name }}</td>
-                                <td class="px-6 py-4 text-gray-600 text-sm">{{ event.event.date_time|date:"M d, Y" }}
+                                <td class="px-6 py-4 font-medium text-gray-800">
+                                    <div class="flex items-center gap-2">
+                                        {% if item.event.thumbnail %}
+                                        <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}" class="w-8 h-8 rounded object-cover">
+                                        {% else %}
+                                        <div class="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-400 rounded flex items-center justify-center text-white text-xs font-bold">{{ item.event.name|first }}</div>
+                                        {% endif %}
+                                        <span>{{ item.event.name|truncatewords:4 }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <div class="flex flex-col">
+                                        <span class="font-medium">{{ item.event.date_time|date:"M d, Y" }}</span>
+                                        <span class="text-xs text-gray-500">{{ item.event.date_time|date:"g:i A" }}</span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <i class="bi bi-geo-alt text-red-500 me-1"></i>{{ item.event.venue|truncatewords:2 }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 text-sm">
+                                    <span class="inline-block px-2 py-1 bg-gray-100 rounded text-xs font-medium">{{ item.event.club.name|default:"General" }}</span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <span class="px-2 py-1 text-xs font-semibold rounded-full 
-                                        {% if event.event.status == 'APPROVED' %}bg-green-100 text-green-700
-                                        {% elif event.event.status == 'PENDING' %}bg-yellow-100 text-yellow-700
-                                        {% else %}bg-gray-100 text-gray-700{% endif %}">
-                                        {{ event.event.get_status_display }}
-                                    </span>
+                                    <div class="flex items-center gap-1">
+                                        <a href="{% url 'event_detail' item.event.id %}" class="text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-1 rounded text-xs font-medium transition-colors" title="View Event Details">
+                                            <i class="bi bi-eye"></i> View
+                                        </a>
+                                        <a href="{% url 'event_unregister' item.event.id %}" class="text-red-600 hover:text-red-800 hover:bg-red-50 px-2 py-1 rounded text-xs font-medium transition-colors" title="Cancel Registration" onclick="return confirm('Are you sure you want to unregister from this event?')">
+                                            <i class="bi bi-x"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="px-6 py-8 text-center">
+                                    <div class="flex flex-col items-center justify-center">
+                                        <i class="bi bi-calendar-x text-4xl text-gray-300 mb-2"></i>
+                                        <p class="text-gray-600 font-medium mb-1">No upcoming events</p>
+                                        <p class="text-xs text-gray-500 mb-3">Register for events to see them here</p>
+                                        <a href="{% url 'event_list' %}" class="text-red-600 hover:text-red-700 text-sm font-medium">Browse Events</a>
+                                    </div>
                                 </td>
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Footer with Quick Action -->
+                {% if upcoming_registered_events %}
+                <div class="p-4 bg-gray-50 border-t border-gray-100 text-sm text-gray-600 flex justify-between items-center">
+                    <span><strong>{{ upcoming_registered_events|length }}</strong> upcoming event(s) you're registered for</span>
+                    <a href="{% url 'event_list' %}" class="text-red-600 hover:text-red-700 font-medium text-sm">
+                        Register for more <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
 
@@ -580,8 +809,6 @@
 </div>
 
 <script>
-    // Sidebar logic moved to includes/sidebar.html
-
     // Filter registrations function
     function filterRegistrations(filter) {
         const rows = document.querySelectorAll('.registration-row');
@@ -614,6 +841,37 @@
 
             row.style.display = show ? '' : 'none';
         });
+    }
+
+    // Switch Activity Tabs function
+    function switchTab(tabName) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll('.activity-tab-content');
+        contents.forEach(content => {
+            content.classList.add('hidden');
+            content.classList.remove('active');
+        });
+
+        // Remove active styling from all tabs
+        const tabs = document.querySelectorAll('.activity-tab');
+        tabs.forEach(tab => {
+            tab.classList.remove('border-b-red-600', 'text-red-600');
+            tab.classList.add('border-b-transparent', 'text-gray-700');
+        });
+
+        // Show selected tab content
+        const selectedContent = document.getElementById(tabName + '-content');
+        if (selectedContent) {
+            selectedContent.classList.remove('hidden');
+            selectedContent.classList.add('active');
+        }
+
+        // Add active styling to clicked tab
+        const selectedTab = document.querySelector(`[data-tab="${tabName}"]`);
+        if (selectedTab) {
+            selectedTab.classList.remove('border-b-transparent', 'text-gray-700');
+            selectedTab.classList.add('border-b-red-600', 'text-red-600');
+        }
     }
 </script>
 {% endblock %}

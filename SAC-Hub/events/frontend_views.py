@@ -1,5 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db.models import Q, Count
@@ -813,6 +814,45 @@ def events_management(request):
     }
     
     return render(request, 'events/events_management.html', context)
+
+
+@login_required
+@require_POST
+def event_mark_completed(request, event_id):
+    """Mark an APPROVED event as COMPLETED - allowed for any authenticated member except STUDENT"""
+    event = get_object_or_404(Event, id=event_id)
+    user_roles = request.user.roles or []
+    
+    # Permission check: deny STUDENT role, allow all other authenticated users
+    if 'STUDENT' in user_roles and len(user_roles) == 1:
+        messages.error(request, 'Students cannot mark events as completed.')
+        return redirect('event_detail', event_id=event.id)
+    
+    # Check if event is APPROVED
+    if event.status != 'APPROVED':
+        messages.error(request, 'Only APPROVED events can be marked as completed.')
+        return redirect('event_detail', event_id=event.id)
+    
+    # Update event status
+    event.status = 'COMPLETED'
+    event.save()
+    
+    # Notify organizers and club coordinators
+    if event.club:
+        for coordinator in event.club.coordinators.all():
+            Notification.objects.create(
+                user=coordinator,
+                message=f"Event '{event.name}' has been marked as completed."
+            )
+    
+    for organizer in event.organizers.all():
+        Notification.objects.create(
+            user=organizer,
+            message=f"Event '{event.name}' has been marked as completed."
+        )
+    
+    messages.success(request, f"Event '{event.name}' has been marked as completed.")
+    return redirect('event_detail', event_id=event.id)
 
 
 @login_required

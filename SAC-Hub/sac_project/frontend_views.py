@@ -16,7 +16,7 @@ from events.models import Event
 from events.models import EventRegistration
 from attendance.models import Attendance, AttendanceSession
 from calendar_app.models import CalendarEntry
-from users.models import User, Club
+from users.models import User, Club, Department
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 
@@ -909,3 +909,191 @@ def attendance_report(request, event_id):
     }
     
     return render(request, 'attendance/attendance_report.html', context)
+
+
+@login_required
+def analytics_view(request):
+    """Analytics dashboard for SAC_COORDINATOR only"""
+    # Role-based access control
+    user_roles = request.user.roles if isinstance(request.user.roles, list) else []
+    if 'SAC_COORDINATOR' not in user_roles and 'ADMIN' not in user_roles:
+        messages.error(request, 'You do not have permission to access analytics.')
+        return redirect('student-dashboard')
+    
+    from django.db.models import Count, Q, Avg, F
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    # Get current date for filtering
+    now = timezone.now()
+    thirty_days_ago = now - timedelta(days=30)
+    
+    # === CLUB STATISTICS ===
+    total_clubs = Club.objects.count()
+    active_clubs = Club.objects.filter(members__isnull=False).distinct().count()
+    
+    # Get top clubs by members
+    top_clubs = Club.objects.annotate(member_count=Count('members')).order_by('-member_count')[:5]
+    
+    # === DEPARTMENT STATISTICS ===
+    total_departments = Department.objects.count()
+    departments_with_data = Department.objects.annotate(
+        student_count=Count('users', filter=Q(users__roles__contains=['STUDENT']))
+    ).order_by('-student_count')
+    
+    # === EVENT STATISTICS ===
+    total_events = Event.objects.count()
+    approved_events = Event.objects.filter(status='APPROVED').count()
+    pending_events = Event.objects.filter(status='PENDING').count()
+    draft_events = Event.objects.filter(status='DRAFT').count()
+    rejected_events = Event.objects.filter(status='REJECTED').count()
+    
+    # Events in last 30 days
+    recent_events = Event.objects.filter(created_at__gte=thirty_days_ago).count()
+    
+    # Events by club
+    events_by_club = Club.objects.annotate(event_count=Count('events')).filter(event_count__gt=0).order_by('-event_count')[:5]
+    
+    # === ATTENDANCE STATISTICS ===
+    total_attendance_records = Attendance.objects.count()
+    present_count = Attendance.objects.filter(status='PRESENT').count()
+    absent_count = Attendance.objects.filter(status='ABSENT').count()
+    
+    # Calculate overall attendance percentage
+    overall_attendance_percentage = (present_count / total_attendance_records * 100) if total_attendance_records > 0 else 0
+    
+    # Attendance by department
+    attendance_by_dept = Department.objects.annotate(
+        total_attendance=Count('users__attendances'),
+        present_attendance=Count('users__attendances', filter=Q(users__attendances__status='PRESENT'))
+    ).values('id', 'name', 'total_attendance', 'present_attendance').order_by('-total_attendance')
+    
+    # Calculate percentage for each department
+    dept_attendance_data = []
+    for dept in attendance_by_dept:
+        if dept['total_attendance'] > 0:
+            percentage = (dept['present_attendance'] / dept['total_attendance'] * 100)
+            dept_attendance_data.append({
+                'name': dept['name'],
+                'total': dept['total_attendance'],
+                'present': dept['present_attendance'],
+                'percentage': round(percentage, 2)
+            })
+    
+    # === PARTICIPATION STATISTICS ===
+    total_registrations = EventRegistration.objects.count()
+    
+    # Most attended events
+    most_attended_events = Event.objects.annotate(
+        attendance_count=Count('attendance_sessions__records', filter=Q(attendance_sessions__records__status='PRESENT'))
+    ).filter(attendance_count__gt=0).order_by('-attendance_count')[:5]
+    
+    # Event-wise participation
+    event_participation = Event.objects.annotate(
+        registration_count=Count('registrations'),
+        attendance_count=Count('attendance_sessions__records', filter=Q(attendance_sessions__records__status='PRESENT'))
+    ).filter(Q(registration_count__gt=0) | Q(attendance_count__gt=0)).order_by('-registration_count')[:10]
+    
+    # Per-event data
+    event_data = []
+    for event in event_participation:
+        event_data.append({
+            'name': event.name,
+            'registrations': event.registration_count,
+            'attendance': event.attendance_count,
+            'status': event.status
+        })
+    
+    # === STUDENT STATISTICS ===
+    # SQLite doesn't support contains lookup on JSON fields, so we filter in Python
+    all_users = User.objects.all()
+    total_students = len([user for user in all_users if 'STUDENT' in (user.roles or [])])
+    active_students = len([user for user in all_users if 'STUDENT' in (user.roles or []) and user.event_registrations.exists()])
+    
+    # Most active students (by registrations)
+    student_registrations = {}
+    for user in all_users:
+        if 'STUDENT' in (user.roles or []):
+            reg_count = user.event_registrations.count()
+            att_count = user.attendances.count()
+            if reg_count > 0 or att_count > 0:
+                student_registrations[user.id] = {
+                    'user': user,
+                    'registration_count': reg_count,
+                    'attendance_count': att_count,
+                }
+    
+    # Sort by registration count and get top 5
+    sorted_students = sorted(student_registrations.values(), key=lambda x: x['registration_count'], reverse=True)[:5]
+    most_active_students = [item['user'] for item in sorted_students]
+    # Attach counts as attributes for template access
+    for i, student in enumerate(most_active_students):
+        student.registration_count = sorted_students[i]['registration_count']
+        student.attendance_count = sorted_students[i]['attendance_count']
+    
+    # === TIME-BASED STATISTICS ===
+    # Events created in last 30 days by week
+    events_last_30_days = Event.objects.filter(created_at__gte=thirty_days_ago).order_by('created_at')
+    
+    # Attendance in last 30 days
+    recent_attendance = Attendance.objects.filter(timestamp__gte=thirty_days_ago)
+    recent_present = recent_attendance.filter(status='PRESENT').count()
+    recent_absent = recent_attendance.filter(status='ABSENT').count()
+    recent_total = recent_attendance.count()
+    
+    # === CLUB PERFORMANCE ===
+    club_performance = Club.objects.annotate(
+        member_count=Count('members'),
+        event_count=Count('events'),
+        avg_attendance=Avg('events__attendance_sessions__records__status', filter=Q(events__attendance_sessions__records__status='PRESENT'))
+    ).order_by('-event_count')[:5]
+    
+    # === CONTEXT DATA ===
+    context = {
+        # Club stats
+        'total_clubs': total_clubs,
+        'active_clubs': active_clubs,
+        'top_clubs': top_clubs,
+        
+        # Department stats
+        'total_departments': total_departments,
+        'departments_with_data': departments_with_data,
+        
+        # Event stats
+        'total_events': total_events,
+        'approved_events': approved_events,
+        'pending_events': pending_events,
+        'draft_events': draft_events,
+        'rejected_events': rejected_events,
+        'recent_events': recent_events,
+        'events_by_club': events_by_club,
+        
+        # Attendance stats
+        'total_attendance_records': total_attendance_records,
+        'present_count': present_count,
+        'absent_count': absent_count,
+        'overall_attendance_percentage': round(overall_attendance_percentage, 2),
+        'absent_percentage': round(100 - overall_attendance_percentage, 2),
+        'dept_attendance_data': dept_attendance_data,
+        
+        # Participation stats
+        'total_registrations': total_registrations,
+        'most_attended_events': most_attended_events,
+        'event_participation': event_data,
+        
+        # Student stats
+        'total_students': total_students,
+        'active_students': active_students,
+        'most_active_students': most_active_students,
+        
+        # Time-based stats
+        'recent_attendance_count': recent_total,
+        'recent_present': recent_present,
+        'recent_absent': recent_absent,
+        'recent_attendance_percentage': (recent_present / recent_total * 100) if recent_total > 0 else 0,
+        
+        # Club performance
+        'club_performance': club_performance,
+    }
+    
+    return render(request, 'analytics/analytics_dashboard.html', context)

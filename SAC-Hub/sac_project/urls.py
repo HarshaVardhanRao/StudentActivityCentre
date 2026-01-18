@@ -38,7 +38,7 @@ from events.frontend_views import (
     event_list, event_detail, event_create, event_edit, event_delete,
     event_register, event_unregister, event_registrations,
     association_approval_list, approve_association, approve_collaboration, events_management, submit_event_report,
-    event_reports, review_event_report, send_report_reminder
+    event_reports, review_event_report, send_report_reminder, event_mark_completed
 )
 from clubs.frontend_views import (
     club_list, club_detail, club_create, club_edit, club_delete, club_join, club_leave, manage_club_members
@@ -46,7 +46,7 @@ from clubs.frontend_views import (
 from .frontend_views import (
     calendar_view, attendance_manage, profile_view, notifications_list, 
     settings_view, reports_dashboard, attendance_export, attendance_verify,
-    attendance_list, attendance_report
+    attendance_list, attendance_report, analytics_view
 )
 from .frontend_views import (
     send_notification, mark_notification_read, mark_notification_unread,
@@ -121,6 +121,7 @@ urlpatterns = [
     path("events/create/", event_create, name="event_create"),
     path("events/<int:event_id>/edit/", event_edit, name="event_edit"),
     path("events/<int:event_id>/delete/", event_delete, name="event_delete"),
+    path("events/<int:event_id>/mark-completed/", event_mark_completed, name="event_mark_completed"),
     path("events/<int:event_id>/register/", event_register, name="event_register"),
     path("events/<int:event_id>/unregister/", event_unregister, name="event_unregister"),
     path("events/<int:event_id>/registrations/", event_registrations, name="event_registrations"),
@@ -159,5 +160,6 @@ urlpatterns = [
     
     # Reports
     path("reports/", reports_dashboard, name="reports_dashboard"),
+    path("analytics/", analytics_view, name="analytics"),
     path("bulk-upload/", bulk_upload_view, name="user_bulk_upload"),
 ]

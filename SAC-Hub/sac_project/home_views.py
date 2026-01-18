@@ -5,10 +5,11 @@ from events.models import Event, EventRegistration
 from users.models import Club
 
 def home(request):
-    if "SAC_COORDINATOR" in request.user.roles:
-        return redirect('admin-dashboard-template')
-    
+
     if request.user.is_authenticated:
+        if "SAC_COORDINATOR" in request.user.roles:
+            return redirect('admin-dashboard-template')
+    
         return redirect('student-dashboard')
 
     # Get upcoming and completed events for public display

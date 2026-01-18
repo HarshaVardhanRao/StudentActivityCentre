@@ -123,6 +123,9 @@ def student_dashboard(request):
     # Fetch user-specific data
     my_events = []
     my_notifications = []
+    registered_events = []
+    attended_events = []
+    upcoming_registered_events = []
     
     if request.user.is_authenticated:
         from events.models import EventRegistration
@@ -131,43 +134,68 @@ def student_dashboard(request):
         # Stats: Count sessions where student was PRESENT
         events_attended_count = Attendance.objects.filter(student=request.user, status='PRESENT').count()
         
-        # 1. Fetch upcoming registered events
-        registrations = EventRegistration.objects.filter(
+        # 1. Fetch ALL registered events (for tab)
+        all_registrations = EventRegistration.objects.filter(
+            student=request.user,
+            status='REGISTERED'
+        ).select_related('event').order_by('-registered_at')
+        
+        registered_events = [
+            {
+                'event': reg.event,
+                'status': 'REGISTERED',
+                'get_status_display': 'Registered',
+                'sort_date': reg.event.date_time
+            }
+            for reg in all_registrations
+        ]
+        
+        # 2. Fetch upcoming registered events (future dates, APPROVED status)
+        upcoming_registrations = EventRegistration.objects.filter(
             student=request.user,
             event__date_time__gt=now,
+            event__status='APPROVED',
             status='REGISTERED'
-        ).select_related('event')
+        ).select_related('event').order_by('event__date_time')
         
-        # 2. Fetch events user attended (PRESENT)
+        upcoming_registered_events = [
+            {
+                'event': reg.event,
+                'status': 'REGISTERED',
+                'get_status_display': 'Registered',
+                'sort_date': reg.event.date_time
+            }
+            for reg in upcoming_registrations
+        ]
+        
+        # 3. Fetch events user attended (PRESENT)
         attendances = Attendance.objects.filter(
             student=request.user,
             status='PRESENT'
-        ).select_related('session__event')
+        ).select_related('session__event').order_by('-timestamp')
         
-        # 3. Combine and Deduplicate (Prioritize Attendance)
+        attended_events = [
+            {
+                'event': att.session.event,
+                'status': 'PRESENT',
+                'get_status_display': 'Attended',
+                'sort_date': att.session.event.date_time
+            }
+            for att in attendances if att.session and att.session.event
+        ]
+        
+        # 4. Combine and Deduplicate (Prioritize Attendance) for legacy my_events
         events_map = {}
         
         # Add registrations first
-        for reg in registrations:
-             events_map[reg.event.id] = {
-                 'event': reg.event,
-                 'status': 'REGISTERED',
-                 'get_status_display': 'Registered',
-                 'sort_date': reg.event.date_time
-             }
+        for item in registered_events:
+             events_map[item['event'].id] = item
              
         # Add/Overwrite with Attendance
-        for att in attendances:
-            if att.session and att.session.event:
-                event = att.session.event
-                events_map[event.id] = {
-                    'event': event,
-                    'status': 'PRESENT',
-                    'get_status_display': 'Participated',
-                    'sort_date': event.date_time
-                }
+        for item in attended_events:
+            events_map[item['event'].id] = item
         
-        # 4. Sort by date descending (Newest/Future first)
+        # 5. Sort by date descending (Newest/Future first)
         my_events = sorted(events_map.values(), key=lambda x: x['sort_date'], reverse=True)
         
         my_notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
@@ -191,6 +219,9 @@ def student_dashboard(request):
         'notices': notices,
         'my_notifications': my_notifications,
         'my_events': my_events,
+        'registered_events': registered_events,
+        'attended_events': attended_events,
+        'upcoming_registered_events': upcoming_registered_events,
         'contacts': contacts,
         'clubs': clubs,
         'departments': departments,

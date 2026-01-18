@@ -3,111 +3,172 @@
 {% block title %}Attendance - {{ event.name }} - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-        <div>
-            <h2 class="text-2xl font-bold text-gray-800">Attendance Management</h2>
-            <h5 class="text-lg text-gray-600 font-medium">{{ event.name }}</h5>
-            <p class="text-sm text-gray-500">{{ event.date_time|date:"M d, Y" }} at {{ event.venue }}</p>
-        </div>
-        <div class="flex flex-wrap gap-2 items-center">
-            <!-- Session selector -->
-            {% if sessions %}
-            <div class="relative">
-                <select id="session-select"
-                    class="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                    onchange="changeSession(this.value)">
-                    {% for s in sessions %}
-                    <option value="{{ s.id }}" {% if session and s.id == session.id %}selected{% endif %}>
-                        {% if s.label %}{{ s.label }}{% else %}Session {{ s.id }}{% endif %} - {{ s.created_at|date:"M
-                        d, Y H:i" }} {% if s.locked %}(submitted){% endif %}
-                    </option>
-                    {% endfor %}
-                </select>
+<div class="flex min-h-screen bg-gray-50">
+    {% include 'includes/sidebar.html' %}
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-6">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="p-3 bg-blue-100 rounded-lg">
+                                <i class="bi bi-clipboard-check text-2xl text-blue-600"></i>
+                            </div>
+                            <div>
+                                <h1 class="text-3xl font-bold text-gray-900">Attendance Management</h1>
+                                <p class="text-gray-600 mt-1">Mark and track attendance for your event</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-full md:w-auto flex flex-col gap-2 text-right">
+                        <h3 class="text-xl font-semibold text-gray-800">{{ event.name }}</h3>
+                        <p class="text-sm text-gray-600"><i class="bi bi-calendar3 me-2"></i>{{ event.date_time|date:"M d, Y" }}</p>
+                        <p class="text-sm text-gray-600"><i class="bi bi-geo-alt me-2"></i>{{ event.venue }}</p>
+                    </div>
+                </div>
             </div>
-            {% endif %}
 
-            <button type="button"
-                class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm font-medium"
-                onclick="markAllPresent()">Mark All Present</button>
-            <button type="button"
-                class="inline-flex items-center px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors shadow-sm text-sm font-medium"
-                onclick="markAllAbsent()">Mark All Absent</button>
+            <!-- Quick Actions Bar -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap gap-3 items-center justify-between">
+            <!-- Quick Actions Bar -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mb-6 flex flex-wrap gap-3 items-center justify-between">
+                <div class="flex flex-wrap gap-3 items-center">
+                    <!-- Session selector -->
+                    {% if sessions %}
+                    <div class="flex items-center gap-2">
+                        <label class="text-sm font-medium text-gray-700">Select Session:</label>
+                        <select id="session-select"
+                            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-sm font-medium"
+                            onchange="changeSession(this.value)">
+                            {% for s in sessions %}
+                            <option value="{{ s.id }}" {% if session and s.id == session.id %}selected{% endif %}>
+                                {% if s.label %}{{ s.label }}{% else %}Session {{ s.id }}{% endif %} ({{ s.created_at|date:"M d, H:i" }}){% if s.locked %} - Submitted{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                </div>
 
-            <!-- New session form (simple inline) -->
-            <form id="new-session-form" method="post" class="flex items-center gap-2">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="new_session">
-                <input type="text" name="label" placeholder="Label (optional)"
-                    class="block w-40 px-3 py-2 border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500">
-                <label class="inline-flex items-center text-sm text-gray-700 whitespace-nowrap">
-                    <input type="checkbox" name="force_open" value="1"
-                        class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
-                    <span class="ml-2">Open now</span>
-                </label>
-                <button type="submit"
-                    class="inline-flex items-center px-4 py-2 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium">New
-                    Session</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Attendance Statistics -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-green-500 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1" id="present-count">{{ attendance_stats.present }}</h3>
-            <p class="text-green-100 font-medium">Present</p>
-        </div>
-        <div class="bg-red-500 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1" id="absent-count">{{ attendance_stats.absent }}</h3>
-            <p class="text-red-100 font-medium">Absent</p>
-        </div>
-        <div class="bg-cyan-500 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1" id="total-count">{{ attendance_stats.total }}</h3>
-            <p class="text-cyan-100 font-medium">Total</p>
-        </div>
-        <div class="bg-blue-600 text-white rounded-xl shadow-md p-6 text-center">
-            <h3 class="text-4xl font-bold mb-1" id="percentage">{{ attendance_stats.percentage|floatformat:1 }}%</h3>
-            <p class="text-blue-100 font-medium">Attendance</p>
-        </div>
-    </div>
-
-    <!-- Search and Filter -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-8">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-            <div class="md:col-span-6">
-                <input type="text" id="student-search"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
-                    placeholder="Search students by name or roll number...">
+                <div class="flex flex-wrap gap-2 items-center">
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm font-medium"
+                        onclick="markAllPresent()">
+                        <i class="bi bi-check-circle"></i> Mark All Present
+                    </button>
+                    <button type="button"
+                        class="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-sm text-sm font-medium"
+                        onclick="markAllAbsent()">
+                        <i class="bi bi-x-circle"></i> Mark All Absent
+                    </button>
+                </div>
             </div>
-            <div class="md:col-span-3">
-                <select id="status-filter"
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-colors bg-white">
-                    <option value="">All Students</option>
-                    <option value="PRESENT">Present Only</option>
-                    <option value="ABSENT">Absent Only</option>
-                    <option value="UNMARKED">Unmarked Only</option>
-                </select>
-            </div>
-            <div class="md:col-span-3">
-                <button type="button"
-                    class="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-                    onclick="exportAttendance()">Export to Excel</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- Attendance List -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <h5 class="font-semibold text-gray-800">Student Attendance</h5>
-        </div>
-        <div class="overflow-x-auto">
+            <!-- New Session Form -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="bi bi-plus-circle me-2"></i>Create New Attendance Session
+                </h3>
+                <form id="new-session-form" method="post" class="flex flex-col md:flex-row gap-4 items-end">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="new_session">
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Session Label (Optional)</label>
+                        <input type="text" name="label" placeholder="e.g., Period 1, Morning Session"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    </div>
+                    <label class="inline-flex items-center gap-2 text-gray-700 cursor-pointer">
+                        <input type="checkbox" name="force_open" value="1"
+                            class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <span class="text-sm font-medium">Open Immediately</span>
+                    </label>
+                    <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium shadow-sm">
+                        <i class="bi bi-plus"></i> Create Session
+                    </button>
+                </form>
+            </div>
+
+            <!-- Attendance Statistics -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <!-- Attendance Statistics -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg shadow-sm border border-green-200 p-4 text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <i class="bi bi-check-circle text-green-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-green-700 mb-1" id="present-count">{{ attendance_stats.present }}</h3>
+                    <p class="text-sm font-medium text-green-600">Present</p>
+                </div>
+                <div class="bg-gradient-to-br from-red-50 to-red-100 rounded-lg shadow-sm border border-red-200 p-4 text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <i class="bi bi-x-circle text-red-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-red-700 mb-1" id="absent-count">{{ attendance_stats.absent }}</h3>
+                    <p class="text-sm font-medium text-red-600">Absent</p>
+                </div>
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg shadow-sm border border-gray-200 p-4 text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <i class="bi bi-people text-gray-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-gray-700 mb-1" id="total-count">{{ attendance_stats.total }}</h3>
+                    <p class="text-sm font-medium text-gray-600">Total</p>
+                </div>
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg shadow-sm border border-blue-200 p-4 text-center">
+                    <div class="flex items-center justify-center mb-2">
+                        <i class="bi bi-percent text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-3xl font-bold text-blue-700 mb-1" id="percentage">{{ attendance_stats.percentage|floatformat:1 }}%</h3>
+                    <p class="text-sm font-medium text-blue-600">Rate</p>
+                </div>
+            </div>
+
+            <!-- Search and Filters -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-5 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="bi bi-funnel me-2"></i>Search & Filter
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+                        <input type="text" id="student-search"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
+                            placeholder="Name or roll number...">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Filter by Status</label>
+                        <select id="status-filter"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors bg-white">
+                            <option value="">All Students</option>
+                            <option value="PRESENT">Present Only</option>
+                            <option value="ABSENT">Absent Only</option>
+                            <option value="UNMARKED">Not Marked</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button"
+                            class="w-full px-4 py-2 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm inline-flex items-center justify-center gap-2"
+                            onclick="exportAttendance()">
+                            <i class="bi bi-download"></i> Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Records Table -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100">
+                    <h3 class="text-lg font-semibold text-gray-800">
+                        <i class="bi bi-list-check me-2"></i>Student Records
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
             <form id="attendance-form" method="post">
                 {% csrf_token %}
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100 text-xs uppercase text-gray-500 font-semibold">
+                        <tr class="bg-gradient-to-r from-gray-100 to-gray-50 border-b border-gray-200 text-xs uppercase text-gray-700 font-bold">
                             <th class="px-6 py-4">Roll Number</th>
                             <th class="px-6 py-4">Student Name</th>
                             <th class="px-6 py-4">Department</th>
@@ -115,58 +176,78 @@
                             <th class="px-6 py-4">Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="attendance-table" class="divide-y divide-gray-100">
+                    <tbody id="attendance-table" class="divide-y divide-gray-200">
                         {% for student in students %}
-                        <tr data-student-id="{{ student.id }}" class="student-row hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 text-gray-600">{{ student.roll_no }}</td>
-                            <td class="px-6 py-4 font-medium text-gray-800">{{ student.get_full_name }}</td>
-                            <td class="px-6 py-4 text-gray-600">{{ student.department.name|default:"N/A" }}</td>
+                        <tr data-student-id="{{ student.id }}" class="student-row hover:bg-blue-50 transition-colors">
+                            <td class="px-6 py-4 font-mono text-sm text-gray-700 font-medium">{{ student.roll_no }}</td>
+                            <td class="px-6 py-4 font-medium text-gray-900">{{ student.get_full_name }}</td>
+                            <td class="px-6 py-4 text-gray-600 text-sm">{{ student.department.name|default:"—" }}</td>
                             <td class="px-6 py-4">
                                 {% if student.attendance %}
-                                <span class="attendance-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                <span class="attendance-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold
                                         {% if student.attendance.status == 'PRESENT' %}bg-green-100 text-green-800
                                         {% elif student.attendance.status == 'ABSENT' %}bg-red-100 text-red-800
                                         {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                    {{ student.attendance.get_status_display }}
+                                    {% if student.attendance.status == 'PRESENT' %}
+                                    <i class="bi bi-check-circle"></i> Present
+                                    {% elif student.attendance.status == 'ABSENT' %}
+                                    <i class="bi bi-x-circle"></i> Absent
+                                    {% else %}
+                                    <i class="bi bi-dash-circle"></i> Not Marked
+                                    {% endif %}
                                 </span>
                                 {% else %}
-                                <span
-                                    class="attendance-badge inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">Not
-                                    Marked</span>
+                                <span class="attendance-badge inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">
+                                    <i class="bi bi-question-circle"></i> Not Marked
+                                </span>
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-2">
                                     <button type="button"
-                                        class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-sm font-medium transition-colors"
-                                        onclick="markAttendance({{ student.id }}, 'PRESENT')">Present</button>
+                                        class="px-3 py-1.5 bg-green-100 text-green-700 hover:bg-green-200 rounded-md text-xs font-semibold transition-colors inline-flex items-center gap-1"
+                                        onclick="markAttendance({{ student.id }}, 'PRESENT')" title="Mark Present">
+                                        <i class="bi bi-check"></i> Present
+                                    </button>
                                     <button type="button"
-                                        class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-sm font-medium transition-colors"
-                                        onclick="markAttendance({{ student.id }}, 'ABSENT')">Absent</button>
+                                        class="px-3 py-1.5 bg-red-100 text-red-700 hover:bg-red-200 rounded-md text-xs font-semibold transition-colors inline-flex items-center gap-1"
+                                        onclick="markAttendance({{ student.id }}, 'ABSENT')" title="Mark Absent">
+                                        <i class="bi bi-x"></i> Absent
+                                    </button>
                                 </div>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="5" class="px-6 py-12 text-center text-gray-500">No students found for this
-                                event</td>
+                            <td colspan="5" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <i class="bi bi-inbox text-4xl text-gray-300 mb-3"></i>
+                                    <p class="text-gray-600 font-medium">No students registered for this event</p>
+                                    <p class="text-sm text-gray-500">Registrations will appear here once students register</p>
+                                </div>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </form>
-        </div>
-    </div>
+                </div>
+            </div>
 
-    <!-- Quick Actions -->
-    <div class="mt-8 text-center flex justify-center gap-4">
-        <a href="{% url 'event_detail' event.id %}"
-            class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">Back
-            to Event</a>
-        <button type="button"
-            class="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
-            onclick="saveAttendance()">Save All Changes</button>
-    </div>
+            <!-- Footer Actions -->
+            <div class="mt-6 flex flex-col md:flex-row gap-3 justify-between items-center">
+                <a href="{% url 'event_detail' event.id %}"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
+                    <i class="bi bi-arrow-left"></i> Back to Event
+                </a>
+                <button type="button"
+                    class="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+                    onclick="saveAttendance()">
+                    <i class="bi bi-check-lg"></i> Save All Changes
+                </button>
+            </div>
+        </div>
+    </main>
 </div>
 
 <script>

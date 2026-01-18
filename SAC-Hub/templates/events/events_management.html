@@ -149,9 +149,22 @@
                                 {% endif %}
                             </td>
                             <td class="px-6 py-4">
-                                <span class="status-badge status-{{ event.status|lower }}">
-                                    {{ event.get_status_display }}
-                                </span>
+
+                                {% if event.status == 'APPROVED' and request.user.is_authenticated and 'STUDENT' not in request.user.roles or request.user.roles|length > 1 %}
+                        <form method="POST" action="{% url 'event_mark_completed' event.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" onclick="return confirm('Mark this event as completed?')"
+                                class="w-full flex items-center justify-between p-3 bg-green-50 hover:bg-green-100 rounded-lg text-green-700 transition">
+                                <span class="font-medium"><i class="bi bi-check-circle me-2"></i>Mark Completed</span>
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <span class="status-badge status-{{ event.status|lower }}">
+                            {{ event.get_status_display }}
+                            
+                        </span>
+                        {% endif %}
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex gap-2 flex-wrap">
@@ -200,7 +213,7 @@
             </div>
         </div>
 
-        <!-- Pagination -->
+        <!-- Pagination event_mark_completed -->
         {% if events.has_other_pages %}
         <div class="mt-6 flex items-center justify-center gap-2">
             {% if events.has_previous %}
