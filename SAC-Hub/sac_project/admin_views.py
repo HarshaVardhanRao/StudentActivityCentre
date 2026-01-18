@@ -252,6 +252,7 @@ def event_approval_list(request):
 
 @login_required
 @require_http_methods(['POST'])
+@csrf_exempt
 def event_approve_reject(request):
     """Approve or reject an event"""
     # Check if user is admin or SAC coordinator
@@ -262,9 +263,11 @@ def event_approve_reject(request):
     from events.models import Event
     
     try:
-        event_id = request.POST.get('event_id')
-        action = request.POST.get('action')  # 'approve' or 'reject'
-        notes = request.POST.get('notes', '')
+        event_id = request.body.get('event_id')
+        action = request.body.get('action')  # 'approve' or 'reject'
+        notes = request.body.get('notes', '')
+        print(request)
+        print(event_id, action, notes)
         
         event = get_object_or_404(Event, id=event_id)
         

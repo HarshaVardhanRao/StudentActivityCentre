@@ -30,17 +30,23 @@
                 <i class="bi bi-calendar-event"></i>
                 Events
             </a>
-            <a href="{% url 'student-dashboard' %}#my-registrations"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-check2-square"></i>
-                My Registrations
-            </a>
             <!-- Update to point to dashboard anchor correctly even from other pages -->
             <a href="{% url 'student-dashboard' %}#certificates"
                 class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                 <i class="bi bi-award"></i>
                 Certificates
             </a>
+            <a href="{% url 'calendar_view' %}"
+                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                <i class="bi bi-award"></i>
+                Calendar
+            </a>
+            <a href="{% url 'club_list' %}"
+                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                <i class="bi bi-award"></i>
+                Clubs
+            </a>
+            
             <a href="{% url 'notifications_list' %}"
                 class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                 <i class="bi bi-bell"></i>
@@ -55,7 +61,7 @@
 
             <!-- Club Coordinator Navigation -->
             {% if 'CLUB_COORDINATOR' in request.user.roles %}
-            <a href="{% url 'club-coordinator-dashboard-template' %}"
+            <a href="{% url 'club_detail' coordinator_clubs.0.id %}"
                 class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                 <i class="bi bi-building"></i>
                 My Club
@@ -195,12 +201,7 @@
             <a href="{% url 'calendar_view' %}"
                 class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
                 <i class="bi bi-graph-up"></i>
-                Analytics & Reports
-            </a>
-            <a href="{% url 'settings' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-gear"></i>
-                System Settings
+                Analytics
             </a>
             <a href="{% url 'notifications_list' %}"
                 class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">

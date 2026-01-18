@@ -15,10 +15,6 @@
                         <h1 class="text-4xl font-bold text-gray-900">{{ club.name }}</h1>
                         <p class="text-gray-600 mt-2">Manage club members</p>
                     </div>
-                    <a href="{% url 'club_detail' club.id %}"
-                        class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">
-                        ← Back to Club
-                    </a>
                 </div>
 
                 <!-- Summary Stats -->
@@ -26,14 +22,6 @@
                     <div class="bg-white rounded-lg shadow p-4 border-l-4 border-blue-600">
                         <p class="text-gray-600 text-sm">Total Members</p>
                         <p class="text-3xl font-bold text-blue-600">{{ total_members }}</p>
-                    </div>
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-green-600">
-                        <p class="text-gray-600 text-sm">Current Page</p>
-                        <p class="text-3xl font-bold text-green-600">{{ members.paginator.count }}</p>
-                    </div>
-                    <div class="bg-white rounded-lg shadow p-4 border-l-4 border-purple-600">
-                        <p class="text-gray-600 text-sm">Showing</p>
-                        <p class="text-3xl font-bold text-purple-600">{{ members|length }}</p>
                     </div>
                 </div>
             </div>
