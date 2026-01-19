@@ -21,39 +21,39 @@
             <!-- Student Navigation -->
             {% if request.user.roles|length == 0 or 'STUDENT' in request.user.roles %}
             <a href="{% url 'home' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'student-dashboard' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-house-door"></i>
                 Home
             </a>
             <a href="{% url 'event_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'event_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-calendar-event"></i>
                 Events
             </a>
             <!-- Update to point to dashboard anchor correctly even from other pages -->
             <a href="{% url 'student-dashboard' %}#certificates"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'certificate' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-award"></i>
                 Certificates
             </a>
             <a href="{% url 'calendar_view' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-award"></i>
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'calendar_view' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <i class="bi bi-calendar3"></i>
                 Calendar
             </a>
             <a href="{% url 'club_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-award"></i>
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'club_list' or request.resolver_match.url_name == 'club_detail' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+                <i class="bi bi-people"></i>
                 Clubs
             </a>
-            
+
             <a href="{% url 'notifications_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'notifications_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-bell"></i>
                 Notifications
             </a>
             <a href="{% url 'profile' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-person"></i>
                 Profile
             </a>
@@ -62,42 +62,32 @@
             <!-- Club Coordinator Navigation -->
             {% if 'CLUB_COORDINATOR' in request.user.roles %}
             <a href="{% url 'club_detail' coordinator_clubs.0.id %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'club_detail' and request.resolver_match.kwargs.club_id == coordinator_clubs.0.id %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-building"></i>
                 My Club
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-calendar-event"></i>
                 Events
             </a>
             <a href="{% if coordinator_clubs %}{% url 'manage_club_members' coordinator_clubs.0.id %}{% else %}#manage-members{% endif %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'manage_club_members' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-people"></i>
                 Manage Members
             </a>
             <a href="{% url 'attendance_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'attendance_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-check2-all"></i>
                 Attendance
             </a>
-            <!-- <a href="{% url 'club-coordinator-dashboard-template' %}#approvals"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-check-circle"></i>
-                Approvals
-            </a> 
-             <a href="{% url 'club-coordinator-dashboard-template' %}#finance"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
-                <i class="bi bi-cash-flow"></i>
-                Finance
-            </a> -->
             <a href="{% url 'notifications_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'notifications_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-bell"></i>
                 Notifications
             </a>
             <a href="{% url 'profile' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-person"></i>
                 Profile
             </a>
@@ -106,32 +96,32 @@
             <!-- Club Advisor Navigation -->
             {% if 'CLUB_ADVISOR' in request.user.roles %}
             <a href="{% url 'club-advisor-dashboard-template' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'club-advisor-dashboard-template' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-speedometer2"></i>
                 Dashboard
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-calendar-check"></i>
                 Event Approvals
             </a>
             <a href="{% url 'club_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'club_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-collection"></i>
                 Clubs
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-file-earmark-text"></i>
                 Reports
             </a>
             <a href="{% url 'notifications_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'notifications_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-bell"></i>
                 Notifications
             </a>
             <a href="{% url 'profile' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-person"></i>
                 Profile
             </a>
@@ -140,42 +130,42 @@
             <!-- Department Admin Navigation -->
             {% if 'ADMIN' in request.user.roles and 'SAC_COORDINATOR' not in request.user.roles %}
             <a href="{% url 'department-admin-dashboard-template' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'department-admin-dashboard-template' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-speedometer2"></i>
                 Dashboard
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-calendar-event"></i>
                 Department Events
             </a>
             <a href="{% url 'department-admin-dashboard-template' %}#clubs-management"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'department-admin-dashboard-template' and '#clubs-management' in request.build_absolute_uri %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-building"></i>
                 Clubs Management
             </a>
             <a href="{% url 'department-admin-dashboard-template' %}#students"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'department-admin-dashboard-template' and '#students' in request.build_absolute_uri %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-people"></i>
                 Students
             </a>
             <a href="{% url 'department-admin-dashboard-template' %}#approvals"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'department-admin-dashboard-template' and '#approvals' in request.build_absolute_uri %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-check-circle"></i>
                 Approvals
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-file-earmark-text"></i>
                 Reports
             </a>
             <a href="{% url 'notifications_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'notifications_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-bell"></i>
                 Notifications
             </a>
             <a href="{% url 'profile' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-person"></i>
                 Profile
             </a>
@@ -184,32 +174,32 @@
             <!-- SAC Coordinator Navigation -->
             {% if 'SAC_COORDINATOR' in request.user.roles %}
             <a href="{% url 'admin-dashboard-template' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'admin-dashboard-template' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-speedometer2"></i>
                 SAC Dashboard
             </a>
             <a href="{% url 'events_management' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'events_management' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-calendar-event"></i>
                 All Events
             </a>
             <a href="{% url 'event_reports' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'event_reports' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-file-earmark-text"></i>
                 Event Reports
             </a>
             <a href="{% url 'analytics' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'analytics' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-graph-up"></i>
                 Analytics
             </a>
             <a href="{% url 'notifications_list' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'notifications_list' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-bell"></i>
                 Notifications
             </a>
             <a href="{% url 'profile' %}"
-                class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg font-medium transition-colors">
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'profile' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-person"></i>
                 Profile
             </a>

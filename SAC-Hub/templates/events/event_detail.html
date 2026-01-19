@@ -3,8 +3,9 @@
 {% block title %}{{ event.name }} - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="bg-gray-50 min-h-screen py-8">
-    <div class="container mx-auto px-4">
+<div class="flex min-h-screen bg-gray-50">
+    {% include 'includes/sidebar.html' %}
+    <main class="flex-1 md:ml-64 p-8">
 
         <!-- Event Hero -->
         <div
@@ -42,8 +43,7 @@
                             </div>
                             <div>
                                 <p class="text-gray-500 text-sm uppercase font-medium">Date & Time</p>
-                                <p class="text-gray-700">{{ event.date_time|date:"F d, Y" }} at {{
-                                    event.date_time|time:"g:i A" }}</p>
+                                <p class="text-gray-700">{{ event.date_time|date:"F d, Y" }} at {{ event.date_time|time:"g:i A" }}</p>
                             </div>
                         </div>
                         <div class="flex items-start space-x-4">
@@ -188,6 +188,7 @@
                 {% endif %}
 
                 <!-- Analytics -->
+                {% if 'SAC_COORDINATOR' in user.roles or 'CLUB_COORDINATOR' in user.roles or 'FACULTY' in user.roles %}
                 <div class="bg-white shadow rounded-xl p-6">
                     <h2 class="text-xl font-semibold text-gray-700 mb-4"><i class="bi bi-bar-chart me-2"></i>Event
                         Analytics</h2>
@@ -208,6 +209,7 @@
                     <p class="text-gray-400 text-center">Attendance tracking available after event approval</p>
                     {% endif %}
                 </div>
+                {% endif %}
 
                 <!-- Approval Chain -->
                 {% if event.approval_chain %}
@@ -263,93 +265,92 @@
                 <i class="bi bi-arrow-left me-1"></i>Back to Events
             </a>
         </div>
-    </div>
+    </main>
 </div>
 <script>
     function showNotification(message, type) {
-		const notification = document.createElement('div');
-		notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium shadow-lg z-50 ${
-			type === 'success' ? 'bg-green-500' : 'bg-red-500'
-		}`;
-		notification.textContent = message;
-		document.body.appendChild(notification);
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-medium shadow-lg z-50 ${type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+        notification.textContent = message;
+        document.body.appendChild(notification);
 
-		setTimeout(() => {
-			notification.remove();
-		}, 3000);
-	}
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
 
     function getCookie(name) {
-		let cookieValue = null;
-		if (document.cookie && document.cookie !== '') {
-			const cookies = document.cookie.split(';');
-			for (let i = 0; i < cookies.length; i++) {
-				const cookie = cookies[i].trim();
-				if (cookie.substring(0, name.length + 1) === (name + '=')) {
-					cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-					break;
-				}
-			}
-		}
-		return cookieValue;
-	}
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     function approveEvent(eventId) {
-		const notes = prompt('Add approval notes (optional):');
-		if (notes !== null) {
-			const formData = new FormData();
-			formData.append('event_id', eventId);
-			formData.append('action', 'approve');
-			formData.append('notes', notes);
-			formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+        const notes = prompt('Add approval notes (optional):');
+        if (notes !== null) {
+            const formData = new FormData();
+            formData.append('event_id', eventId);
+            formData.append('action', 'approve');
+            formData.append('notes', notes);
+            formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
-			fetch('{% url "event_approve_reject" %}', {
-				method: 'POST',
-				body: formData
-			})
-			.then(response => {
-				if (response.ok) {
-					showNotification('Event approved successfully!', 'success');
-					setTimeout(() => location.reload(), 1500);
-				} else {
-					showNotification('Failed to approve event', 'error');
-				}
-			})
-			.catch(error => {
-				console.error('Error:', error);
-				showNotification('Error approving event', 'error');
-			});
-		}
-	}
+            fetch('{% url "event_approve_reject" %}', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        showNotification('Event approved successfully!', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showNotification('Failed to approve event', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error approving event', 'error');
+                });
+        }
+    }
 
-	function rejectEvent(eventId) {
-		const reason = prompt('Enter rejection reason:');
-		if (reason !== null && reason.trim() !== '') {
-			const formData = new FormData();
-			formData.append('event_id', eventId);
-			formData.append('action', 'reject');
-			formData.append('notes', reason);
-			formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
+    function rejectEvent(eventId) {
+        const reason = prompt('Enter rejection reason:');
+        if (reason !== null && reason.trim() !== '') {
+            const formData = new FormData();
+            formData.append('event_id', eventId);
+            formData.append('action', 'reject');
+            formData.append('notes', reason);
+            formData.append('csrfmiddlewaretoken', getCookie('csrftoken'));
 
             console.log(formData);
 
-			fetch('{% url "event_approve_reject" %}', {
-				method: 'POST',
-				body: formData
-			})
-			.then(response => {
-				if (response.ok) {
-					showNotification('Event rejected successfully!', 'success');
-					setTimeout(() => location.reload(), 1500);
-				} else {
-					showNotification('Failed to reject event', 'error');
-				}
-			})
-			.catch(error => {
-				console.error('Error:', error);
-				showNotification('Error rejecting event', 'error');
-			});
-		}
-	}
+            fetch('{% url "event_approve_reject" %}', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => {
+                    if (response.ok) {
+                        showNotification('Event rejected successfully!', 'success');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showNotification('Failed to reject event', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error rejecting event', 'error');
+                });
+        }
+    }
 </script>
 {% endblock %}

@@ -1,3 +1,4 @@
+from django.shortcuts import redirect
 from django.shortcuts import render
 from events.models import Event
 from users.models import Notification, Club, Department, User
@@ -32,6 +33,8 @@ def student_dashboard(request):
     # Check if user is a club coordinator
     if "CLUB_COORDINATOR" in user_roles or "CO_COORDINATOR" in user_roles:
         coordinated_clubs = request.user.coordinated_clubs.all()
+        print("Yes")
+        return redirect('club_detail', club_id=coordinated_clubs.first().id)
         if coordinated_clubs.exists():
             club_names = ", ".join([club.name for club in coordinated_clubs[:2]])
             if coordinated_clubs.count() > 2:

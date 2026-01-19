@@ -9,7 +9,8 @@ def home(request):
     if request.user.is_authenticated:
         if "SAC_COORDINATOR" in request.user.roles:
             return redirect('admin-dashboard-template')
-    
+        if "CLUB_COORDINATOR" in request.user.roles:
+            return redirect('student-dashboard')
         return redirect('student-dashboard')
 
     # Get upcoming and completed events for public display

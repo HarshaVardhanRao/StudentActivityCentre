@@ -261,13 +261,10 @@ def event_approve_reject(request):
         return redirect('student-dashboard')
     
     from events.models import Event
-    
     try:
-        event_id = request.body.get('event_id')
-        action = request.body.get('action')  # 'approve' or 'reject'
-        notes = request.body.get('notes', '')
-        print(request)
-        print(event_id, action, notes)
+        event_id = request.POST.get('event_id')
+        action = request.POST.get('action')  # 'approve' or 'reject'
+        notes = request.POST.get('notes', '')
         
         event = get_object_or_404(Event, id=event_id)
         

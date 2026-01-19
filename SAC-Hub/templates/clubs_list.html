@@ -5,129 +5,134 @@
 
 {% block extra_css %}
 <style>
-.card {
-    @apply bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition;
-}
+    .card {
+        @apply bg-white shadow-md rounded-lg overflow-hidden hover:shadow-xl transition;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-6 py-10">
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
 
-    <h1 class="text-3xl font-bold mb-6">Clubs</h1>
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-7xl mx-auto">
+            <h1 class="text-3xl font-bold mb-6">Clubs</h1>
 
-    <!-- Filters -->
-    <form method="get" class="flex flex-wrap gap-4 mb-8 items-end">
-        <!-- Department Filter -->
-        <div>
-            <label class="block text-sm font-medium mb-1">Department</label>
-            <select name="department" class="border rounded-lg px-3 py-2">
-                <option value="">All Departments</option>
-                {% for dept in departments %}
-                    <option value="{{ dept.id }}" {% if request.GET.department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+            <!-- Filters -->
+            <form method="get" class="flex flex-wrap gap-4 mb-8 items-end">
+                <!-- Department Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Department</label>
+                    <select name="department" class="border rounded-lg px-3 py-2">
+                        <option value="">All Departments</option>
+                        {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if request.GET.department == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Advisor Filter -->
+                <div>
+                    <label class="block text-sm font-medium mb-1">Advisor</label>
+                    <select name="advisor" class="border rounded-lg px-3 py-2">
+                        <option value="">All Advisors</option>
+                        {% for advisor in advisors %}
+                        <option value="{{ advisor.id }}" {% if request.GET.advisor == advisor.id|stringformat:"s" %}selected{% endif %}>
+                            {{ advisor.get_full_name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit"
+                    class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Filter</button>
+            </form>
+
+            <!-- Club List -->
+            <div class="grid md:grid-cols-3 gap-6">
+                {% for club in clubs %}
+                <div class="card p-4 flex flex-col justify-between h-full">
+
+                    <!-- Club Image -->
+                    {% if club.logo %}
+                    <img src="{{ club.logo.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
+                    {% else %}
+                    <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                        No Image
+                    </div>
+                    {% endif %}
+
+                    <!-- Club Info -->
+                    <h3 class="text-lg font-semibold mt-2">{{ club.name }}</h3>
+                    <p class="text-gray-600 text-sm mt-1 line-clamp-3">{{ club.description }}</p>
+
+                    <p class="text-sm text-gray-600 mt-2">
+                        Advisor: {% if club.advisor %}{{ club.advisor.get_full_name }}{% else %}N/A{% endif %}
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">
+                        Coordinators:
+                        {% if club.coordinators.all %}
+                        {% for coordinator in club.coordinators.all %}
+                        {{ coordinator.get_full_name }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                        {% else %}
+                        N/A
+                        {% endif %}
+                    </p>
+                    <p class="text-sm text-gray-600 mt-1">Members: {{ club.members.count }}</p>
+
+                    <!-- Buttons -->
+                    <div class="mt-4 flex flex-col gap-2">
+                        <a href="{% url 'club_detail' club.id %}"
+                            class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
+                            Visit Club Page
+                        </a>
+
+                        {% if user.is_authenticated %}
+                        {% if club.id in joined_club_ids %}
+                        <button class="w-full text-center bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
+                            Joined
+                        </button>
+                        {% else %}
+                        <a href="{% url 'club_join' club.id %}"
+                            class="w-full text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+                            Join
+                        </a>
+                        {% endif %}
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% empty %}
+                <p class="text-gray-500 col-span-full">No clubs found.</p>
                 {% endfor %}
-            </select>
+            </div>
+
+
+            <!-- Pagination -->
+            <div class="mt-8 flex justify-center items-center gap-3">
+                {% if clubs.has_previous %}
+                <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
+                               {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
+                               page={{ clubs.previous_page_number }}"
+                    class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">&laquo; Prev</a>
+                {% endif %}
+
+                <span class="px-3 py-1 bg-gray-100 rounded">{{ clubs.number }} / {{ clubs.paginator.num_pages }}</span>
+
+                {% if clubs.has_next %}
+                <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
+                               {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
+                               page={{ clubs.next_page_number }}"
+                    class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next &raquo;</a>
+                {% endif %}
+            </div>
         </div>
-
-        <!-- Advisor Filter -->
-        <div>
-            <label class="block text-sm font-medium mb-1">Advisor</label>
-            <select name="advisor" class="border rounded-lg px-3 py-2">
-                <option value="">All Advisors</option>
-                {% for advisor in advisors %}
-                    <option value="{{ advisor.id }}" {% if request.GET.advisor == advisor.id|stringformat:"s" %}selected{% endif %}>
-                        {{ advisor.get_full_name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <button type="submit"
-                class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition">Filter</button>
-    </form>
-
-    <!-- Club List -->
-<div class="grid md:grid-cols-3 gap-6">
-    {% for club in clubs %}
-    <div class="card p-4 flex flex-col justify-between h-full">
-      
-      <!-- Club Image -->
-      {% if club.logo %}
-          <img src="{{ club.logo.url }}" class="w-full h-40 object-cover rounded-lg mb-3">
-      {% else %}
-          <div class="w-full h-40 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
-              No Image
-          </div>
-      {% endif %}
-
-      <!-- Club Info -->
-      <h3 class="text-lg font-semibold mt-2">{{ club.name }}</h3>
-      <p class="text-gray-600 text-sm mt-1 line-clamp-3">{{ club.description }}</p>
-
-      <p class="text-sm text-gray-600 mt-2">
-          Advisor: {% if club.advisor %}{{ club.advisor.get_full_name }}{% else %}N/A{% endif %}
-      </p>
-      <p class="text-sm text-gray-600 mt-1">
-          Coordinators: 
-          {% if club.coordinators.all %}
-              {% for coordinator in club.coordinators.all %}
-                  {{ coordinator.get_full_name }}{% if not forloop.last %}, {% endif %}
-              {% endfor %}
-          {% else %}
-              N/A
-          {% endif %}
-      </p>
-      <p class="text-sm text-gray-600 mt-1">Members: {{ club.members.count }}</p>
-
-      <!-- Buttons -->
-<div class="mt-4 flex flex-col gap-2">
-    <a href="{% url 'club_detail' club.id %}"
-       class="w-full text-center bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 transition">
-        Visit Club Page
-    </a>
-
-    {% if user.is_authenticated %}
-    {% if club.id in joined_club_ids %}
-        <button class="w-full text-center bg-gray-400 text-white py-2 rounded-lg cursor-not-allowed">
-            Joined
-        </button>
-    {% else %}
-        <a href="{% url 'club_join' club.id %}" 
-           class="w-full text-center bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
-           Join
-        </a>
-    {% endif %}
-{% endif %}
-
-</div>
-
-  </div>
-
-    {% empty %}
-        <p class="text-gray-500 col-span-full">No clubs found.</p>
-    {% endfor %}
-</div>
-
-
-    <!-- Pagination -->
-    <div class="mt-8 flex justify-center items-center gap-3">
-        {% if clubs.has_previous %}
-            <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
-                       {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
-                       page={{ clubs.previous_page_number }}"
-               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">&laquo; Prev</a>
-        {% endif %}
-
-        <span class="px-3 py-1 bg-gray-100 rounded">{{ clubs.number }} / {{ clubs.paginator.num_pages }}</span>
-
-        {% if clubs.has_next %}
-            <a href="?{% if request.GET.department %}department={{ request.GET.department }}&{% endif %}
-                       {% if request.GET.advisor %}advisor={{ request.GET.advisor }}&{% endif %}
-                       page={{ clubs.next_page_number }}"
-               class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Next &raquo;</a>
-        {% endif %}
-    </div>
-
+    </main>
 </div>
 {% endblock %}
- 

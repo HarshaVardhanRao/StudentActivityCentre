@@ -43,7 +43,7 @@
                 <img src="#" class="w-10 h-10" />
                 <span class="font-semibold text-lg">Student Activity Center</span>
             </div>
-
+            {% comment %}
             <!-- CENTER NAV (Desktop) -->
             <nav class="hidden md:flex items-center gap-8 font-medium">
                 <a href="{% url 'home' %}" class="hover:text-red-600 hover:scale-110 transition">Home</a>
@@ -52,6 +52,7 @@
                 <a href="{% url 'calendar_view' %}" class="hover:text-red-600 hover:scale-110 transition">Calendar</a>
                 <a href="{% url 'about' %}" class="hover:text-red-600 hover:scale-110 transition">About SAC</a>
             </nav>
+            {% endcomment %}
 
             <!-- RIGHT SIDE -->
             {% if user.is_authenticated %}

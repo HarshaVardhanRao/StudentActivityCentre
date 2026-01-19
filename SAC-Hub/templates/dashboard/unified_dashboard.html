@@ -74,7 +74,7 @@
                     </div>
                 </div>
                 <p class="text-gray-500 font-medium mb-2">
-                    {% if stats.is_sac_admin %}Total Students{% else %}Attended Events{% endif %}
+                    {% if stats.is_sac_admin %}Total Students{% else %}Attended Sessions{% endif %}
                 </p>
                 <h2 class="text-4xl font-bold {% if stats.is_sac_admin %}text-gray-800{% else %}text-green-600{% endif %} mb-4">{{ attended_events|length|default:stats.total_users }}</h2>
                 <div class="flex items-center text-sm {% if stats.is_sac_admin %}text-gray-500{% else %}text-green-600{% endif %}">

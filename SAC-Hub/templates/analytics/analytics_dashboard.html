@@ -4,12 +4,12 @@
 {% block title %}Analytics Dashboard - SAC Hub{% endblock %}
 
 {% block content %}
-<div class="flex flex-col lg:flex-row gap-6 min-h-screen bg-gray-50 p-4 md:p-6">
+<div class="flex min-h-screen bg-gray-50">
     <!-- Sidebar -->
     {% include 'includes/sidebar.html' %}
-    
+
     <!-- Main Content -->
-    <div class="flex-1">
+    <main class="flex-1 md:ml-64 p-8">
         <!-- Header -->
         <div class="mb-8">
             <h1 class="text-4xl font-bold text-gray-900 mb-2">
@@ -17,7 +17,7 @@
             </h1>
             <p class="text-gray-600">Comprehensive insights and metrics for SAC management</p>
         </div>
-        
+
         <!-- Key Metrics Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <!-- Total Clubs -->
@@ -33,7 +33,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Total Events -->
             <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center justify-between">
@@ -47,7 +47,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Total Departments -->
             <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center justify-between">
@@ -61,7 +61,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Overall Attendance -->
             <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
                 <div class="flex items-center justify-between">
@@ -76,7 +76,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Top Row: Clubs and Events By Status -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Top Clubs -->
@@ -88,26 +88,28 @@
                 </div>
                 <div class="space-y-3">
                     {% for club in top_clubs %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
-                                    <i class="bi bi-people text-white"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900">{{ club.name }}</p>
-                                    <p class="text-sm text-gray-500">{{ club.members.count }} members</p>
-                                </div>
+                    <div
+                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="bi bi-people text-white"></i>
                             </div>
-                            <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                {{ club.members.count }}
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ club.name }}</p>
+                                <p class="text-sm text-gray-500">{{ club.members.count }} members</p>
                             </div>
                         </div>
+                        <div class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
+                            {{ club.members.count }}
+                        </div>
+                    </div>
                     {% empty %}
-                        <p class="text-gray-500 text-center py-4">No club data available</p>
+                    <p class="text-gray-500 text-center py-4">No club data available</p>
                     {% endfor %}
                 </div>
             </div>
-            
+
             <!-- Event Status Distribution -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -147,7 +149,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Attendance Analysis Row -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Attendance Summary -->
@@ -164,7 +166,8 @@
                             <span class="text-green-600 font-bold">{{ present_count }}</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-3">
-                            <div class="bg-green-500 h-3 rounded-full" style="width: {{ overall_attendance_percentage }}%"></div>
+                            <div class="bg-green-500 h-3 rounded-full"
+                                style="width: {{ overall_attendance_percentage }}%"></div>
                         </div>
                     </div>
                     <div>
@@ -182,7 +185,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Department Attendance -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -192,23 +195,23 @@
                 </div>
                 <div class="space-y-2 max-h-80 overflow-y-auto">
                     {% for dept in dept_attendance_data %}
-                        <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <div class="flex items-center justify-between mb-2">
-                                <p class="font-semibold text-gray-900">{{ dept.name }}</p>
-                                <span class="text-sm font-bold text-blue-600">{{ dept.percentage|floatformat:1 }}%</span>
-                            </div>
-                            <div class="w-full bg-gray-300 rounded-full h-2">
-                                <div class="bg-blue-500 h-2 rounded-full" style="width: {{ dept.percentage }}%"></div>
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1">{{ dept.present }} / {{ dept.total }} present</p>
+                    <div class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex items-center justify-between mb-2">
+                            <p class="font-semibold text-gray-900">{{ dept.name }}</p>
+                            <span class="text-sm font-bold text-blue-600">{{ dept.percentage|floatformat:1 }}%</span>
                         </div>
+                        <div class="w-full bg-gray-300 rounded-full h-2">
+                            <div class="bg-blue-500 h-2 rounded-full" style="width: {{ dept.percentage }}%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">{{ dept.present }} / {{ dept.total }} present</p>
+                    </div>
                     {% empty %}
-                        <p class="text-gray-500 text-center py-4">No attendance data available</p>
+                    <p class="text-gray-500 text-center py-4">No attendance data available</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
-        
+
         <!-- Events by Club -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <!-- Events by Club -->
@@ -220,21 +223,22 @@
                 </div>
                 <div class="space-y-3">
                     {% for club in events_by_club %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <div>
-                                <p class="font-semibold text-gray-900">{{ club.name }}</p>
-                                <p class="text-sm text-gray-500">{{ club.event_count }} event{% if club.event_count != 1 %}s{% endif %}</p>
-                            </div>
-                            <div class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                {{ club.event_count }}
-                            </div>
+                    <div
+                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div>
+                            <p class="font-semibold text-gray-900">{{ club.name }}</p>
+                            <p class="text-sm text-gray-500">{{ club.event_count }} event{% if club.event_count != 1 %}s{% endif %}</p>
                         </div>
+                        <div class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-sm font-semibold">
+                            {{ club.event_count }}
+                        </div>
+                    </div>
                     {% empty %}
-                        <p class="text-gray-500 text-center py-4">No event data available</p>
+                    <p class="text-gray-500 text-center py-4">No event data available</p>
                     {% endfor %}
                 </div>
             </div>
-            
+
             <!-- Most Active Students -->
             <div class="bg-white rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-4">
@@ -244,27 +248,29 @@
                 </div>
                 <div class="space-y-3">
                     {% for student in most_active_students %}
-                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
-                                    <i class="bi bi-person text-white"></i>
-                                </div>
-                                <div>
-                                    <p class="font-semibold text-gray-900">{{ student.get_full_name }}</p>
-                                    <p class="text-xs text-gray-500">{{ student.registration_count }} registrations</p>
-                                </div>
+                    <div
+                        class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex items-center">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center mr-3">
+                                <i class="bi bi-person text-white"></i>
                             </div>
-                            <div class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-xs font-semibold">
-                                {{ student.attendance_count }} attended
+                            <div>
+                                <p class="font-semibold text-gray-900">{{ student.get_full_name }}</p>
+                                <p class="text-xs text-gray-500">{{ student.registration_count }} registrations</p>
                             </div>
                         </div>
+                        <div class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded text-xs font-semibold">
+                            {{ student.attendance_count }} attended
+                        </div>
+                    </div>
                     {% empty %}
-                        <p class="text-gray-500 text-center py-4">No student data available</p>
+                    <p class="text-gray-500 text-center py-4">No student data available</p>
                     {% endfor %}
                 </div>
             </div>
         </div>
-        
+
         <!-- Event Participation Details -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -285,51 +291,56 @@
                     </thead>
                     <tbody>
                         {% for event in event_participation %}
-                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
-                                <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ event.name }}</td>
-                                <td class="px-4 py-3 text-center">
-                                    <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                        {{ event.registration_count }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-semibold">
-                                        {{ event.attendance_count }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    {% if event.status == 'APPROVED' %}
-                                        <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-semibold">Approved</span>
-                                    {% elif event.status == 'PENDING' %}
-                                        <span class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-semibold">Pending</span>
-                                    {% elif event.status == 'DRAFT' %}
-                                        <span class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">Draft</span>
-                                    {% elif event.status == 'REJECTED' %}
-                                        <span class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold">Rejected</span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-4 py-3 text-center">
-                                    {% if event.registration_count > 0 %}
-                                        <span class="font-semibold text-gray-900">
-                                            {{ event.attendance_count|floatformat:0 }}/{{ event.registration_count|floatformat:0 }}
-                                        </span>
-                                    {% else %}
-                                        <span class="text-gray-500">N/A</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
+                        <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                            <td class="px-4 py-3 text-sm text-gray-900 font-medium">{{ event.name }}</td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-semibold">
+                                    {{ event.registration_count }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm font-semibold">
+                                    {{ event.attendance_count }}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {% if event.status == 'APPROVED' %}
+                                <span
+                                    class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-semibold">Approved</span>
+                                {% elif event.status == 'PENDING' %}
+                                <span
+                                    class="bg-yellow-100 text-yellow-600 px-3 py-1 rounded-full text-xs font-semibold">Pending</span>
+                                {% elif event.status == 'DRAFT' %}
+                                <span
+                                    class="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-xs font-semibold">Draft</span>
+                                {% elif event.status == 'REJECTED' %}
+                                <span
+                                    class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-semibold">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-4 py-3 text-center">
+                                {% if event.registration_count > 0 %}
+                                <span class="font-semibold text-gray-900">
+                                    {{ event.attendance_count|floatformat:0 }}/{{ event.registration_count|floatformat:0
+                                    }}
+                                </span>
+                                {% else %}
+                                <span class="text-gray-500">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
                         {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-4 py-6 text-center text-gray-500">
-                                    No event participation data available
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="5" class="px-4 py-6 text-center text-gray-500">
+                                No event participation data available
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
         </div>
-        
+
         <!-- Club Performance -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -339,33 +350,33 @@
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {% for club in club_performance %}
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
-                        <div class="flex items-center justify-between mb-3">
-                            <h3 class="font-bold text-gray-900">{{ club.name }}</h3>
-                            <i class="bi bi-star text-yellow-500"></i>
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg p-4 border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-gray-900">{{ club.name }}</h3>
+                        <i class="bi bi-star text-yellow-500"></i>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Members:</span>
+                            <span class="font-semibold text-gray-900">{{ club.member_count }}</span>
                         </div>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Members:</span>
-                                <span class="font-semibold text-gray-900">{{ club.member_count }}</span>
-                            </div>
-                            <div class="flex items-center justify-between">
-                                <span class="text-gray-600">Events:</span>
-                                <span class="font-semibold text-gray-900">{{ club.event_count }}</span>
-                            </div>
-                            <div class="pt-2 border-t border-gray-300">
-                                <p class="text-center text-xs text-gray-500">Active & Engaged</p>
-                            </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-600">Events:</span>
+                            <span class="font-semibold text-gray-900">{{ club.event_count }}</span>
+                        </div>
+                        <div class="pt-2 border-t border-gray-300">
+                            <p class="text-center text-xs text-gray-500">Active & Engaged</p>
                         </div>
                     </div>
+                </div>
                 {% empty %}
-                    <div class="col-span-full text-center py-8 text-gray-500">
-                        No club performance data available
-                    </div>
+                <div class="col-span-full text-center py-8 text-gray-500">
+                    No club performance data available
+                </div>
                 {% endfor %}
             </div>
         </div>
-        
+
         <!-- Recent Activity -->
         <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <div class="flex items-center justify-between mb-4">
@@ -387,9 +398,7 @@
                     <p class="text-3xl font-bold text-orange-600">{{ recent_attendance_percentage|floatformat:1 }}%</p>
                 </div>
             </div>
-        </div>
-        
-    </div>
+    </main>
 </div>
 
 <!-- Custom Filter for Attendance Calculation -->
@@ -407,31 +416,31 @@ if needed. The progress bars show Present vs Absent counts.
     .max-h-80::-webkit-scrollbar {
         width: 6px;
     }
-    
+
     .max-h-80::-webkit-scrollbar-track {
         background: #f1f1f1;
         border-radius: 10px;
     }
-    
+
     .max-h-80::-webkit-scrollbar-thumb {
         background: #888;
         border-radius: 10px;
     }
-    
+
     .max-h-80::-webkit-scrollbar-thumb:hover {
         background: #555;
     }
-    
+
     /* Smooth transitions */
     .transition {
         transition: all 0.3s ease;
     }
-    
+
     /* Gradient backgrounds */
     .bg-gradient-to-r {
         background-image: linear-gradient(to right, var(--tw-gradient-stops));
     }
-    
+
     .bg-gradient-to-br {
         background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
     }
