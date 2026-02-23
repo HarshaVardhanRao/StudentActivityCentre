@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Certificate Generation - MITS SAC Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root { --mits-red: #C8102E; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    {% include 'includes/sidebar.html' %}
+
+    <!-- Main Content -->
+    <main class="flex-1 md:ml-64 p-8 transition-all duration-300">
+        <div class="max-w-6xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h1 class="text-2xl font-semibold text-gray-900">My Certificates</h1>
+            <p class="text-sm text-gray-500 mt-1">Download certificates for events you've attended</p>
+        </div>
+
+        <!-- Events Table -->
+        <div class="px-6 py-8">
+            {% if attended_events %}
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
+                        <tr>
+                            <th class="px-6 py-4 font-medium">#</th>
+                            <th class="px-6 py-4 font-medium">Event Name</th>
+                            <th class="px-6 py-4 font-medium">Date</th>
+                            <th class="px-6 py-4 font-medium">Venue</th>
+                            <th class="px-6 py-4 font-medium">Club</th>
+                            <th class="px-6 py-4 font-medium text-center">Certificate</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for item in attended_events %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-gray-600">{{ forloop.counter }}</td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    {% if item.event.thumbnail %}
+                                    <img src="{{ item.event.thumbnail.url }}" alt="{{ item.event.name }}" class="w-10 h-10 rounded object-cover">
+                                    {% else %}
+                                    <div class="w-10 h-10 bg-[var(--mits-red)] bg-opacity-10 rounded flex items-center justify-center text-[var(--mits-red)] text-xs font-bold">
+                                        {{ item.event.name|first|upper }}
+                                    </div>
+                                    {% endif %}
+                                    <span class="font-medium text-gray-900">{{ item.event.name }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-gray-600 text-sm">{{ item.event.date_time|date:"M d, Y" }}</td>
+                            <td class="px-6 py-4 text-gray-600 text-sm">{{ item.event.venue|truncatewords:3 }}</td>
+                            <td class="px-6 py-4 text-gray-600 text-sm">
+                                {% if item.event.club %}
+                                    {{ item.event.club.name }}
+                                {% else %}
+                                    <span class="text-gray-400">General</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <a href="{% url 'certificate:download_event_certificate' item.event.id %}" 
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-[var(--mits-red)] text-white text-sm font-medium rounded-lg hover:brightness-95 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
+                                        <path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                                    </svg>
+                                    Download
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <!-- Empty state -->
+            <div class="text-center py-12">
+                <div class="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">No Certificates Available</h3>
+                <p class="text-gray-500 mb-6">You haven't attended any events yet. Participate in events to earn certificates!</p>
+                <a href="{% url 'event_list' %}" 
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-[var(--mits-red)] text-white font-medium rounded-lg hover:brightness-95 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path d="M12.75 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM7.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM8.25 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM9.75 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM10.5 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM12.75 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM14.25 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 17.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 15.75a.75.75 0 100-1.5.75.75 0 000 1.5zM15 12.75a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM16.5 13.5a.75.75 0 100-1.5.75.75 0 000 1.5z" />
+                        <path fill-rule="evenodd" d="M6.75 2.25A.75.75 0 017.5 3v1.5h9V3A.75.75 0 0118 3v1.5h.75a3 3 0 013 3v11.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V7.5a3 3 0 013-3H6V3a.75.75 0 01.75-.75zm13.5 9a1.5 1.5 0 00-1.5-1.5H5.25a1.5 1.5 0 00-1.5 1.5v7.5a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5v-7.5z" clip-rule="evenodd" />
+                    </svg>
+                    Browse Events
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+
+{% endblock %}

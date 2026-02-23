@@ -30,9 +30,8 @@
                 <i class="bi bi-calendar-event"></i>
                 Events
             </a>
-            <!-- Update to point to dashboard anchor correctly even from other pages -->
-            <a href="{% url 'student-dashboard' %}#certificates"
-                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if request.resolver_match.url_name == 'certificate' %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
+            <a href="{% url 'certificate:home' %}"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors {% if 'certificate' in request.resolver_match.url_name %}bg-red-50 text-red-600{% else %}text-gray-600 hover:bg-gray-50 hover:text-gray-900{% endif %}">
                 <i class="bi bi-award"></i>
                 Certificates
             </a>

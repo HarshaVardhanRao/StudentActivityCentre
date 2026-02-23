@@ -16,7 +16,8 @@ Including another URLconf
 """
 
 from django.contrib import admin
-
+from django.conf import settings
+from django.conf.urls.static import static
 from django.urls import path, include
 from users.admin_bulk_upload import bulk_upload_view
 from .dashboard_views import (
@@ -162,4 +163,11 @@ urlpatterns = [
     path("reports/", reports_dashboard, name="reports_dashboard"),
     path("analytics/", analytics_view, name="analytics"),
     path("bulk-upload/", bulk_upload_view, name="user_bulk_upload"),
+    
+    # Certificate generation
+    path("certificates/", include("certificate.urls")),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

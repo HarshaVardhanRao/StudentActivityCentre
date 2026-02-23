@@ -21,6 +21,12 @@ class Club(models.Model):
         'User', on_delete=models.SET_NULL, null=True, blank=True,
         related_name='advised_clubs', limit_choices_to={'roles': 'FACULTY'}
     )
+    certificate_template = models.ImageField(
+        upload_to='certificate_templates/',
+        null=True,
+        blank=True,
+        help_text='Upload a certificate template image (JPG/PNG, recommended: 1500x1000px)'
+    )
 
     def __str__(self):
         return self.name

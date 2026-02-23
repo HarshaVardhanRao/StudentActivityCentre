@@ -57,7 +57,7 @@ def club_detail(request, club_id):
 @login_required
 def club_create(request):
     """Create a new club"""
-    if not ('ADMIN' in request.user.roles):
+    if not ('SAC_COORDINATOR' in request.user.roles):
         messages.error(request, 'You do not have permission to create clubs.')
         return redirect('club_list')
     
@@ -67,6 +67,11 @@ def club_create(request):
                 name=request.POST['name'],
                 description=request.POST.get('description', ''),
             )
+            
+            # Handle certificate template upload
+            if 'certificate_template' in request.FILES:
+                club.certificate_template = request.FILES['certificate_template']
+                club.save()
             
             # Add coordinators (signals will handle role assignment)
             coordinator_ids = request.POST.getlist('coordinators')
@@ -109,6 +114,10 @@ def club_edit(request, club_id):
         try:
             club.name = request.POST['name']
             club.description = request.POST.get('description', '')
+            
+            # Handle certificate template upload
+            if 'certificate_template' in request.FILES:
+                club.certificate_template = request.FILES['certificate_template']
             
             # Update advisor
             advisor_id = request.POST.get('advisor')

@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Certificates - MITS SAC Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root { --mits-red: #C8102E; }
+  .ring-red { box-shadow: 0 0 0 3px rgba(200,16,46,0.15); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+    <div class="bg-white rounded-2xl shadow-sm ring-1 ring-gray-100 overflow-hidden">
+        <!-- Header -->
+        <div class="px-6 py-5 border-b border-gray-100">
+            <h1 class="text-2xl font-semibold text-gray-900">Generate Certificates</h1>
+            <p class="text-sm text-gray-500 mt-1">Fill in the details to generate certificates</p>
+        </div>
+
+        <!-- Form -->
+        <form method="post" enctype="multipart/form-data" class="px-6 py-6 space-y-6">
+            {% csrf_token %}
+
+            <!-- Event Details Section -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">Event Details</h3>
+                
+                <div class="grid md:grid-cols-2 gap-4">
+                    <!-- Event Name -->
+                    <div>
+                        <label for="event" class="block text-sm font-medium text-gray-700 mb-2">Event Name *</label>
+                        <input type="text" id="event" name="event" required
+                               class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3"
+                               placeholder="e.g., Tech Symposium 2026">
+                    </div>
+
+                    <!-- Event Date -->
+                    <div>
+                        <label for="date" class="block text-sm font-medium text-gray-700 mb-2">Event Date *</label>
+                        <input type="date" id="date" name="date" required
+                               class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3">
+                    </div>
+                </div>
+
+                <!-- Club Name -->
+                <div>
+                    <label for="club_name" class="block text-sm font-medium text-gray-700 mb-2">Club / Organization *</label>
+                    <select id="club_name" name="club_name" required
+                            class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3">
+                        <option value="">Select a club...</option>
+                        {% for club in clubs %}
+                            <option value="{{ club.name }}">{{ club.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <hr class="border-gray-200">
+
+            <!-- Single or Bulk Section -->
+            <div class="space-y-4">
+                <h3 class="text-lg font-semibold text-gray-900">Certificate Type</h3>
+                
+                <!-- Toggle -->
+                <div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 border border-gray-100">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="certificate_type" value="single" checked onclick="toggleCertificateType('single')"
+                               class="text-[var(--mits-red)] focus:ring-[var(--mits-red)]">
+                        <span class="text-sm font-medium text-gray-700">Single Certificate</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="certificate_type" value="bulk" onclick="toggleCertificateType('bulk')"
+                               class="text-[var(--mits-red)] focus:ring-[var(--mits-red)]">
+                        <span class="text-sm font-medium text-gray-700">Bulk from Excel</span>
+                    </label>
+                </div>
+
+                <!-- Single Certificate Fields -->
+                <div id="single-fields" class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Student Name</label>
+                        <input type="text" id="name" name="name"
+                               class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3"
+                               placeholder="e.g., John Doe">
+                    </div>
+                    <div>
+                        <label for="department" class="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                        <input type="text" id="department" name="department"
+                               class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3"
+                               placeholder="e.g., Computer Science">
+                    </div>
+                </div>
+
+                <!-- Bulk Upload Field -->
+                <div id="bulk-fields" class="hidden">
+                    <label for="excel_file" class="block text-sm font-medium text-gray-700 mb-2">Upload Excel File</label>
+                    <div class="relative">
+                        <input type="file" id="excel_file" name="excel_file" accept=".xlsx,.xls"
+                               class="w-full rounded-lg border-gray-200 focus:border-[var(--mits-red)] focus:ring-[var(--mits-red)] focus:ring-2 ring-red transition p-3 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-[var(--mits-red)] file:text-white hover:file:brightness-95">
+                    </div>
+                    <p class="mt-2 text-xs text-gray-500">Upload an Excel file with columns: name, department</p>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center justify-between pt-4">
+                <a href="{% url 'certificate:home' %}"
+                   class="inline-flex items-center px-5 py-2.5 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+                <button type="submit"
+                        class="inline-flex items-center gap-2 bg-[var(--mits-red)] text-white font-medium px-5 py-2.5 rounded-lg shadow-sm hover:brightness-95 active:brightness-90 transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-5 h-5">
+                        <path fill-rule="evenodd" d="M12 2.25a.75.75 0 01.75.75v11.69l3.22-3.22a.75.75 0 111.06 1.06l-4.5 4.5a.75.75 0 01-1.06 0l-4.5-4.5a.75.75 0 111.06-1.06l3.22 3.22V3a.75.75 0 01.75-.75zm-9 13.5a.75.75 0 01.75.75v2.25a1.5 1.5 0 001.5 1.5h13.5a1.5 1.5 0 001.5-1.5V16.5a.75.75 0 011.5 0v2.25a3 3 0 01-3 3H5.25a3 3 0 01-3-3V16.5a.75.75 0 01.75-.75z" clip-rule="evenodd" />
+                    </svg>
+                    Generate Certificate(s)
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function toggleCertificateType(type) {
+    const singleFields = document.getElementById('single-fields');
+    const bulkFields = document.getElementById('bulk-fields');
+    const nameInput = document.getElementById('name');
+    const deptInput = document.getElementById('department');
+    const excelInput = document.getElementById('excel_file');
+    
+    if (type === 'single') {
+        singleFields.classList.remove('hidden');
+        bulkFields.classList.add('hidden');
+        nameInput.required = true;
+        deptInput.required = true;
+        excelInput.required = false;
+    } else {
+        singleFields.classList.add('hidden');
+        bulkFields.classList.remove('hidden');
+        nameInput.required = false;
+        deptInput.required = false;
+        excelInput.required = true;
+    }
+}
+</script>
+{% endblock %}
